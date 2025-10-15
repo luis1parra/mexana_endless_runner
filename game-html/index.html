@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Endless Runner Game</title>
+    <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+
+<body>
+    <div id="hud">
+        Time: <span id="timer">0</span>s<br />
+        Lives: <span id="lives">3</span><br />
+        Coins: <span id="coins">0</span>
+    </div>
+
+    <div id="startScreen">
+        <h1>3D Endless Runner</h1>
+        <button id="startButton">Start Game</button>
+    </div>
+
+    <div id="loaderOverlay">
+        <div class="loader-title">Loading assets…</div>
+        <div class="loader-bar">
+            <div class="loader-fill" id="loaderFill"></div>
+        </div>
+        <div class="loader-percent" id="loaderPercent">0%</div>
+        <div class="loader-hint">Please wait while we load 3D models</div>
+    </div>
+
+    <!-- Librerías pedidas -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- fflate (requerido por FBXLoader r132) -->
+    <script src="https://cdn.jsdelivr.net/npm/fflate@0.7.4/umd/index.min.js"></script>
+
+    <!-- Tu código -->
+    <script src="./assets/js/assets-loader.js"></script>
+    <script src="./assets/js/game.js"></script>
+</body>
+
+</html>

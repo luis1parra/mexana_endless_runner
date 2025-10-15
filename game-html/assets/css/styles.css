@@ -1,0 +1,32 @@
+body { margin: 0; overflow: hidden; background: #000; }
+canvas { display: block; }
+
+#hud {
+  position: absolute;
+  top: 10px; right: 10px;
+  color: #fff; font-family: Arial, sans-serif; font-size: 20px;
+  z-index: 100; display: none;
+}
+
+#startScreen, #loaderOverlay {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  color: #fff; font-family: Arial, sans-serif; z-index: 200;
+}
+#startScreen { background: rgba(0,0,0,0.85); }
+
+#startButton {
+  padding: 15px 30px; font-size: 18px; background: #00aa00;
+  border: none; border-radius: 5px; cursor: pointer; margin-top: 20px;
+}
+
+/* Loader */
+#loaderOverlay { background: rgba(0,0,0,0.92); display: none; }
+.loader-title { margin-bottom: 12px; font-weight: bold; }
+.loader-bar {
+  width: 60%; max-width: 480px; height: 12px; background: #222;
+  border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px #444 inset;
+}
+.loader-fill { width: 0%; height: 100%; background: #2ecc71; transition: width .15s linear; }
+.loader-percent { margin-top: 10px; font-size: 14px; color: #ddd; }
+.loader-hint { margin-top: 6px; font-size: 12px; color: #aaa; }
