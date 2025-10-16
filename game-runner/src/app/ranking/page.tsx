@@ -1,7 +1,11 @@
+﻿'use client';
+
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Header } from "../components/layout/Header";
 import { Footer } from "../components/layout/Footer";
 import homeBackground from "../../assets/images/homebackground.png";
+import { api, type RankingEntry } from "../../services/api";
 
 type LeaderBoardEntry = {
   position: number;
@@ -11,14 +15,12 @@ type LeaderBoardEntry = {
   progress: number;
 };
 
-const leaderBoardLeft: LeaderBoardEntry[] = [
+const fallbackRanking: LeaderBoardEntry[] = [
   { position: 1, name: "Ronald77", score: 10000, avatar: "boy", progress: 0.95 },
   { position: 2, name: "Rositann", score: 9000, avatar: "girl", progress: 0.86 },
   { position: 3, name: "JJcamelo", score: 8000, avatar: "boy", progress: 0.74 },
   { position: 4, name: "Lolak982", score: 7000, avatar: "girl", progress: 0.62 },
 ];
-
-const leaderBoardRight = leaderBoardLeft.slice(0, 4);
 
 const badgeColors: Record<LeaderBoardEntry["avatar"], string> = {
   boy: "from-[#3C6BFF] to-[#2644C4]",
@@ -26,6 +28,85 @@ const badgeColors: Record<LeaderBoardEntry["avatar"], string> = {
 };
 
 export default function RankingPage() {
+  const [ranking, setRanking] = useState<RankingEntry[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadRanking = async () => {
+      try {
+        setError(null);
+        let idUser: string | number | undefined;
+
+        try {
+          const rawSession = window.localStorage.getItem("session");
+          if (rawSession) {
+            const parsed = JSON.parse(rawSession) as { id_user_game?: string | number };
+            if (parsed?.id_user_game !== undefined && parsed.id_user_game !== null) {
+              idUser = parsed.id_user_game;
+            }
+          }
+        } catch {
+          // Ignoramos errores de parsing/lectura del storage
+        }
+
+        const response = await api.fetchRanking({ n: 10, id_user_game: idUser });
+        if (!isCancelled) {
+          setRanking(response?.ranking ?? []);
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          setError(
+            err instanceof Error ? err.message : "No fue posible obtener el ranking.",
+          );
+        }
+      }
+    };
+
+    loadRanking();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const hasRanking = ranking.length > 0;
+
+  const uiRanking = useMemo<LeaderBoardEntry[]>(() => {
+    if (!hasRanking) {
+      return fallbackRanking;
+    }
+
+    const maxScore = ranking.reduce(
+      (max, entry) => Math.max(max, entry.sumatoria ?? 0),
+      0,
+    );
+
+    const sorted = [...ranking].sort((a, b) => {
+      const posA = typeof a.posicion === "number" ? a.posicion : Number.POSITIVE_INFINITY;
+      const posB = typeof b.posicion === "number" ? b.posicion : Number.POSITIVE_INFINITY;
+      return posA - posB;
+    });
+
+    return sorted.map((entry, index) => {
+      const normalizedScore = typeof entry.sumatoria === "number" ? entry.sumatoria : 0;
+      const progress =
+        maxScore > 0 ? Math.min(Math.max(normalizedScore / maxScore, 0), 1) : 0;
+
+      return {
+        position: entry.posicion ?? index + 1,
+        name: entry.nickname ?? `Jugador ${index + 1}`,
+        score: normalizedScore,
+        avatar: entry.selected ? "girl" : "boy",
+        progress,
+      };
+    });
+  }, [hasRanking, ranking]);
+
+  const leftRanking = uiRanking.slice(0, 3);
+  const rightRanking = hasRanking ? uiRanking : fallbackRanking;
+
   return (
     <div className="flex min-h-screen flex-col bg-[#E6F1FF] text-[#0B1E52]">
       <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 py-12 lg:px-10 lg:py-16">
@@ -34,6 +115,12 @@ export default function RankingPage() {
           <div className="pointer-events-none absolute -right-28 -top-24 h-80 w-80 rounded-full bg-[#6AA4FF]/40 blur-3xl" />
           <div className="pointer-events-none absolute right-28 bottom-24 h-48 w-48 rounded-full bg-[#9FC0FF]/30 blur-2xl" />
           <Header activeHref="/ranking" registerHref="#" loginHref="#" />
+
+          {error && (
+            <div className="mt-6 rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-[#FFD2D2]">
+              {error}
+            </div>
+          )}
 
           <div className="relative mt-14 grid gap-12 lg:grid-cols-[minmax(0,540px)_minmax(0,360px)]">
             <div>
@@ -44,7 +131,7 @@ export default function RankingPage() {
                 Clasificacion de Jugadores
               </h1>
               <div className="mt-10 flex flex-col gap-6">
-                {leaderBoardLeft.map((player) => (
+                {leftRanking.map((player) => (
                   <div
                     key={player.position}
                     className="flex items-center gap-4 rounded-[32px] bg-white/10 px-5 py-4 backdrop-blur-sm"
@@ -89,7 +176,7 @@ export default function RankingPage() {
               <div className="relative overflow-hidden rounded-[40px] bg-white/15 px-6 py-8 text-[#11308F] shadow-[0_20px_40px_rgba(12,35,106,0.35)] backdrop-blur">
                 <div className="absolute inset-4 rounded-[36px] bg-white/30 blur-3xl" />
                 <div className="relative z-10 space-y-4">
-                  {leaderBoardRight.map((player) => (
+                  {rightRanking.map((player) => (
                     <div
                       key={player.position}
                       className="flex items-center justify-between gap-3 rounded-[24px] bg-white/80 px-4 py-3 text-sm font-semibold text-[#11308F] shadow-[0_12px_24px_rgba(17,48,143,0.25)]"
@@ -125,3 +212,4 @@ export default function RankingPage() {
     </div>
   );
 }
+

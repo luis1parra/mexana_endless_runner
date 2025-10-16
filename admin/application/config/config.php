@@ -23,7 +23,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-$config['base_url'] = 'http://localhost/tbwa/mexana/admin/';
+
+//$config['base_url'] = 'http://localhost/tbwa/mexana/admin/';
+
+// if (!$config['base_url']) {
+
+    $domain = $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
+
+    $domain = preg_replace('/index.php.*/', '', $domain);
+    if (!empty($_SERVER['HTTPS'])) {
+        $config['base_url'] = 'https://' . $domain;
+    } else {
+        $config['base_url'] = 'http://' . $domain;
+    }
+// }
 
 /*
 |--------------------------------------------------------------------------

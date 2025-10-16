@@ -8,6 +8,7 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowDownIcon,
   CartIcon,
@@ -17,6 +18,11 @@ import {
   ReceiptIcon,
   UserIcon,
 } from "../../assets/icons";
+import {
+  api,
+  type ApiSessionResponse,
+  type RegistrationPayload,
+} from "../../services/api";
 
 type RegistrationModalProps = {
   open: boolean;
@@ -53,6 +59,7 @@ const InputField = ({
         <div className="relative w-full">
           <select
             id={id}
+            name={id}
             className={`${inputClass} appearance-none pr-8`}
             defaultValue=""
           >
@@ -71,6 +78,7 @@ const InputField = ({
         <input
           id={id}
           type={type}
+          name={id}
           className={inputClass}
           placeholder={placeholder ?? label}
         />
@@ -78,6 +86,35 @@ const InputField = ({
     </div>
   </label>
 );
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") {
+        const [, base64] = result.split(",");
+        resolve(base64 ?? result);
+      } else {
+        reject(new Error("No se pudo leer el archivo seleccionado."));
+      }
+    };
+    reader.onerror = () => reject(new Error("No se pudo leer el archivo seleccionado."));
+    reader.readAsDataURL(file);
+  });
+
+const toNonEmptyString = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+};
 
 const leftFields: InputFieldProps[] = [
   {
@@ -112,10 +149,10 @@ const leftFields: InputFieldProps[] = [
     placeholder: "Genero",
     icon: <UserIcon className="h-5 w-5" />,
     options: [
-      { label: "Femenino", value: "femenino" },
-      { label: "Masculino", value: "masculino" },
-      { label: "Otro", value: "otro" },
-      { label: "Prefiero no decirlo", value: "no-decir" },
+      { label: "Femenino", value: "F" },
+      { label: "Masculino", value: "M" },
+      { label: "Otro", value: "O" },
+      { label: "Prefiero no decirlo", value: "N" },
     ],
   },
 ];
@@ -143,7 +180,10 @@ const rightFields: InputFieldProps[] = [
 
 export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!open) {
@@ -158,7 +198,12 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
 
   useEffect(() => {
     if (!open) {
-      setAttachments([]);
+      setAttachment(null);
+      setSubmitError(null);
+      setIsSubmitting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   }, [open]);
 
@@ -172,30 +217,150 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
 
   const handleFilesSelected = (event: ChangeEvent<HTMLInputElement>) => {
     const { files } = event.target;
-    if (!files) {
+    if (!files?.length) {
       return;
     }
-    setAttachments((prev) => {
-      const existingKeys = new Set(prev.map((file) => `${file.name}-${file.size}`));
-      const updated = [...prev];
-      Array.from(files).forEach((file) => {
-        const key = `${file.name}-${file.size}`;
-        if (!existingKeys.has(key)) {
-          existingKeys.add(key);
-          updated.push(file);
-        }
-      });
-      return updated;
-    });
+
+    const file = files[0];
+    if (!file.type.startsWith("image/")) {
+      setSubmitError("Solo se permite subir una imagen en formato JPG o PNG.");
+      setAttachment(null);
+      event.target.value = "";
+      return;
+    }
+
+    setSubmitError(null);
+    setAttachment(file);
     event.target.value = "";
   };
 
-  const handleRemoveAttachment = (index: number) => {
-    setAttachments((prev) => prev.filter((_, idx) => idx !== index));
+  const handleRemoveAttachment = () => {
+    setAttachment(null);
+    setSubmitError(null);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setSubmitError(null);
+
+    const formElement = event.currentTarget;
+    const formData = new FormData(formElement);
+
+    const getValue = (key: string) =>
+      (formData.get(key)?.toString().trim() ?? "");
+
+    const nombre = getValue("fullName");
+    const correo = getValue("email");
+    const nickname = getValue("username");
+    const edadValue = Number(getValue("age"));
+    const genero = getValue("gender");
+    const lugarCompra = getValue("purchasePlace");
+    const numeroFactura = getValue("invoiceNumber");
+
+    if (!nombre || !correo || !nickname || !genero || !lugarCompra || !numeroFactura) {
+      setSubmitError("Por favor completa todos los campos obligatorios.");
+      return;
+    }
+
+    if (!Number.isFinite(edadValue) || edadValue <= 0) {
+      setSubmitError("Ingresa una edad valida.");
+      return;
+    }
+
+    if (!attachment) {
+      setSubmitError("Debes adjuntar la imagen de la factura.");
+      return;
+    }
+
+    let fotoFactura = "";
+    try {
+      fotoFactura = await fileToBase64(attachment);
+    } catch (error) {
+      setSubmitError("No se pudo procesar la imagen de la factura.");
+      return;
+    }
+
+    const payload: RegistrationPayload = {
+      nombre,
+      correo,
+      nickname,
+      edad: Math.trunc(edadValue),
+      genero,
+      lugar_compra: lugarCompra,
+      numero_factura: numeroFactura,
+      foto_factura: fotoFactura,
+    };
+
+    try {
+      setIsSubmitting(true);
+      const response = await api.register(payload);
+
+      if (typeof response === "string") {
+        const message = String(response).trim();
+        setSubmitError(message || "No fue posible completar el registro.");
+        return;
+      }
+
+      const nestedError =
+        response.data && typeof response.data === "object"
+          ? (response.data as { error?: unknown }).error
+          : undefined;
+
+      const possibleError =
+        [response.error, nestedError].find(
+          (message) => typeof message === "string" && message.trim().length > 0,
+        ) ?? null;
+
+      if (possibleError) {
+        setSubmitError((possibleError as string).trim());
+        return;
+      }
+
+      const nestedSuccess =
+        response.data && typeof response.data === "object"
+          ? (response.data as { success?: unknown }).success
+          : undefined;
+
+      if (response.success === false || nestedSuccess === false) {
+        setSubmitError("No fue posible completar el registro.");
+        return;
+      }
+
+      const sessionSource: ApiSessionResponse =
+        response.data && typeof response.data === "object"
+          ? { ...(response.data as ApiSessionResponse) }
+          : response;
+
+      const idUserGame = toNonEmptyString(sessionSource.id_user_game);
+      const nicknameFromResponse = toNonEmptyString(sessionSource.nickname);
+      const facturaFromResponse = toNonEmptyString(sessionSource.id_factura);
+
+      if (idUserGame) {
+        const session = {
+          id_user_game: idUserGame,
+          nickname: nicknameFromResponse ?? payload.nickname,
+          id_factura: facturaFromResponse ?? payload.numero_factura,
+        };
+
+        try {
+          window.localStorage.setItem("session", JSON.stringify(session));
+        } catch {
+          // Evita bloquear el flujo si el almacenamiento falla.
+        }
+      }
+
+      onClose();
+      // Navega al juego estático en public/ respetando basePath de Next
+      router.push("/game/index.html");
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "No fue posible completar el registro.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -230,16 +395,15 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 Adjuntar foto de la factura
               </p>
               <p className="mt-1 text-sm text-[#4A5785]">
-                Adjunta las fotos de la factura en buena resolucion en formato
-                PNG, PDF y JPG.
+                Adjunta una sola imagen de la factura en buena resolucion en
+                formato JPG o PNG.
               </p>
               <input
                 ref={fileInputRef}
                 id="invoiceAttachments"
                 type="file"
                 className="sr-only"
-                multiple
-                accept=".png,.jpg,.jpeg,application/pdf"
+                accept=".png,.jpg,.jpeg"
                 onChange={handleFilesSelected}
               />
               <button
@@ -248,26 +412,23 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#2450F0] hover:text-[#1C3AD4]"
               >
                 <PlusCircleIcon className="h-5 w-5" />
-                Adjuntar fotos
+                Adjuntar foto
               </button>
-              {attachments.length > 0 && (
+              {attachment && (
                 <ul className="mt-4 space-y-2 text-sm text-[#0B1E52]">
-                  {attachments.map((file, index) => (
-                    <li
-                      key={`${file.name}-${file.size}-${index}`}
-                      className="flex items-center justify-between rounded-full bg-white px-4 py-2 shadow-[0_2px_6px_rgba(15,31,91,0.08)]"
+                  <li
+                    className="flex items-center justify-between rounded-full bg-white px-4 py-2 shadow-[0_2px_6px_rgba(15,31,91,0.08)]"
+                  >
+                    <span className="truncate pr-3">{attachment.name}</span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveAttachment}
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E1E7FB] text-[#2450F0] transition hover:bg-[#D2DBFA]"
+                      aria-label={`Eliminar archivo ${attachment.name}`}
                     >
-                      <span className="truncate pr-3">{file.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveAttachment(index)}
-                        className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E1E7FB] text-[#2450F0] transition hover:bg-[#D2DBFA]"
-                        aria-label={`Eliminar archivo ${file.name}`}
-                      >
-                        <CloseIcon className="h-3.5 w-3.5" />
-                      </button>
-                    </li>
-                  ))}
+                      <CloseIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
                 </ul>
               )}
             </div>
@@ -285,12 +446,19 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
               </span>
             </label>
           </div>
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 flex flex-col items-center gap-4">
+            {submitError && (
+              <p className="text-sm font-semibold text-red-600 text-center">
+                {submitError}
+              </p>
+            )}
             <button
               type="submit"
-              className="mx-auto flex w-full max-w-[240px] items-center justify-center rounded-full bg-[#2450F0] px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition hover:bg-[#1C3AD4]"
+              disabled={isSubmitting}
+              className={`mx-auto flex w-full max-w-[240px] items-center justify-center rounded-full px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitting ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[#2450F0] hover:bg-[#1C3AD4]"}`}
+              aria-busy={isSubmitting}
             >
-              Empezar a jugar
+              {isSubmitting ? "Registrando..." : "Empezar a jugar"}
             </button>
           </div>
         </form>

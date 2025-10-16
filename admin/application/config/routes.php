@@ -59,3 +59,9 @@ $route['logout']    = 'auth/logout';
 $route['dashboard'] = 'dashboard/index';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+$route['usuarios']                 = 'usuarios/index';
+$route['usuarios/crear']           = 'usuarios/form';
+$route['usuarios/editar/(:num)']   = 'usuarios/form/$1';
+
+$route['facturas/validar/(:num)'] = 'facturas/validar/$1';

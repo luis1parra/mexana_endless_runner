@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowDownIcon,
   CartIcon,
@@ -16,6 +17,7 @@ import {
   PlusCircleIcon,
   ReceiptIcon,
 } from "../../assets/icons";
+import { api, type ApiSessionResponse } from "../../services/api";
 
 type LoginModalProps = {
   open: boolean;
@@ -52,6 +54,7 @@ const InputField = ({
         <div className="relative w-full">
           <select
             id={id}
+            name={id}
             className={`${inputClass} appearance-none pr-8`}
             defaultValue=""
           >
@@ -70,6 +73,7 @@ const InputField = ({
         <input
           id={id}
           type={type}
+          name={id}
           className={inputClass}
           placeholder={placeholder ?? label}
         />
@@ -85,9 +89,41 @@ const purchaseOptions = [
   { label: "Otro", value: "otro" },
 ];
 
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") {
+        const [, base64] = result.split(",");
+        resolve(base64 ?? result);
+      } else {
+        reject(new Error("No se pudo leer el archivo seleccionado."));
+      }
+    };
+    reader.onerror = () => reject(new Error("No se pudo leer el archivo seleccionado."));
+    reader.readAsDataURL(file);
+  });
+
+const toNonEmptyString = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+};
+
 export const LoginModal = ({ open, onClose }: LoginModalProps) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!open) {
@@ -102,7 +138,12 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
 
   useEffect(() => {
     if (!open) {
-      setAttachments([]);
+      setAttachment(null);
+      setSubmitError(null);
+      setIsSubmitting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   }, [open]);
 
@@ -110,8 +151,112 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
     return null;
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setSubmitError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const getValue = (key: string) => formData.get(key)?.toString().trim() ?? "";
+
+    const correo = getValue("loginEmail");
+    const lugarCompra = getValue("loginPurchasePlace");
+    const numeroFactura = getValue("loginInvoiceNumber");
+
+    if (!correo || !lugarCompra || !numeroFactura) {
+      setSubmitError("Por favor completa todos los campos obligatorios.");
+      return;
+    }
+
+    if (!attachment) {
+      setSubmitError("Debes adjuntar la imagen de la factura.");
+      return;
+    }
+
+    let fotoFactura = "";
+    try {
+      fotoFactura = await fileToBase64(attachment);
+    } catch {
+      setSubmitError("No se pudo procesar la imagen de la factura.");
+      return;
+    }
+
+    const payload = {
+      correo,
+      lugar_compra: lugarCompra,
+      numero_factura: numeroFactura,
+      foto_factura: fotoFactura,
+    };
+
+    try {
+      setIsSubmitting(true);
+      const response = await api.login(payload);
+
+      if (typeof response === "string") {
+        const message = String(response).trim();
+        setSubmitError(message || "No fue posible completar el ingreso.");
+        return;
+      }
+
+      const nestedError =
+        response.data && typeof response.data === "object"
+          ? (response.data as { error?: unknown }).error
+          : undefined;
+
+      const possibleError =
+        [response.error, nestedError].find(
+          (message) => typeof message === "string" && message.trim().length > 0,
+        ) ?? null;
+
+      if (possibleError) {
+        setSubmitError((possibleError as string).trim());
+        return;
+      }
+
+      const nestedSuccess =
+        response.data && typeof response.data === "object"
+          ? (response.data as { success?: unknown }).success
+          : undefined;
+
+      if (response.success === false || nestedSuccess === false) {
+        setSubmitError("No fue posible completar el ingreso.");
+        return;
+      }
+
+      const sessionSource: ApiSessionResponse =
+        response.data && typeof response.data === "object"
+          ? { ...(response.data as ApiSessionResponse) }
+          : response;
+
+      const idUserGame = toNonEmptyString(sessionSource.id_user_game);
+      const nicknameFromResponse = toNonEmptyString(sessionSource.nickname);
+      const facturaFromResponse = toNonEmptyString(sessionSource.id_factura);
+
+      if (idUserGame) {
+        const session = {
+          id_user_game: idUserGame,
+          nickname: nicknameFromResponse ?? payload.correo,
+          id_factura: facturaFromResponse ?? payload.numero_factura,
+        };
+
+        try {
+          window.localStorage.setItem("session", JSON.stringify(session));
+        } catch {
+          // Ignoramos errores de almacenamiento para no bloquear el flujo.
+        }
+      }
+
+      onClose();
+      // Navega al juego estático en public/ respetando basePath de Next
+      router.push("/game/index.html");
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "No fue posible completar el ingreso.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAttachClick = () => {
@@ -120,27 +265,26 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
 
   const handleFilesSelected = (event: ChangeEvent<HTMLInputElement>) => {
     const { files } = event.target;
-    if (!files) {
+    if (!files?.length) {
       return;
     }
 
-    setAttachments((prev) => {
-      const known = new Set(prev.map((file) => `${file.name}-${file.size}`));
-      const updated = [...prev];
-      Array.from(files).forEach((file) => {
-        const key = `${file.name}-${file.size}`;
-        if (!known.has(key)) {
-          known.add(key);
-          updated.push(file);
-        }
-      });
-      return updated;
-    });
+    const file = files[0];
+    if (!file.type.startsWith("image/")) {
+      setSubmitError("Solo se permite subir una imagen en formato JPG o PNG.");
+      setAttachment(null);
+      event.target.value = "";
+      return;
+    }
+
+    setSubmitError(null);
+    setAttachment(file);
     event.target.value = "";
   };
 
-  const handleRemoveAttachment = (index: number) => {
-    setAttachments((prev) => prev.filter((_, idx) => idx !== index));
+  const handleRemoveAttachment = () => {
+    setAttachment(null);
+    setSubmitError(null);
   };
 
   return (
@@ -183,16 +327,15 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
               Adjuntar foto de la factura
             </p>
             <p className="mt-1 text-sm text-[#4A5785]">
-              Adjunta las fotos de la factura en buena resolucion en formato
-              PNG, PDF y JPG.
+              Adjunta una sola imagen de la factura en buena resolucion en
+              formato JPG o PNG.
             </p>
             <input
               ref={fileInputRef}
               id="loginAttachments"
               type="file"
               className="sr-only"
-              multiple
-              accept=".png,.jpg,.jpeg,application/pdf"
+              accept=".png,.jpg,.jpeg"
               onChange={handleFilesSelected}
             />
             <button
@@ -201,26 +344,21 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
               className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#2450F0] hover:text-[#1C3AD4]"
             >
               <PlusCircleIcon className="h-5 w-5" />
-              Adjuntar fotos
+              Adjuntar foto
             </button>
-            {attachments.length > 0 && (
+            {attachment && (
               <ul className="mt-4 space-y-2 text-sm text-[#0B1E52]">
-                {attachments.map((file, index) => (
-                  <li
-                    key={`${file.name}-${file.size}-${index}`}
-                    className="flex items-center justify-between rounded-full bg-white px-4 py-2 shadow-[0_2px_6px_rgba(15,31,91,0.08)]"
+                <li className="flex items-center justify-between rounded-full bg-white px-4 py-2 shadow-[0_2px_6px_rgba(15,31,91,0.08)]">
+                  <span className="truncate pr-3">{attachment.name}</span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveAttachment}
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E1E7FB] text-[#2450F0] transition hover:bg-[#D2DBFA]"
+                    aria-label={`Eliminar archivo ${attachment.name}`}
                   >
-                    <span className="truncate pr-3">{file.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAttachment(index)}
-                      className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E1E7FB] text-[#2450F0] transition hover:bg-[#D2DBFA]"
-                      aria-label={`Eliminar archivo ${file.name}`}
-                    >
-                      <CloseIcon className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
+                    <CloseIcon className="h-3.5 w-3.5" />
+                  </button>
+                </li>
               </ul>
             )}
           </div>
@@ -237,12 +375,21 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
               y envio, llamadas o mensajes.
             </span>
           </label>
-          <button
-            type="submit"
-            className="flex w-full items-center justify-center rounded-full bg-[#2450F0] px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition hover:bg-[#1C3AD4]"
-          >
-            Ingresar al juego
-          </button>
+          <div className="flex flex-col items-center gap-4">
+            {submitError && (
+              <p className="text-sm font-semibold text-red-600 text-center">
+                {submitError}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`flex w-full items-center justify-center rounded-full px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitting ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[#2450F0] hover:bg-[#1C3AD4]"}`}
+              aria-busy={isSubmitting}
+            >
+              {isSubmitting ? "Ingresando..." : "Ingresar al juego"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

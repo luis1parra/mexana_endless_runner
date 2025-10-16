@@ -1,9 +1,17 @@
+# Desactivar listado de archivos en /tbwa y subcarpetas
+Options -Indexes
+# Bloquear carpetas internas del framework
+RedirectMatch 403 ^/(application|system|tests|logs|vendor)/
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /tbwa/mexana/admin/
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^(.*)$ index.php/$1 [L]
+  # Si intenta acceder a carpetas críticas → redirigir al login
+  RewriteCond %{REQUEST_URI} /(application|system|tests|logs|vendor)
+  RewriteRule ^.*$ /tbwa/mexana/admin/login [R=302,L]
 </IfModule>
 
 # Opcional: seguridad estática mínima
