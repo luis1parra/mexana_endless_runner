@@ -271,8 +271,20 @@
 
     scene.background = new THREE.Color(0x0b3fe6);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    const ambientLight = new THREE.AmbientLight(0xfffbe6, 1.15);
     scene.add(ambientLight);
+    const sunLight = new THREE.DirectionalLight(0xfff2cc, 1.1);
+    sunLight.position.set(40, 60, 10);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 10;
+    sunLight.shadow.camera.far = 120;
+    sunLight.shadow.camera.left = -50;
+    sunLight.shadow.camera.right = 50;
+    sunLight.shadow.camera.top = 50;
+    sunLight.shadow.camera.bottom = -50;
+    scene.add(sunLight);
 
     for (let i = 0; i < 20; i++) {
       const floor = new THREE.Mesh(
@@ -398,7 +410,16 @@
 
     if (clone) {
       const data = ensureUserData(clone);
-      data.baseY = data.baseY ?? (clone.position?.y ?? 1);
+      if (data.baseY == null) {
+        clone.position.set(0, 0, 0);
+        clone.updateMatrixWorld(true);
+        const bbox = new THREE.Box3().setFromObject(clone);
+        const minY = bbox.min.y;
+        const maxY = bbox.max.y;
+        const align = isFinite(minY) ? -minY : 0;
+        const height = isFinite(maxY) && isFinite(minY) ? maxY - minY : 1;
+        data.baseY = align + height * 0.05 + 0.35;
+      }
       return clone;
     }
 
@@ -407,7 +428,8 @@
       new THREE.MeshStandardMaterial({ color: 0xff0000 })
     );
     const data = ensureUserData(fallback);
-    data.baseY = 0.5;
+    fallback.scale.set(1, 1, 1);
+    data.baseY = 1.25;
     return fallback;
   }
 
@@ -418,16 +440,25 @@
 
     if (clone) {
       const data = ensureUserData(clone);
-      data.baseY = data.baseY ?? (clone.position?.y ?? 1);
+      if (data.baseY == null) {
+        clone.position.set(0, 0, 0);
+        clone.updateMatrixWorld(true);
+        const bbox = new THREE.Box3().setFromObject(clone);
+        const minY = bbox.min.y;
+        const maxY = bbox.max.y;
+        const align = isFinite(minY) ? -minY : 0;
+        const height = isFinite(maxY) && isFinite(minY) ? maxY - minY : 0.6;
+        data.baseY = align + height * 0.25 + 0.6;
+      }
       return clone;
     }
 
     const fallback = new THREE.Mesh(
-      new THREE.SphereGeometry(0.3, 16, 16),
+      new THREE.SphereGeometry(0.15, 16, 16),
       new THREE.MeshStandardMaterial({ color: 0xffff00 })
     );
     const data = ensureUserData(fallback);
-    data.baseY = 0.5;
+    data.baseY = 0.85;
     return fallback;
   }
 
@@ -577,12 +608,54 @@
   }
 
   function generateCity() {
-    // Tu versión que llama a GET_RANDOM_ASSET_CLONE("city") ya existente
-    const sides = [-7, 7], zStart = -20, zEnd = -200, step = 10;
-    const hasCity = (typeof window.GET_RANDOM_ASSET_CLONE === "function");
-    for (let z = zStart; z > zEnd; z -= step) {
+    const sides = [-10, 10];
+    const walkwayStart = -20;
+    const walkwayEnd = -210;
+    const walkwayStep = 12;
+    const hasCity = typeof window.GET_RANDOM_ASSET_CLONE === "function";
+    const hasScenery =
+      hasCity && Array.isArray(window.ASSET_POOLS?.cityScenery) && window.ASSET_POOLS.cityScenery.length > 0;
+    const hasBuildings =
+      hasCity && Array.isArray(window.ASSET_POOLS?.cityBuildings) && window.ASSET_POOLS.cityBuildings.length > 0;
+
+    if (hasCity && hasBuildings) {
+      const buildingStart = -120;
+      const buildingEnd = -380;
+      const buildingStep = 16;
       for (let side of sides) {
-        let obj = hasCity ? window.GET_RANDOM_ASSET_CLONE("city") : null;
+        let cursor = buildingStart;
+        while (cursor > buildingEnd) {
+          let building = window.GET_RANDOM_ASSET_CLONE("cityBuildings");
+          if (!building) break;
+          building.position.set(0, 0, 0);
+          building.rotation.set(0, 0, 0);
+          building.updateMatrixWorld(true);
+          const bbox = new THREE.Box3().setFromObject(building);
+          const minY = bbox.min.y;
+          building.position.y = isFinite(minY) ? -minY : 0;
+          const lateralOffset = side < 0 ? -3.8 : 3.8;
+          building.position.x = side + lateralOffset;
+          building.position.z = cursor;
+          building.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
+          cursor -= buildingStep;
+          scene.add(building);
+          buildings.push(building);
+        }
+      }
+    }
+
+    for (let z = walkwayStart; z > walkwayEnd; z -= walkwayStep) {
+      for (let side of sides) {
+        let obj = null;
+        if (hasScenery) {
+          obj = window.GET_RANDOM_ASSET_CLONE("cityScenery");
+        }
+        if (!obj && hasCity) {
+          obj = window.GET_RANDOM_ASSET_CLONE("city");
+        }
+        if (obj && obj.userData?.assetCategory === "building") {
+          obj = null;
+        }
         if (obj) {
           obj.position.set(0, 0, 0);
           obj.rotation.set(0, Math.random() * Math.PI * 2, 0);
