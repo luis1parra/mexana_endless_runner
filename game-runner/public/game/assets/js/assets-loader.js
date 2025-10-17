@@ -31,12 +31,15 @@
         "assets/3d/obstacleBarrier.glb"
     ];
 
-    const CITY_FBX_URLS = [
-        "assets/3d/cityBusStop1.glb",
-        "assets/3d/cityBusStop2.glb",
-        "assets/3d/cityLampPost.glb",
-        "assets/3d/cityTree.glb",
-    ];
+const CITY_FBX_URLS = [
+    "assets/3d/cityBusStop1.glb",
+    "assets/3d/cityBusStop2.glb",
+    "assets/3d/cityLampPost.glb",
+    "assets/3d/cityTree.glb",
+    "assets/3d/buildingHouse.glb",
+    "assets/3d/buildingOrange.glb",
+    "assets/3d/buildingYellow.glb",
+];
     const PLAYER_FBX_URL = "assets/3d/Male_Running.fbx";
 
     // ====== SFX: Precarga de sonidos WAV con Web Audio ======
@@ -109,7 +112,7 @@
     const gltfLoader = new THREE.GLTFLoader(manager);
 
     // Transforms comunes (ajústalos a tus modelos si quieres)
-    function applyCommonTransforms(obj, kind /* 'coin' | 'obstacle' | 'city' | 'player' */) {
+    function applyCommonTransforms(obj, kind /* 'coin' | 'obstacle' | 'city' | 'player' */, resourceUrl = "") {
         obj.traverse((o) => {
             if (o.isMesh) {
                 o.castShadow = true;
@@ -124,6 +127,10 @@
                 }
             }
         });
+        obj.userData = obj.userData || {};
+        if (resourceUrl) {
+            obj.userData.sourceUrl = resourceUrl;
+        }
         if (kind === "player") {
             const bbox = new THREE.Box3().setFromObject(obj);
             const size = bbox.getSize(new THREE.Vector3());
@@ -144,8 +151,25 @@
             obj.rotation.y = -Math.PI / 2;
             // Si alguna moneda viene “de canto”, podrías activar:
             // if (kind === 'coin') obj.rotation.x = Math.PI / 2;
+            if (kind === "coin") {
+                obj.scale.multiplyScalar(0.5);
+            }
+            if (kind === "city" && resourceUrl) {
+                if (resourceUrl.toLowerCase().includes("building")) {
+                    obj.scale.multiplyScalar(4);
+                    obj.userData.assetCategory = "building";
+                } else {
+                    obj.userData.assetCategory = "scenery";
+                    obj.scale.multiplyScalar(2);
+                }
+            }
         }
         obj.updateMatrixWorld(true);
+        if (kind === "city" && obj.userData?.assetCategory === "building") {
+            const bbox = new THREE.Box3().setFromObject(obj);
+            const size = bbox.getSize(new THREE.Vector3());
+            obj.userData.buildingDepth = size.z || 14;
+        }
     }
 
     // Clon simple (sirve para FBX estáticos). Para skinned, considera ESM + SkeletonUtils.
@@ -157,7 +181,7 @@
             fbxLoader.load(
                 url,
                 (fbx) => {
-                    applyCommonTransforms(fbx, kind);
+                    applyCommonTransforms(fbx, kind, url);
                     resolve(fbx);
                 },
                 (xhr) => {
@@ -180,7 +204,7 @@
                 (gltf) => {
                     const root = gltf.scene || gltf.scenes?.[0];
                     if (!root) { resolve(null); return; }
-                    applyCommonTransforms(root, kind); // tu misma función de transforms
+                    applyCommonTransforms(root, kind, url); // tu misma función de transforms
                     resolve(root);
                 },
                 (xhr) => {
@@ -221,6 +245,10 @@
         window.ASSET_POOLS.coins = coinModels;
         window.ASSET_POOLS.obstacles = obstacleModels;
         window.ASSET_POOLS.city = cityModels;
+        const cityBuildings = cityModels.filter((model) => model?.userData?.assetCategory === "building");
+        const cityScenery = cityModels.filter((model) => model?.userData?.assetCategory !== "building");
+        window.ASSET_POOLS.cityBuildings = cityBuildings.length ? cityBuildings : cityModels;
+        window.ASSET_POOLS.cityScenery = cityScenery.length ? cityScenery : cityModels;
         if (playerModel) {
             window.PLAYER_MODEL = playerModel;
             window.PLAYER_ANIMATIONS = (playerModel.animations || []).map((clip) => clip.clone());
