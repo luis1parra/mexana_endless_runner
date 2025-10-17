@@ -1,4 +1,4 @@
-﻿export default function JuegoPage() {
+export default function JuegoPage() {
   return (
     <div className="min-h-screen bg-black">
       <iframe
