@@ -10,6 +10,7 @@ import { RegistrationModal } from "../components/modals/RegistrationModal";
 import homeBackground from "../assets/images/homebackground.png";
 
 export default function Home() {
+
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
