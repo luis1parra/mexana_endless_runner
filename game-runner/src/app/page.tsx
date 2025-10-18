@@ -48,7 +48,7 @@ export default function Home() {
                   Registrarme
                 </button>
                 <Link
-                  href="#"
+                  href="/dinamica"
                   className="rounded-full border border-white/70 px-8 py-3 text-base font-semibold text-white transition hover:bg-white/10"
                 >
                   Conocer dinamica

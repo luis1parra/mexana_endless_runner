@@ -194,10 +194,10 @@
                   const idx = p.indexOf('/game/');
                   return idx > -1 ? p.slice(0, idx) : '';
                 })();
-              const dest = origin + basePath + '/ranking/';
+              const dest = origin + basePath + '/resultados/';
               target.location.href = dest;
             } catch (_) {
-              target.location.href = 'https://www.pressstartevolution.com/tbwa/mexana/game-runner/ranking/';
+              target.location.href = 'https://www.pressstartevolution.com/tbwa/mexana/game-runner/resultados/';
             }
           };
 

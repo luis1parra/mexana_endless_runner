@@ -155,6 +155,8 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
     event.preventDefault();
     setSubmitError(null);
 
+    //router.push("/juego");
+
     const formData = new FormData(event.currentTarget);
     const getValue = (key: string) => formData.get(key)?.toString().trim() ?? "";
 
@@ -247,7 +249,8 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
 
       onClose();
       // Navega al juego estático en public/ respetando basePath de Next
-      router.push("/game/index.html");
+      //router.push("/game/index.html");
+      router.push("/juego");
     } catch (error) {
       setSubmitError(
         error instanceof Error

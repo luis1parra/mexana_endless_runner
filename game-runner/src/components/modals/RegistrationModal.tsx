@@ -351,7 +351,8 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
 
       onClose();
       // Navega al juego estático en public/ respetando basePath de Next
-      router.push("/game/index.html");
+      // router.push("/game/index.html");
+      router.push("/juego");
     } catch (error) {
       setSubmitError(
         error instanceof Error

@@ -100,6 +100,35 @@ export type RankingResponse = {
   ranking: RankingEntry[];
 };
 
+export type LastScoreEntry = {
+  nickname?: string | null;
+  avatar?: "H" | "M" | string | null;
+  puntaje?: number | string | null;
+  sumatoria?: number | string | null;
+  posicion?: number | string | null;
+};
+
+export type LastScoreResponse = LastScoreEntry & {
+  data?: LastScoreEntry | null;
+  last_score?: LastScoreEntry | null;
+};
+
+export type UpdateAvatarPayload = {
+  id_user_game: string | number;
+  avatar: "H" | "M";
+};
+
+export type UpdateAvatarResponse = {
+  success?: boolean;
+  error?: string;
+  data?: {
+    success?: boolean;
+    error?: string;
+    [key: string]: unknown;
+  } | null;
+  [key: string]: unknown;
+};
+
 export type ScorePayload = {
   id_user_game: string | number;
   id_factura: string | number;
@@ -124,6 +153,14 @@ export const api = {
     const endpoint = q.toString() ? `ranking.php?${q.toString()}` : "ranking.php";
     return request<RankingResponse>(endpoint, { method: "GET" });
   },
+  fetchLastScore: (params?: { id_user_game?: string | number; id_factura?: string | number }) => {
+    const body: Record<string, string> = {};
+    if (params?.id_user_game != null) body.id_user_game = String(params.id_user_game);
+    if (params?.id_factura != null) body.id_factura = String(params.id_factura);
+    return request<LastScoreResponse>("lastpuntaje.php", { body });
+  },
+  updateAvatar: (payload: UpdateAvatarPayload) =>
+    request<UpdateAvatarResponse>("updateavatar.php", { body: payload }),
 };
 
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const navLinks = [
   { label: "Inicio", href: "/" },
-  { label: "Dinamica del juego", href: "#" },
+  { label: "Dinamica del juego", href: "/dinamica" },
   { label: "Ranking", href: "/ranking" },
 ];
 
