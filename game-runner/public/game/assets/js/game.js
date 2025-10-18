@@ -3,6 +3,8 @@
   let scene, camera, renderer;
   let player, targetLane = 1;
   const obstacles = [], coins = [], lanes = [-2, 0, 2], buildings = [], floorSegments = [];
+  let streetSegmentLength = 20;
+  let streetLoopLength = 200;
   let speed = 0.01, jumpVelocity = 0.2, isJumping = false, yVelocity = 0;
   let timer = 0, lives = 3, coinCount = 0;
   let touchStartX = 0, touchEndX = 0, touchStartY = 0, touchEndY = 0;
@@ -247,11 +249,11 @@
 
       for (let seg of floorSegments) {
         seg.position.z += speed * 50;
-        if (seg.position.z > 10) seg.position.z -= 200;
+        if (seg.position.z > streetSegmentLength) seg.position.z -= streetLoopLength;
       }
       for (let bld of buildings) {
         bld.position.z += speed * 50;
-        if (bld.position.z > 10) bld.position.z -= 200;
+        if (bld.position.z > 10) bld.position.z -= streetLoopLength;
       }
     }
 
@@ -262,7 +264,7 @@
     gameStarted = true;
     clock.start();
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 1000);
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -286,14 +288,65 @@
     sunLight.shadow.camera.bottom = -50;
     scene.add(sunLight);
 
-    for (let i = 0; i < 20; i++) {
-      const floor = new THREE.Mesh(
-        new THREE.BoxGeometry(10, 0.1, 10),
-        new THREE.MeshStandardMaterial({ color: 0x444444 })
-      );
-      floor.position.z = -i * 10;
-      floorSegments.push(floor);
-      scene.add(floor);
+    const streetPool = window.ASSET_POOLS?.street || [];
+    if (streetPool.length > 0 && typeof window.GET_RANDOM_ASSET_CLONE === "function") {
+      const primary = window.GET_RANDOM_ASSET_CLONE("street");
+      if (primary) {
+        primary.position.set(0, 0, 0);
+        primary.updateMatrixWorld(true);
+        const bbox = new THREE.Box3().setFromObject(primary);
+        const minY = bbox.min.y;
+        if (isFinite(minY)) primary.position.y = -minY;
+        
+        streetSegmentLength = primary.userData?.streetLength || bbox.getSize(new THREE.Vector3()).z || 20;
+        if (!Number.isFinite(streetSegmentLength) || streetSegmentLength <= 0) streetSegmentLength = 20;
+        const segmentsNeeded = Math.max(12, Math.ceil(240 / streetSegmentLength));
+        streetLoopLength = streetSegmentLength * segmentsNeeded;
+        const frontOffset = streetSegmentLength * 0.5 + 5;
+        for (let i = 0; i < segmentsNeeded; i++) {
+          const seg = i === 0 ? primary : window.GET_RANDOM_ASSET_CLONE("street");
+          if (!seg) break;
+          if (i !== 0) {
+            seg.position.set(0, 0, 0);
+            seg.updateMatrixWorld(true);
+            const bboxSeg = new THREE.Box3().setFromObject(seg);
+            const minYS = bboxSeg.min.y;
+            if (isFinite(minYS)) seg.position.y = -minYS;
+            
+          }
+          seg.position.z = frontOffset - i * streetSegmentLength;
+          floorSegments.push(seg);
+          scene.add(seg);
+        }
+      }
+    }
+
+    const baseFill = new THREE.Mesh(
+      new THREE.PlaneGeometry(200, 200),
+      new THREE.MeshBasicMaterial({ color: 0x1a1a1a })
+    );
+    baseFill.rotation.x = -Math.PI / 2;
+    baseFill.position.set(0, -0.02, 0);
+    baseFill.renderOrder = -1;
+    scene.add(baseFill);
+
+    if (floorSegments.length === 0) {
+      const fallbackLength = 10;
+      streetSegmentLength = fallbackLength;
+      if (!Number.isFinite(streetSegmentLength) || streetSegmentLength <= 0) streetSegmentLength = 10;
+      const segmentsNeeded = 20;
+      streetLoopLength = streetSegmentLength * segmentsNeeded;
+      const frontOffset = streetSegmentLength * 0.5 + 5;
+      for (let i = 0; i < segmentsNeeded; i++) {
+        const floor = new THREE.Mesh(
+          new THREE.BoxGeometry(fallbackLength * 2, 0.1, fallbackLength),
+          new THREE.MeshStandardMaterial({ color: 0x444444 })
+        );
+        floor.position.z = frontOffset - i * streetSegmentLength;
+        floor.position.y = -0.02;
+        floorSegments.push(floor);
+        scene.add(floor);
+      }
     }
 
     const basePlayer = window.PLAYER_MODEL;
@@ -315,7 +368,9 @@
         (player.animations && player.animations.length ? player.animations : window.PLAYER_ANIMATIONS) || [];
       if (clips.length > 0) {
         mixer = new THREE.AnimationMixer(player);
-        const action = mixer.clipAction(clips[0]);
+        const clipIndex = 0;
+        const action = mixer.clipAction(clips[clipIndex]);
+        console.log("Using animation clip", clipIndex, clips[clipIndex]?.name);
         action.reset().setLoop(THREE.LoopRepeat, Infinity).play();
       } else {
         console.warn("Player model loaded without animations.");
@@ -634,10 +689,10 @@
           const bbox = new THREE.Box3().setFromObject(building);
           const minY = bbox.min.y;
           building.position.y = isFinite(minY) ? -minY : 0;
-          const lateralOffset = side < 0 ? -3.8 : 3.8;
+          const lateralOffset = side < 0 ? -3 : 3;
           building.position.x = side + lateralOffset;
           building.position.z = cursor;
-          building.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
+          building.rotation.y = side < 0 ? Math.PI : -Math.PI ;
           cursor -= buildingStep;
           scene.add(building);
           buildings.push(building);
@@ -660,12 +715,13 @@
         }
         if (obj) {
           obj.position.set(0, 0, 0);
-          obj.rotation.set(0, Math.random() * Math.PI * 2, 0);
+          obj.rotation.set(0, 0, 0);
           obj.updateMatrixWorld(true);
           const bbox = new THREE.Box3().setFromObject(obj);
           const minY = bbox.min.y;
           obj.position.y = isFinite(minY) ? -minY : 0;
-          obj.position.x = side;
+          const lateralOffset = side < 0 ? 5 : -5;
+          obj.position.x = side + lateralOffset;
           obj.position.z = z;
           scene.add(obj);
           buildings.push(obj);

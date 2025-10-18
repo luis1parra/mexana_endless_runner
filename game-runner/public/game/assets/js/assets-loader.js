@@ -40,7 +40,8 @@ const CITY_FBX_URLS = [
     "assets/3d/buildingOrange.glb",
     "assets/3d/buildingYellow.glb",
 ];
-    const PLAYER_FBX_URL = "assets/3d/Male_Running.fbx";
+    const PLAYER_FBX_URL = "assets/3d/Boy_Running.glb";
+    const STREET_GLB_URL = "assets/3d/Street_Final.glb";
 
     // ====== SFX: Precarga de sonidos WAV con Web Audio ======
 
@@ -132,20 +133,39 @@ const CITY_FBX_URLS = [
             obj.userData.sourceUrl = resourceUrl;
         }
         if (kind === "player") {
+            if (obj.children) {
+                obj.traverse((child) => {
+                    child.visible = true;
+                });
+            }
             const bbox = new THREE.Box3().setFromObject(obj);
             const size = bbox.getSize(new THREE.Vector3());
             if (size.y > 0) {
-                const desiredHeight = 1.7;
+                const desiredHeight = 0.004;
                 const scaleFactor = desiredHeight / size.y;
                 obj.scale.multiplyScalar(scaleFactor);
-                // Recalcula bbox tras escalar
                 const scaledBox = new THREE.Box3().setFromObject(obj);
                 const minY = scaledBox.min.y;
                 if (isFinite(minY)) {
                     obj.position.y -= minY;
                 }
             }
-            obj.rotation.y = Math.PI; // hacer que mire hacia adelante
+            obj.rotation.y = Math.PI;
+        } else if (kind === "street") {
+            obj.scale.multiplyScalar(2);
+            obj.updateMatrixWorld(true);
+            const bbox = new THREE.Box3().setFromObject(obj);
+            const minY = bbox.min.y;
+            if (isFinite(minY)) obj.position.y = -minY;
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            obj.position.x -= center.x;
+            obj.position.z -= center.z;
+            const size = bbox.getSize(new THREE.Vector3());
+            obj.userData.streetLength = size.z || 20;
+            obj.userData.streetWidth = size.x || 20;
+            obj.userData.assetCategory = "street";
+            obj.rotation.y = 0;
         } else {
             obj.scale.setScalar(2.5);
             obj.rotation.y = -Math.PI / 2;
@@ -204,6 +224,15 @@ const CITY_FBX_URLS = [
                 (gltf) => {
                     const root = gltf.scene || gltf.scenes?.[0];
                     if (!root) { resolve(null); return; }
+                                        if (gltf.animations) {
+                        root.animations = gltf.animations;
+                    }
+root.userData = root.userData || {};
+                    if (gltf.animations) {
+                        root.userData.animations = gltf.animations;
+                    } else {
+                        root.userData.animations = root.animations || [];
+                    }
                     applyCommonTransforms(root, kind, url); // tu misma función de transforms
                     resolve(root);
                 },
@@ -235,11 +264,12 @@ const CITY_FBX_URLS = [
 
     // Flujo principal
     (async () => {
-        const [coinModels, obstacleModels, cityModels, playerModel] = await Promise.all([
+        const [coinModels, obstacleModels, cityModels, playerModel, streetModel] = await Promise.all([
             loadAll(COIN_FBX_URLS, "coin"),
             loadAll(OBSTACLE_FBX_URLS, "obstacle"),
             loadAll(CITY_FBX_URLS, "city"),
-            loadFBX(PLAYER_FBX_URL, "player"),
+            loadGLB(PLAYER_FBX_URL, "player"),
+            loadGLB(STREET_GLB_URL, "street"),
         ]);
 
         window.ASSET_POOLS.coins = coinModels;
@@ -249,9 +279,11 @@ const CITY_FBX_URLS = [
         const cityScenery = cityModels.filter((model) => model?.userData?.assetCategory !== "building");
         window.ASSET_POOLS.cityBuildings = cityBuildings.length ? cityBuildings : cityModels;
         window.ASSET_POOLS.cityScenery = cityScenery.length ? cityScenery : cityModels;
+        window.ASSET_POOLS.street = streetModel ? [streetModel] : [];
         if (playerModel) {
             window.PLAYER_MODEL = playerModel;
-            window.PLAYER_ANIMATIONS = (playerModel.animations || []).map((clip) => clip.clone());
+            const anims = playerModel.animations || playerModel.userData?.animations || [];
+            window.PLAYER_ANIMATIONS = anims.map((clip) => clip.clone ? clip.clone() : clip);
             console.log("[assets@132] player animations:", window.PLAYER_ANIMATIONS.length);
         }
 
