@@ -190,6 +190,8 @@ body {
   overflow: hidden;
   background: linear-gradient(to bottom, #4faeff 0%, #1a6eff 40%, #0b3fe6 100%);
   font-family: Arial, sans-serif;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 canvas {
