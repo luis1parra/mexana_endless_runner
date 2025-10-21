@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>3D Endless Runner Game</title>
     <link rel="stylesheet" href="./assets/css/styles.css" />
 </head>
@@ -52,6 +52,37 @@
     <!-- fflate (requerido por FBXLoader r132) -->
     <script src="https://cdn.jsdelivr.net/npm/fflate@0.7.4/umd/index.min.js"></script>
 
+    <!-- Ajustes por plataforma -->
+    <script>
+      (function () {
+        try {
+          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
+
+          if (isMobile) {
+            window.COIN_MODEL_LIMIT = 1;
+            window.OBSTACLE_MODEL_LIMIT = 1;
+            window.CITY_DECOR_MODEL_LIMIT = 0;
+            window.CITY_BUILDING_MODEL_LIMIT = 0;
+            window.COIN_POOL_SIZE = 4;
+            window.OBSTACLE_POOL_SIZE = 2;
+            window.PLAYER_VARIANT = "girl";
+            window.ENABLE_TUTORIAL = true;
+          } else {
+            window.COIN_MODEL_LIMIT = 7;
+            window.OBSTACLE_MODEL_LIMIT = 3;
+            window.CITY_DECOR_MODEL_LIMIT = 5;
+            window.CITY_BUILDING_MODEL_LIMIT = 3;
+            window.COIN_POOL_SIZE = 8;
+            window.OBSTACLE_POOL_SIZE = 5;
+            window.PLAYER_VARIANT = "boy";
+            window.ENABLE_TUTORIAL = false;
+          }
+        } catch (err) {
+          console.warn("[config] platform overrides failed", err);
+        }
+      })();
+    </script>
+
     <!-- Config y código del juego -->
     <script>
       (function () {
@@ -74,12 +105,6 @@
           }
           if (typeof window.LOAD_DECORATION === "undefined") {
             window.LOAD_DECORATION = true;
-          }
-          if (typeof window.PLAYER_VARIANT === "undefined") {
-            window.PLAYER_VARIANT = "girl"; // usa "boy" "girl" para cargar el avatar
-          }
-          if (typeof window.ENABLE_TUTORIAL === "undefined") {
-            window.ENABLE_TUTORIAL = true; // desactiva el tutorial por defecto
           }
         } catch (e) {
           console.warn("[config] init failed", e);
