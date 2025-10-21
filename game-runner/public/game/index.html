@@ -41,6 +41,10 @@
         <div class="loader-hint">Please wait while we load 3D models</div>
     </div>
 
+    <div id="tutorialOverlay" class="tutorial-overlay">
+        <div class="tutorial-card" id="tutorialInstruction"></div>
+    </div>
+
     <!-- Librerías pedidas -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/FBXLoader.js"></script>
@@ -49,10 +53,41 @@
     <script src="https://cdn.jsdelivr.net/npm/fflate@0.7.4/umd/index.min.js"></script>
 
     <!-- Config y código del juego -->
-    <script>(function(){try{var path=location.pathname||"";var idx=path.indexOf("/game/");var basePath=idx>-1?path.slice(0,idx):"";window.__APP_CONFIG__=window.__APP_CONFIG__||{basePath:basePath,remoteApiBaseUrl:"https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/",basicAuthToken:"UHJlc3NzdGFydGV2b2x1dGlvbjpQcjNzdCQkMjAyNQ=="};}catch(e){}})();</script>
+    <script>
+      (function () {
+        try {
+          var path = location.pathname || "";
+          var idx = path.indexOf("/game/");
+          var basePath = idx > -1 ? path.slice(0, idx) : "";
+          window.__APP_CONFIG__ = window.__APP_CONFIG__ || {
+            basePath: basePath,
+            remoteApiBaseUrl: "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/",
+            basicAuthToken: "UHJlc3NzdGFydGV2b2x1dGlvbjpQcjNzdCQkMjAyNQ==",
+          };
+
+          // Feature toggles para pruebas de memoria
+          if (typeof window.LOAD_CITY_ASSETS === "undefined") {
+            window.LOAD_CITY_ASSETS = true;
+          }
+          if (typeof window.LOAD_BUILDINGS === "undefined") {
+            window.LOAD_BUILDINGS = true;
+          }
+          if (typeof window.LOAD_DECORATION === "undefined") {
+            window.LOAD_DECORATION = true;
+          }
+          if (typeof window.PLAYER_VARIANT === "undefined") {
+            window.PLAYER_VARIANT = "girl"; // usa "boy" "girl" para cargar el avatar
+          }
+          if (typeof window.ENABLE_TUTORIAL === "undefined") {
+            window.ENABLE_TUTORIAL = true; // desactiva el tutorial por defecto
+          }
+        } catch (e) {
+          console.warn("[config] init failed", e);
+        }
+      })();
+    </script>
     <script src="./assets/js/assets-loader.js"></script>
     <script src="./assets/js/game.js"></script>
 </body>
 
 </html>
-
