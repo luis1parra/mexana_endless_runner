@@ -1,5 +1,8 @@
 // Encapsulado para evitar colisiones globales
 (async () => {
+    if (typeof THREE !== "undefined" && THREE.Cache) {
+        THREE.Cache.enabled = true;
+    }
     console.log("[assets@132] init (multi-model)");
 
     const overlayEl = document.getElementById("loaderOverlay");
@@ -25,6 +28,15 @@
     const LOAD_CITY_ASSETS = window.LOAD_CITY_ASSETS !== false;
     const LOAD_DECORATION = window.LOAD_DECORATION !== false;
     const LOAD_BUILDINGS = window.LOAD_BUILDINGS !== false;
+    const COIN_MODEL_LIMIT = Number.isFinite(window.COIN_MODEL_LIMIT)
+        ? Math.max(1, Number(window.COIN_MODEL_LIMIT))
+        : (IS_MOBILE_ENV ? 2 : undefined);
+    const OBSTACLE_MODEL_LIMIT = Number.isFinite(window.OBSTACLE_MODEL_LIMIT)
+        ? Math.max(1, Number(window.OBSTACLE_MODEL_LIMIT))
+        : (IS_MOBILE_ENV ? 2 : undefined);
+    const CITY_MODEL_LIMIT = Number.isFinite(window.CITY_MODEL_LIMIT)
+        ? Math.max(0, Number(window.CITY_MODEL_LIMIT))
+        : (IS_MOBILE_ENV ? 2 : undefined);
     window.IS_MOBILE_ENV = IS_MOBILE_ENV;
 
     const COIN_FBX_URLS = [
@@ -67,6 +79,10 @@ const CITY_FBX_URLS = [
             death: "assets/3d/Girl_Death.fbx",
         },
     };
+
+    const coinUrls = COIN_MODEL_LIMIT ? COIN_FBX_URLS.slice(0, COIN_MODEL_LIMIT) : COIN_FBX_URLS;
+    const obstacleUrls = OBSTACLE_MODEL_LIMIT ? OBSTACLE_FBX_URLS.slice(0, OBSTACLE_MODEL_LIMIT) : OBSTACLE_FBX_URLS;
+    const cityUrls = CITY_MODEL_LIMIT ? CITY_FBX_URLS.slice(0, CITY_MODEL_LIMIT) : CITY_FBX_URLS;
 
     const PLAYER_FBX_URL = PLAYER_MODEL_URLS[PLAYER_VARIANT].run;
     const PLAYER_JUMP_URL = PLAYER_MODEL_URLS[PLAYER_VARIANT].jump;
@@ -300,7 +316,7 @@ const CITY_FBX_URLS = [
         });
     }
 
-    // Utilidad: carga en paralelo una lista y filtra nulos
+    // Utilidad: carga secuencialmente una lista y filtra nulos (menos pico de memoria)
     async function loadAll(urls, kind) {
         // (Opcional) chequeo de accesibilidad
         urls.forEach((u) => {
@@ -309,27 +325,28 @@ const CITY_FBX_URLS = [
                 .then((r) => console.log("[check]", abs, r.status, r.ok ? "OK" : "FAIL"))
                 .catch((e) => console.error("[check error]", abs, e));
         });
-        //const results = await Promise.all(urls.map((u) => loadFBX(u, kind)));
-        const results = await Promise.all(
-            urls.map((u) => {
-                const lower = (u || "").toLowerCase();
-                return lower.endsWith(".fbx") ? loadFBX(u, kind) : loadGLB(u, kind);
-            })
-        );
-        return results.filter(Boolean);
+
+        const results = [];
+        for (const url of urls) {
+            const lower = (url || "").toLowerCase();
+            const loader = lower.endsWith(".fbx") ? loadFBX : loadGLB;
+            const res = await loader(url, kind);
+            if (res) {
+                results.push(res);
+            }
+        }
+        return results;
     }
 
     // Flujo principal
     (async () => {
-        const [coinModels, obstacleModels, cityModels, playerModel, streetModel, jumpModel, deathModel] = await Promise.all([
-            loadAll(COIN_FBX_URLS, "coin"),
-            loadAll(OBSTACLE_FBX_URLS, "obstacle"),
-            (!LOAD_CITY_ASSETS || IS_MOBILE_ENV ? Promise.resolve([]) : loadAll(CITY_FBX_URLS, "city")),
-            loadFBX(PLAYER_FBX_URL, "player"),
-            loadFBX(STREET_GLB_URL, "street"),
-            loadFBX(PLAYER_JUMP_URL, "player"),
-            loadFBX(PLAYER_DEATH_URL, "player"),
-        ]);
+        const coinModels = await loadAll(coinUrls, "coin");
+        const obstacleModels = await loadAll(obstacleUrls, "obstacle");
+        const cityModels = !LOAD_CITY_ASSETS || IS_MOBILE_ENV ? [] : await loadAll(cityUrls, "city");
+        const playerModel = await loadFBX(PLAYER_FBX_URL, "player");
+        const streetModel = await loadFBX(STREET_GLB_URL, "street");
+        const jumpModel = await loadFBX(PLAYER_JUMP_URL, "player");
+        const deathModel = await loadFBX(PLAYER_DEATH_URL, "player");
 
         window.ASSET_POOLS.coins = coinModels;
         window.ASSET_POOLS.obstacles = obstacleModels;

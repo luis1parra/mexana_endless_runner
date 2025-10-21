@@ -38,8 +38,12 @@
       (typeof navigator !== "undefined" && navigator.userAgent) || ""
     );
   const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1.5 : 2;
-  const OBSTACLE_POOL_SIZE = IS_MOBILE_ENV ? 4 : 6;
-  const COIN_POOL_SIZE = IS_MOBILE_ENV ? 6 : 8;
+  const OBSTACLE_POOL_SIZE = Number.isFinite(window.OBSTACLE_POOL_SIZE)
+    ? Math.max(1, Number(window.OBSTACLE_POOL_SIZE))
+    : (IS_MOBILE_ENV ? 3 : 5);
+  const COIN_POOL_SIZE = Number.isFinite(window.COIN_POOL_SIZE)
+    ? Math.max(1, Number(window.COIN_POOL_SIZE))
+    : (IS_MOBILE_ENV ? 5 : 8);
   const LOAD_CITY_ASSETS =
     typeof window !== "undefined" ? window.LOAD_CITY_ASSETS !== false : true;
   const LOAD_BUILDINGS =
@@ -48,6 +52,11 @@
     typeof window !== "undefined" ? window.LOAD_DECORATION !== false : true;
   const PLAYER_VARIANT =
     typeof window !== "undefined" ? window.PLAYER_VARIANT_RESOLVED || window.PLAYER_VARIANT || "boy" : "boy";
+  const managedEvents = [];
+  const managedIntervals = new Set();
+  const managedTimeouts = new Set();
+  let rafHandle = null;
+  let cleanedUp = false;
   const SCORE_ENDPOINT = ((window && window.__APP_CONFIG__ && window.__APP_CONFIG__.remoteApiBaseUrl) || "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/") + "recpuntaje.php";
   const BASIC_AUTH_TOKEN =
     (window && window.BASIC_AUTH_TOKEN) ||
@@ -98,7 +107,7 @@
       tutorialOverlayEl.classList.remove("tutorial-overlay--active");
       return;
     }
-    setTimeout(() => {
+    setManagedTimeout(() => {
       tutorialOverlayEl.classList.remove("tutorial-overlay--active");
     }, delay);
   }
@@ -115,7 +124,7 @@
   function completeTutorial() {
     tutorialActive = false;
     showTutorialOverlay("done");
-    setTimeout(() => {
+    setManagedTimeout(() => {
       hideTutorialOverlay();
       speed = 0;
       startSequenceTriggered = true;
@@ -139,13 +148,21 @@
     hideTutorialOverlay();
   }
 
+  if (typeof window !== "undefined") {
+    addManagedEvent(window, "pagehide", cleanupGame);
+    addManagedEvent(window, "beforeunload", cleanupGame);
+  }
+
   const triggerHitPause = (duration = 700) => {
     hitPauseUntil = performance.now() + duration;
     isPaused = true;
 
-    if (hitFlashTimeout) clearTimeout(hitFlashTimeout);
+    if (hitFlashTimeout) {
+      clearTimeout(hitFlashTimeout);
+      managedTimeouts.delete(hitFlashTimeout);
+    }
     document.body.classList.add(HIT_FLASH_CLASS);
-    hitFlashTimeout = setTimeout(() => {
+    hitFlashTimeout = setManagedTimeout(() => {
       document.body.classList.remove(HIT_FLASH_CLASS);
       hitFlashTimeout = null;
     }, duration);
@@ -165,6 +182,153 @@
   let startSequenceTriggered = false;
   let timerHandle = null;
 
+  function addManagedEvent(target, type, handler, options) {
+    target.addEventListener(type, handler, options);
+    managedEvents.push({ target, type, handler, options });
+  }
+
+  function removeManagedEvents() {
+    for (const { target, type, handler, options } of managedEvents) {
+      try {
+        target.removeEventListener(type, handler, options);
+      } catch (_) {}
+    }
+    managedEvents.length = 0;
+  }
+
+  function setManagedInterval(fn, delay) {
+    const id = setInterval(fn, delay);
+    managedIntervals.add(id);
+    return id;
+  }
+
+  function clearManagedInterval(id) {
+    if (id != null) {
+      clearInterval(id);
+      managedIntervals.delete(id);
+    }
+  }
+
+  function clearAllIntervals() {
+    for (const id of managedIntervals) {
+      clearInterval(id);
+    }
+    managedIntervals.clear();
+  }
+
+  function setManagedTimeout(fn, delay) {
+    const id = setTimeout(() => {
+      managedTimeouts.delete(id);
+      fn();
+    }, delay);
+    managedTimeouts.add(id);
+    return id;
+  }
+
+  function clearAllTimeouts() {
+    for (const id of managedTimeouts) {
+      clearTimeout(id);
+    }
+    managedTimeouts.clear();
+  }
+
+  function disposeObjectResources(object) {
+    if (!object) return;
+    const materials = new Set();
+    const textures = new Set();
+    object.traverse((child) => {
+      if (child.isMesh || child.isSkinnedMesh) {
+        if (child.geometry) {
+          try {
+            child.geometry.dispose();
+          } catch (_) {}
+        }
+        const material = child.material;
+        if (Array.isArray(material)) {
+          material.forEach((mat) => materials.add(mat));
+        } else if (material) {
+          materials.add(material);
+        }
+      }
+    });
+
+    materials.forEach((mat) => {
+      if (!mat) return;
+      if (mat.map) textures.add(mat.map);
+      if (mat.normalMap) textures.add(mat.normalMap);
+      if (mat.roughnessMap) textures.add(mat.roughnessMap);
+      if (mat.metalnessMap) textures.add(mat.metalnessMap);
+      if (mat.emissiveMap) textures.add(mat.emissiveMap);
+      try {
+        mat.dispose();
+      } catch (_) {}
+    });
+
+    textures.forEach((tex) => {
+      if (!tex) return;
+      try {
+        tex.dispose();
+      } catch (_) {}
+    });
+  }
+
+  function cleanupGame() {
+    if (cleanedUp) return;
+    cleanedUp = true;
+
+    if (rafHandle) {
+      cancelAnimationFrame(rafHandle);
+      rafHandle = null;
+    }
+
+    if (timerHandle) {
+      clearManagedInterval(timerHandle);
+      timerHandle = null;
+    }
+
+    clearAllIntervals();
+    clearAllTimeouts();
+    removeManagedEvents();
+    hitFlashTimeout = null;
+
+    if (startScreenEl) {
+      startScreenEl.onclick = null;
+    }
+
+    if (countdownInterval) {
+      clearManagedInterval(countdownInterval);
+      countdownInterval = null;
+    }
+
+    if (mixer) {
+      try {
+        mixer.stopAllAction();
+      } catch (_) {}
+      mixer = null;
+    }
+
+    disposeObjectResources(scene);
+
+    obstacles.length = 0;
+    coins.length = 0;
+    buildings.length = 0;
+    floorSegments.length = 0;
+
+    if (renderer) {
+      try {
+        renderer.dispose();
+        renderer.forceContextLoss?.();
+      } catch (_) {}
+      try {
+        renderer.domElement?.remove();
+      } catch (_) {}
+      renderer = null;
+    }
+
+    scene = null;
+    camera = null;
+  }
+
   function initializeWorld() {
     if (worldInitialized) return;
     worldInitialized = true;
@@ -180,7 +344,7 @@
     init();
     animate();
     if (!timerHandle) {
-      timerHandle = setInterval(() => {
+      timerHandle = setManagedInterval(() => {
         if (gameStarted && !isPaused) {
           timer++;
           timerEl.textContent = timer;
@@ -208,6 +372,7 @@
         countdownEl.style.position = "";
         countdownEl.style.opacity = "";
         countdownEl.style.transition = "";
+        countdownEl.style.color = "";
         countdownEl.style.display = "none";
         countdownEl.textContent = "3";
       }
@@ -240,19 +405,19 @@
     countdownEl.style.transition = "opacity 0.2s, transform 1s";
     countdownEl.style.transform = "translate(-50%, -50%) scale(1)";
 
-    countdownInterval = setInterval(() => {
+    countdownInterval = setManagedInterval(() => {
       value -= 1;
       if (value > 0) {
         countdownEl.textContent = String(value);
         return;
       }
 
-      clearInterval(countdownInterval);
+      clearManagedInterval(countdownInterval);
       countdownInterval = null;
       countdownEl.textContent = "¡Vamos!";
       countdownEl.style.transform = "translate(-50%, -50%) scale(0.85)";
 
-      setTimeout(finish, 450);
+      setManagedTimeout(finish, 450);
     }, 1000);
   }
 
@@ -297,11 +462,13 @@
     startGameAfterCountdown().catch((error) => console.error("Failed to start game:", error));
   };
 
-  startScreenEl.addEventListener("click", handleStartInteraction, { once: false });
-  startScreenEl.addEventListener("touchstart", handleStartInteraction, { passive: true });
+  if (startScreenEl) {
+    addManagedEvent(startScreenEl, "click", handleStartInteraction);
+    addManagedEvent(startScreenEl, "touchstart", handleStartInteraction, { passive: true });
+  }
 
   function animate() {
-    requestAnimationFrame(animate);
+    rafHandle = requestAnimationFrame(animate);
     const now = performance.now();
     if (hitPauseUntil && now >= hitPauseUntil) {
       hitPauseUntil = 0;
@@ -367,7 +534,8 @@
           triggerHitPause();
 
           // Si aún quedan vidas, reproduce "life" para feedback
-          if (lives > 0 && window.SFX) setTimeout(() => window.SFX.play("life"), 60);
+          if (lives > 0 && window.SFX)
+            setManagedTimeout(() => window.SFX.play("life"), 60);
 
           recycleObstacle(obs);
 
@@ -409,7 +577,7 @@
               })
             : null;
 
-          setTimeout(async () => {
+          setManagedTimeout(async () => {
             alert(`Game Over!!\nScore: ${coinCount}`);
             if (pendingScorePromise && typeof pendingScorePromise.then === "function") {
               try {
@@ -634,14 +802,15 @@
     initializeCoins();
     generateCity();
 
-    window.addEventListener("resize", () => {
+    const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    };
+    addManagedEvent(window, "resize", handleResize);
 
     // Controles: teclado
-    window.addEventListener("keydown", (e) => {
+    const handleKeyDown = (e) => {
       if (e.code === "ArrowLeft" && targetLane > 0) {
         targetLane--;
         if (window.SFX) window.SFX.play("move");
@@ -660,14 +829,15 @@
         if (window.SFX) window.SFX.play("jump");
         registerTutorialAction("jump");
       }
-    });
+    };
+    addManagedEvent(window, "keydown", handleKeyDown);
 
     // Controles: touch (swipe)
-    window.addEventListener("touchstart", (e) => {
+    const handleTouchStart = (e) => {
       touchStartX = e.changedTouches[0].screenX;
       touchStartY = e.changedTouches[0].screenY;
-    });
-    window.addEventListener("touchend", (e) => {
+    };
+    const handleTouchEnd = (e) => {
       touchEndX = e.changedTouches[0].screenX;
       touchEndY = e.changedTouches[0].screenY;
       const dx = touchEndX - touchStartX;
@@ -692,7 +862,9 @@
           registerTutorialAction("jump");
         }
       }
-    });
+    };
+    addManagedEvent(window, "touchstart", handleTouchStart, { passive: true });
+    addManagedEvent(window, "touchend", handleTouchEnd, { passive: true });
   }
 
   // --- Generadores: usan tus helpers de assets ---
