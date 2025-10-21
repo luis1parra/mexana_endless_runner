@@ -44,9 +44,9 @@
     ];
 
 const CITY_FBX_URLS = [
-    "assets/3d/cityBusStop1.glb",
-    "assets/3d/cityBusStop2.glb",
-    "assets/3d/cityLampPost.glb",
+    "assets/3d/cityBusStop1.fbx",
+    "assets/3d/cityBusStop2.fbx",
+    "assets/3d/cityLampPost.fbx",
     "assets/3d/cityTree.fbx",
     "assets/3d/buildingBlue.fbx",
     "assets/3d/buildingOrange.fbx",
