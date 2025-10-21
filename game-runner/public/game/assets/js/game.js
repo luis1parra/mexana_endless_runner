@@ -29,6 +29,8 @@
   let groundBottom = 0;
   let skyMesh = null;
   let streetFrontOffset = 0;
+  let streetRecycleThreshold = 0;
+  let streetRecycleShift = 0;
   const SKY_TOP_COLOR = new THREE.Color(0x0b3fe6);
   const SKY_BOTTOM_COLOR = new THREE.Color(0x5aa8ff);
   const IS_MOBILE_ENV =
@@ -57,6 +59,22 @@
   const managedTimeouts = new Set();
   let rafHandle = null;
   let cleanedUp = false;
+
+  const supportsPassiveOptions = (() => {
+    if (typeof window === "undefined") return false;
+    let supported = false;
+    try {
+      const opts = Object.defineProperty({}, "passive", {
+        get() {
+          supported = true;
+          return true;
+        },
+      });
+      window.addEventListener("testPassive", null, opts);
+      window.removeEventListener("testPassive", null, opts);
+    } catch (_) {}
+    return supported;
+  })();
   const SCORE_ENDPOINT = ((window && window.__APP_CONFIG__ && window.__APP_CONFIG__.remoteApiBaseUrl) || "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/") + "recpuntaje.php";
   const BASIC_AUTH_TOKEN =
     (window && window.BASIC_AUTH_TOKEN) ||
@@ -183,8 +201,48 @@
   let timerHandle = null;
 
   function addManagedEvent(target, type, handler, options) {
-    target.addEventListener(type, handler, options);
-    managedEvents.push({ target, type, handler, options });
+    if (!target) return;
+    const opt = options || {};
+    const useOnce = typeof opt === "object" && !!opt.once;
+    const useCapture = typeof opt === "object" ? !!opt.capture : !!opt;
+    const usePassive = typeof opt === "object" ? !!opt.passive : false;
+
+    let wrapped = handler;
+    if (useOnce) {
+      wrapped = function (event) {
+        handler(event);
+        try {
+          target.removeEventListener(type, wrapped, supportsPassiveOptions ? { capture: useCapture } : useCapture);
+        } catch (_) {
+          try {
+            target.removeEventListener(type, wrapped, useCapture);
+          } catch (_) {}
+        }
+      };
+    }
+
+    let eventOptions;
+    if (supportsPassiveOptions) {
+      eventOptions = { capture: useCapture };
+      if (usePassive) eventOptions.passive = true;
+    } else {
+      eventOptions = useCapture;
+    }
+
+    try {
+      target.addEventListener(type, wrapped, eventOptions);
+    } catch (err) {
+      try {
+        target.addEventListener(type, wrapped, useCapture);
+      } catch (_) {}
+    }
+
+    managedEvents.push({
+      target,
+      type,
+      handler: wrapped,
+      options: supportsPassiveOptions ? eventOptions : useCapture,
+    });
   }
 
   function removeManagedEvents() {
@@ -466,6 +524,8 @@
     addManagedEvent(startScreenEl, "click", handleStartInteraction);
     addManagedEvent(startScreenEl, "touchstart", handleStartInteraction, { passive: true });
   }
+  addManagedEvent(document, "click", handleStartInteraction, { once: true });
+  addManagedEvent(document, "touchstart", handleStartInteraction, { passive: true, once: true });
 
   function animate() {
     rafHandle = requestAnimationFrame(animate);
@@ -618,10 +678,12 @@
         }
       }
 
+      const recycleThreshold = streetRecycleThreshold || (streetFrontOffset + streetSegmentLength);
+      const recycleShift = streetRecycleShift || (streetLoopLength + streetSegmentLength);
       for (let seg of floorSegments) {
         seg.position.z += speed * 50;
-        if (seg.position.z > streetFrontOffset) {
-          seg.position.z -= streetLoopLength;
+        if (seg.position.z > recycleThreshold) {
+          seg.position.z -= recycleShift;
         }
       }
       for (let bld of buildings) {
@@ -682,6 +744,8 @@
         streetLoopLength = streetSegmentLength * segmentsNeeded;
         const frontOffset = streetSegmentLength * 0.5 + 5;
         streetFrontOffset = frontOffset;
+        streetRecycleThreshold = frontOffset + streetSegmentLength;
+        streetRecycleShift = streetLoopLength + streetSegmentLength;
         const extraSeg = window.GET_RANDOM_ASSET_CLONE("street");
         for (let i = 0; i < segmentsNeeded; i++) {
           const seg = i === 0 ? primary : window.GET_RANDOM_ASSET_CLONE("street");
@@ -728,6 +792,8 @@
       streetLoopLength = streetSegmentLength * segmentsNeeded;
       const frontOffset = streetSegmentLength * 0.5 + 5;
       streetFrontOffset = frontOffset;
+      streetRecycleThreshold = frontOffset + streetSegmentLength;
+      streetRecycleShift = streetLoopLength + streetSegmentLength;
       const extraFloor = new THREE.Mesh(
         new THREE.BoxGeometry(fallbackLength * 2, 0.1, fallbackLength),
         new THREE.MeshStandardMaterial({ color: 0x444444 })
@@ -767,6 +833,10 @@
         groundY = -baseMin;
         player.position.set(lanes[targetLane], groundY, 5);
         groundBottom = player.position.y + baseMin;
+        const defaultRot = data.defaultRotationY;
+        if (Number.isFinite(defaultRot)) {
+          player.rotation.y = defaultRot;
+        }
 
         const clips =
           (player.animations && player.animations.length ? player.animations : window.PLAYER_ANIMATIONS) || [];
@@ -905,6 +975,9 @@
     template.animations = clips;
     data.animations = clips;
     template.userData.animations = clips;
+    if (typeof data.defaultRotationY !== "number" && typeof template.rotation?.y === "number") {
+      data.defaultRotationY = template.rotation.y;
+    }
 
     const bbox = new THREE.Box3().setFromObject(template);
     const size = bbox.getSize(new THREE.Vector3());
@@ -1131,7 +1204,12 @@ function swapToDeathModel() {
   scene.add(deathInstance);
   player = deathInstance;
   player.position.copy(previousPosition);
-  player.rotation.y = previousRotationY;
+  if (previousRotationY !== undefined) {
+    player.rotation.y = previousRotationY;
+  } else {
+    const defaultRot = ensureUserData(player).defaultRotationY;
+    if (Number.isFinite(defaultRot)) player.rotation.y = defaultRot;
+  }
 
   const bbox = new THREE.Box3().setFromObject(player);
   const size = bbox.getSize(new THREE.Vector3());
@@ -1183,7 +1261,12 @@ function swapToJumpModel() {
   scene.add(jumpInstance);
   player = jumpInstance;
   player.position.copy(previousPosition);
-  player.rotation.y = previousRotationY;
+  if (previousRotationY !== undefined) {
+    player.rotation.y = previousRotationY;
+  } else {
+    const defaultRot = ensureUserData(player).defaultRotationY;
+    if (Number.isFinite(defaultRot)) player.rotation.y = defaultRot;
+  }
 
   const bbox = new THREE.Box3().setFromObject(player);
   const size = bbox.getSize(new THREE.Vector3());
@@ -1233,6 +1316,9 @@ function swapToRunModel(previousPosition, previousRotationY) {
   }
   if (previousRotationY !== undefined) {
     player.rotation.y = previousRotationY;
+  } else {
+    const defaultRot = ensureUserData(player).defaultRotationY;
+    if (Number.isFinite(defaultRot)) player.rotation.y = defaultRot;
   }
 
   const bbox = new THREE.Box3().setFromObject(player);

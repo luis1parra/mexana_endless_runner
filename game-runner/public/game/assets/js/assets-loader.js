@@ -34,9 +34,12 @@
     const OBSTACLE_MODEL_LIMIT = Number.isFinite(window.OBSTACLE_MODEL_LIMIT)
         ? Math.max(1, Number(window.OBSTACLE_MODEL_LIMIT))
         : (IS_MOBILE_ENV ? 2 : undefined);
-    const CITY_MODEL_LIMIT = Number.isFinite(window.CITY_MODEL_LIMIT)
-        ? Math.max(0, Number(window.CITY_MODEL_LIMIT))
+    const CITY_DECOR_MODEL_LIMIT = Number.isFinite(window.CITY_DECOR_MODEL_LIMIT)
+        ? Math.max(0, Number(window.CITY_DECOR_MODEL_LIMIT))
         : (IS_MOBILE_ENV ? 2 : undefined);
+    const CITY_BUILDING_MODEL_LIMIT = Number.isFinite(window.CITY_BUILDING_MODEL_LIMIT)
+        ? Math.max(0, Number(window.CITY_BUILDING_MODEL_LIMIT))
+        : (IS_MOBILE_ENV ? 1 : undefined);
     window.IS_MOBILE_ENV = IS_MOBILE_ENV;
 
     const COIN_FBX_URLS = [
@@ -55,11 +58,13 @@
         "assets/3d/obstacleBarrier.glb"
     ];
 
-const CITY_FBX_URLS = [
+const CITY_DECOR_FBX_URLS = [
     "assets/3d/cityBusStop1.fbx",
     "assets/3d/cityBusStop2.fbx",
     "assets/3d/cityLampPost.fbx",
     "assets/3d/cityTree.fbx",
+];
+const CITY_BUILDING_FBX_URLS = [
     "assets/3d/buildingBlue.fbx",
     "assets/3d/buildingOrange.fbx",
     "assets/3d/buildingYellow.fbx",
@@ -82,7 +87,8 @@ const CITY_FBX_URLS = [
 
     const coinUrls = COIN_MODEL_LIMIT ? COIN_FBX_URLS.slice(0, COIN_MODEL_LIMIT) : COIN_FBX_URLS;
     const obstacleUrls = OBSTACLE_MODEL_LIMIT ? OBSTACLE_FBX_URLS.slice(0, OBSTACLE_MODEL_LIMIT) : OBSTACLE_FBX_URLS;
-    const cityUrls = CITY_MODEL_LIMIT ? CITY_FBX_URLS.slice(0, CITY_MODEL_LIMIT) : CITY_FBX_URLS;
+    const decorUrls = CITY_DECOR_MODEL_LIMIT ? CITY_DECOR_FBX_URLS.slice(0, CITY_DECOR_MODEL_LIMIT) : CITY_DECOR_FBX_URLS;
+    const buildingUrls = CITY_BUILDING_MODEL_LIMIT ? CITY_BUILDING_FBX_URLS.slice(0, CITY_BUILDING_MODEL_LIMIT) : CITY_BUILDING_FBX_URLS;
 
     const PLAYER_FBX_URL = PLAYER_MODEL_URLS[PLAYER_VARIANT].run;
     const PLAYER_JUMP_URL = PLAYER_MODEL_URLS[PLAYER_VARIANT].jump;
@@ -206,6 +212,7 @@ const CITY_FBX_URLS = [
                 }
             }
             obj.rotation.y = Math.PI;
+            obj.userData.defaultRotationY = obj.rotation.y;
         } else if (kind === "street") {
             const initialBox = new THREE.Box3().setFromObject(obj);
             const initialSize = initialBox.getSize(new THREE.Vector3());
@@ -342,7 +349,12 @@ const CITY_FBX_URLS = [
     (async () => {
         const coinModels = await loadAll(coinUrls, "coin");
         const obstacleModels = await loadAll(obstacleUrls, "obstacle");
-        const cityModels = !LOAD_CITY_ASSETS || IS_MOBILE_ENV ? [] : await loadAll(cityUrls, "city");
+        let cityModels = [];
+        if (LOAD_CITY_ASSETS && !IS_MOBILE_ENV) {
+            const decorModels = LOAD_DECORATION ? await loadAll(decorUrls, "city") : [];
+            const buildingModels = LOAD_BUILDINGS ? await loadAll(buildingUrls, "city") : [];
+            cityModels = decorModels.concat(buildingModels);
+        }
         const playerModel = await loadFBX(PLAYER_FBX_URL, "player");
         const streetModel = await loadFBX(STREET_GLB_URL, "street");
         const jumpModel = await loadFBX(PLAYER_JUMP_URL, "player");
