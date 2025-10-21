@@ -11,18 +11,30 @@
     // Pools donde guardaremos TODOS los modelos precargados por tipo
     window.ASSET_POOLS = { coins: [], obstacles: [] };
     window.PLAYER_MODEL = null;
+    window.PLAYER_JUMP_MODEL = null;
+    window.PLAYER_JUMP_ANIMATIONS = [];
+    window.PLAYER_DEATH_MODEL = null;
+    window.PLAYER_DEATH_ANIMATIONS = [];
     window.PLAYER_ANIMATIONS = [];
 
     // --- Configura aquí tus listas de modelos ---
     // Evita '+' para espacios; usa %20 o renómbralos sin espacios
+    const IS_MOBILE_ENV = /iPhone|iPad|iPod|Android/i.test(
+        (typeof navigator !== "undefined" && navigator.userAgent) || ""
+    );
+    const LOAD_CITY_ASSETS = window.LOAD_CITY_ASSETS !== false;
+    const LOAD_DECORATION = window.LOAD_DECORATION !== false;
+    const LOAD_BUILDINGS = window.LOAD_BUILDINGS !== false;
+    window.IS_MOBILE_ENV = IS_MOBILE_ENV;
+
     const COIN_FBX_URLS = [
-        "assets/3d/deodorantBottleAven.glb",
-        "assets/3d/deodorantBottleClassic.glb",
-        "assets/3d/deodorantBottleLady.glb",
-        "assets/3d/deodorantSprayAven.glb",
-        "assets/3d/deodorantSprayClassic.glb",
-        "assets/3d/deodorantSprayLady.glb",
-        "assets/3d/deodorantSprayUltra.glb",
+        "assets/3d/deodorantBottleAven.fbx",
+        "assets/3d/deodorantBottleClassic.fbx",
+        "assets/3d/deodorantBottleLady.fbx",
+        "assets/3d/deodorantSprayAven.fbx",
+        "assets/3d/deodorantSprayClassic.fbx",
+        "assets/3d/deodorantSprayLady.fbx",
+        "assets/3d/deodorantSprayUltra.fbx",
     ];
 
     const OBSTACLE_FBX_URLS = [
@@ -35,13 +47,31 @@ const CITY_FBX_URLS = [
     "assets/3d/cityBusStop1.glb",
     "assets/3d/cityBusStop2.glb",
     "assets/3d/cityLampPost.glb",
-    "assets/3d/cityTree.glb",
-    "assets/3d/buildingHouse.glb",
-    "assets/3d/buildingOrange.glb",
-    "assets/3d/buildingYellow.glb",
+    "assets/3d/cityTree.fbx",
+    "assets/3d/buildingBlue.fbx",
+    "assets/3d/buildingOrange.fbx",
+    "assets/3d/buildingYellow.fbx",
 ];
-    const PLAYER_FBX_URL = "assets/3d/Boy_Running.glb";
-    const STREET_GLB_URL = "assets/3d/Street_Final.glb";
+    const PLAYER_VARIANT = (window.PLAYER_VARIANT || "boy").toLowerCase() === "girl" ? "girl" : "boy";
+    window.PLAYER_VARIANT_RESOLVED = PLAYER_VARIANT;
+
+    const PLAYER_MODEL_URLS = {
+        boy: {
+            run: "assets/3d/Boy_Running.fbx",
+            jump: "assets/3d/Boy_Jump.fbx",
+            death: "assets/3d/Boy_Death.fbx",
+        },
+        girl: {
+            run: "assets/3d/Girl_Running.fbx",
+            jump: "assets/3d/Giril_Jump.fbx",
+            death: "assets/3d/Girl_Death.fbx",
+        },
+    };
+
+    const PLAYER_FBX_URL = PLAYER_MODEL_URLS[PLAYER_VARIANT].run;
+    const PLAYER_JUMP_URL = PLAYER_MODEL_URLS[PLAYER_VARIANT].jump;
+    const PLAYER_DEATH_URL = PLAYER_MODEL_URLS[PLAYER_VARIANT].death;
+    const STREET_GLB_URL = "assets/3d/Street_Final.fbx";
 
     // ====== SFX: Precarga de sonidos WAV con Web Audio ======
 
@@ -136,12 +166,21 @@ const CITY_FBX_URLS = [
             if (obj.children) {
                 obj.traverse((child) => {
                     child.visible = true;
+                    if (child.isSkinnedMesh) {
+                        child.frustumCulled = false;
+                    }
+                    if (child.isMesh && child.geometry && !child.geometry.boundingBox) {
+                        child.geometry.computeBoundingBox();
+                    }
                 });
             }
             const bbox = new THREE.Box3().setFromObject(obj);
             const size = bbox.getSize(new THREE.Vector3());
+            if (!Number.isFinite(size.y) || size.y <= 0) {
+                size.y = 1;
+            }
             if (size.y > 0) {
-                const desiredHeight = 0.004;
+                const desiredHeight = 1.2;
                 const scaleFactor = desiredHeight / size.y;
                 obj.scale.multiplyScalar(scaleFactor);
                 const scaledBox = new THREE.Box3().setFromObject(obj);
@@ -152,7 +191,12 @@ const CITY_FBX_URLS = [
             }
             obj.rotation.y = Math.PI;
         } else if (kind === "street") {
-            obj.scale.multiplyScalar(2);
+            const initialBox = new THREE.Box3().setFromObject(obj);
+            const initialSize = initialBox.getSize(new THREE.Vector3());
+            const targetLength = 6.5;
+            const baseLength = initialSize.z || targetLength;
+            const scaleFactor = targetLength / baseLength;
+            obj.scale.multiplyScalar(scaleFactor);
             obj.updateMatrixWorld(true);
             const bbox = new THREE.Box3().setFromObject(obj);
             const minY = bbox.min.y;
@@ -162,8 +206,8 @@ const CITY_FBX_URLS = [
             obj.position.x -= center.x;
             obj.position.z -= center.z;
             const size = bbox.getSize(new THREE.Vector3());
-            obj.userData.streetLength = size.z || 20;
-            obj.userData.streetWidth = size.x || 20;
+            obj.userData.streetLength = size.z || targetLength;
+            obj.userData.streetWidth = size.x || 10;
             obj.userData.assetCategory = "street";
             obj.rotation.y = 0;
         } else {
@@ -176,8 +220,12 @@ const CITY_FBX_URLS = [
             }
             if (kind === "city" && resourceUrl) {
                 if (resourceUrl.toLowerCase().includes("building")) {
-                    obj.scale.multiplyScalar(4);
+                    obj.scale.multiplyScalar(.06);
                     obj.userData.assetCategory = "building";
+                } else if (resourceUrl.toLowerCase().includes("tree")) {
+                    obj.userData.assetCategory = "scenery";
+                    obj.scale.multiplyScalar(0.07); // reduce FBX tree drastically
+                    obj.rotation.y = 0;
                 } else {
                     obj.userData.assetCategory = "scenery";
                     obj.scale.multiplyScalar(2);
@@ -201,6 +249,10 @@ const CITY_FBX_URLS = [
             fbxLoader.load(
                 url,
                 (fbx) => {
+                    fbx.userData = fbx.userData || {};
+                    if (fbx.animations && !fbx.userData.animations) {
+                        fbx.userData.animations = fbx.animations;
+                    }
                     applyCommonTransforms(fbx, kind, url);
                     resolve(fbx);
                 },
@@ -224,10 +276,10 @@ const CITY_FBX_URLS = [
                 (gltf) => {
                     const root = gltf.scene || gltf.scenes?.[0];
                     if (!root) { resolve(null); return; }
-                                        if (gltf.animations) {
+                    if (gltf.animations) {
                         root.animations = gltf.animations;
                     }
-root.userData = root.userData || {};
+                    root.userData = root.userData || {};
                     if (gltf.animations) {
                         root.userData.animations = gltf.animations;
                     } else {
@@ -258,18 +310,25 @@ root.userData = root.userData || {};
                 .catch((e) => console.error("[check error]", abs, e));
         });
         //const results = await Promise.all(urls.map((u) => loadFBX(u, kind)));
-        const results = await Promise.all(urls.map((u) => loadGLB(u, kind)));
+        const results = await Promise.all(
+            urls.map((u) => {
+                const lower = (u || "").toLowerCase();
+                return lower.endsWith(".fbx") ? loadFBX(u, kind) : loadGLB(u, kind);
+            })
+        );
         return results.filter(Boolean);
     }
 
     // Flujo principal
     (async () => {
-        const [coinModels, obstacleModels, cityModels, playerModel, streetModel] = await Promise.all([
+        const [coinModels, obstacleModels, cityModels, playerModel, streetModel, jumpModel, deathModel] = await Promise.all([
             loadAll(COIN_FBX_URLS, "coin"),
             loadAll(OBSTACLE_FBX_URLS, "obstacle"),
-            loadAll(CITY_FBX_URLS, "city"),
-            loadGLB(PLAYER_FBX_URL, "player"),
-            loadGLB(STREET_GLB_URL, "street"),
+            (!LOAD_CITY_ASSETS || IS_MOBILE_ENV ? Promise.resolve([]) : loadAll(CITY_FBX_URLS, "city")),
+            loadFBX(PLAYER_FBX_URL, "player"),
+            loadFBX(STREET_GLB_URL, "street"),
+            loadFBX(PLAYER_JUMP_URL, "player"),
+            loadFBX(PLAYER_DEATH_URL, "player"),
         ]);
 
         window.ASSET_POOLS.coins = coinModels;
@@ -277,14 +336,26 @@ root.userData = root.userData || {};
         window.ASSET_POOLS.city = cityModels;
         const cityBuildings = cityModels.filter((model) => model?.userData?.assetCategory === "building");
         const cityScenery = cityModels.filter((model) => model?.userData?.assetCategory !== "building");
-        window.ASSET_POOLS.cityBuildings = cityBuildings.length ? cityBuildings : cityModels;
-        window.ASSET_POOLS.cityScenery = cityScenery.length ? cityScenery : cityModels;
+        window.ASSET_POOLS.cityBuildings = LOAD_BUILDINGS ? (cityBuildings.length ? cityBuildings : cityModels) : [];
+        window.ASSET_POOLS.cityScenery = LOAD_DECORATION ? (cityScenery.length ? cityScenery : cityModels) : [];
         window.ASSET_POOLS.street = streetModel ? [streetModel] : [];
         if (playerModel) {
             window.PLAYER_MODEL = playerModel;
             const anims = playerModel.animations || playerModel.userData?.animations || [];
             window.PLAYER_ANIMATIONS = anims.map((clip) => clip.clone ? clip.clone() : clip);
             console.log("[assets@132] player animations:", window.PLAYER_ANIMATIONS.length);
+        }
+        if (jumpModel) {
+            window.PLAYER_JUMP_MODEL = jumpModel;
+            const jumpAnims = jumpModel.animations || jumpModel.userData?.animations || [];
+            window.PLAYER_JUMP_ANIMATIONS = jumpAnims.map((clip) => clip.clone ? clip.clone() : clip);
+            console.log("[assets@132] jump animations:", window.PLAYER_JUMP_ANIMATIONS.length);
+        }
+        if (deathModel) {
+            window.PLAYER_DEATH_MODEL = deathModel;
+            const deathAnims = deathModel.animations || deathModel.userData?.animations || [];
+            window.PLAYER_DEATH_ANIMATIONS = deathAnims.map((clip) => clip.clone ? clip.clone() : clip);
+            console.log("[assets@132] death animations:", window.PLAYER_DEATH_ANIMATIONS.length);
         }
 
         console.log("[assets@132] pools", {

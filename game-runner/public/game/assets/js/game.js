@@ -1,3 +1,4 @@
+
 // Encapsulado
 (() => {
   let scene, camera, renderer;
@@ -5,7 +6,12 @@
   const obstacles = [], coins = [], lanes = [-2, 0, 2], buildings = [], floorSegments = [];
   let streetSegmentLength = 20;
   let streetLoopLength = 200;
-  let speed = 0.01, jumpVelocity = 0.2, isJumping = false, yVelocity = 0;
+  const BASE_SPEED = 0.01;
+  const ENABLE_TUTORIAL = typeof window !== "undefined" ? window.ENABLE_TUTORIAL !== false : true;
+  let speed = ENABLE_TUTORIAL ? 0 : BASE_SPEED;
+  let jumpVelocity = 0.2,
+    isJumping = false,
+    yVelocity = 0;
   let timer = 0, lives = 3, coinCount = 0;
   let touchStartX = 0, touchEndX = 0, touchStartY = 0, touchEndY = 0;
   let gameStarted = false;
@@ -17,10 +23,31 @@
   let mixer = null;
   let groundY = 0.5;
   let playerHalfHeight = 0.5;
+  let playerState = "run";
   let playerHalfWidth = 0.5;
   let playerHalfDepth = 0.5;
-  const OBSTACLE_POOL_SIZE = 6;
-  const COIN_POOL_SIZE = 8;
+  let groundBottom = 0;
+  let skyMesh = null;
+  let streetFrontOffset = 0;
+  const SKY_TOP_COLOR = new THREE.Color(0x0b3fe6);
+  const SKY_BOTTOM_COLOR = new THREE.Color(0x5aa8ff);
+  const IS_MOBILE_ENV =
+    typeof window !== "undefined"
+      ? !!window.IS_MOBILE_ENV
+      : /iPhone|iPad|iPod|Android/i.test(
+      (typeof navigator !== "undefined" && navigator.userAgent) || ""
+    );
+  const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1.5 : 2;
+  const OBSTACLE_POOL_SIZE = IS_MOBILE_ENV ? 4 : 6;
+  const COIN_POOL_SIZE = IS_MOBILE_ENV ? 6 : 8;
+  const LOAD_CITY_ASSETS =
+    typeof window !== "undefined" ? window.LOAD_CITY_ASSETS !== false : true;
+  const LOAD_BUILDINGS =
+    typeof window !== "undefined" ? window.LOAD_BUILDINGS !== false : true;
+  const LOAD_DECORATION =
+    typeof window !== "undefined" ? window.LOAD_DECORATION !== false : true;
+  const PLAYER_VARIANT =
+    typeof window !== "undefined" ? window.PLAYER_VARIANT_RESOLVED || window.PLAYER_VARIANT || "boy" : "boy";
   const SCORE_ENDPOINT = ((window && window.__APP_CONFIG__ && window.__APP_CONFIG__.remoteApiBaseUrl) || "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/") + "recpuntaje.php";
   const BASIC_AUTH_TOKEN =
     (window && window.BASIC_AUTH_TOKEN) ||
@@ -38,6 +65,79 @@
   const overlayEl = document.getElementById("loaderOverlay");
   const countdownEl = document.getElementById("countdown");
   const startHintEl = document.getElementById("startHint");
+  const tutorialOverlayEl = document.getElementById("tutorialOverlay");
+  const tutorialInstructionEl = document.getElementById("tutorialInstruction");
+
+  let tutorialActive = ENABLE_TUTORIAL;
+  const tutorialSteps = tutorialActive ? ["jump", "right", "left"] : [];
+  let tutorialStepIndex = 0;
+
+  const tutorialMessages = {
+    jump:
+      '<span class="tutorial-icon">⬆️</span><div class="tutorial-text">Presiona <strong>flecha arriba</strong> (PC) o haz <strong>swipe hacia arriba</strong> (móvil) para saltar.</div>',
+    right:
+      '<span class="tutorial-icon">➡️</span><div class="tutorial-text">Presiona <strong>flecha derecha</strong> o desliza hacia la derecha para cambiar de carril.</div>',
+    left:
+      '<span class="tutorial-icon">⬅️</span><div class="tutorial-text">Presiona <strong>flecha izquierda</strong> o desliza hacia la izquierda para volver.</div>',
+    done:
+      '<span class="tutorial-icon">✅</span><div class="tutorial-text">¡Perfecto! Ahora empieza el juego.</div>',
+  };
+
+  function showTutorialOverlay(messageKey) {
+    if (!tutorialOverlayEl || !tutorialInstructionEl) return;
+    const html = tutorialMessages[messageKey];
+    if (html) {
+      tutorialInstructionEl.innerHTML = html;
+    }
+    tutorialOverlayEl.classList.add("tutorial-overlay--active");
+  }
+
+  function hideTutorialOverlay(delay = 0) {
+    if (!tutorialOverlayEl) return;
+    if (delay <= 0) {
+      tutorialOverlayEl.classList.remove("tutorial-overlay--active");
+      return;
+    }
+    setTimeout(() => {
+      tutorialOverlayEl.classList.remove("tutorial-overlay--active");
+    }, delay);
+  }
+
+  function updateTutorialUI() {
+    if (!tutorialActive) {
+      hideTutorialOverlay();
+      return;
+    }
+    const step = tutorialSteps[tutorialStepIndex];
+    showTutorialOverlay(step);
+  }
+
+  function completeTutorial() {
+    tutorialActive = false;
+    showTutorialOverlay("done");
+    setTimeout(() => {
+      hideTutorialOverlay();
+      speed = 0;
+      startSequenceTriggered = true;
+      runCountdown(() => {}, BASE_SPEED);
+    }, 800);
+  }
+
+  function registerTutorialAction(action) {
+    if (!tutorialActive) return;
+    const expected = tutorialSteps[tutorialStepIndex];
+    if (expected !== action) return;
+    tutorialStepIndex += 1;
+    if (tutorialStepIndex >= tutorialSteps.length) {
+      completeTutorial();
+      return;
+    }
+    updateTutorialUI();
+  }
+
+  if (!tutorialActive) {
+    hideTutorialOverlay();
+  }
 
   const triggerHitPause = (duration = 700) => {
     hitPauseUntil = performance.now() + duration;
@@ -59,13 +159,106 @@
     return !!window.ASSETS_READY;
   };
 
-  let countdownActive = false;
+  let countdownRunning = false;
   let countdownInterval = null;
+  let worldInitialized = false;
+  let startSequenceTriggered = false;
   let timerHandle = null;
 
+  function initializeWorld() {
+    if (worldInitialized) return;
+    worldInitialized = true;
+    if (startScreenEl) startScreenEl.style.display = "none";
+    if (countdownEl) {
+      countdownEl.style.display = "none";
+      countdownEl.textContent = "3";
+    }
+    if (hudEl) hudEl.style.display = "block";
+    gameStartTimestamp = Date.now();
+    scoreSubmitted = false;
+    pendingScorePromise = null;
+    init();
+    animate();
+    if (!timerHandle) {
+      timerHandle = setInterval(() => {
+        if (gameStarted && !isPaused) {
+          timer++;
+          timerEl.textContent = timer;
+        }
+      }, 1000);
+    }
+  }
+
+  function runCountdown(onComplete, targetSpeed = BASE_SPEED) {
+    if (countdownRunning) return;
+    countdownRunning = true;
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+
+    const finish = () => {
+      if (countdownEl) {
+        countdownEl.style.display = "none";
+        countdownEl.style.transform = "";
+        countdownEl.style.left = "";
+        countdownEl.style.top = "";
+        countdownEl.style.textShadow = "";
+        countdownEl.style.zIndex = "";
+        countdownEl.style.position = "";
+        countdownEl.style.opacity = "";
+        countdownEl.style.transition = "";
+        countdownEl.style.display = "none";
+        countdownEl.textContent = "3";
+      }
+      speed = targetSpeed;
+      countdownRunning = false;
+      if (typeof onComplete === "function") onComplete();
+    };
+
+    if (!countdownEl) {
+      finish();
+      return;
+    }
+
+    if (countdownEl.parentElement !== document.body) {
+      document.body.appendChild(countdownEl);
+    }
+
+    countdownEl.style.position = "fixed";
+    countdownEl.style.left = "50%";
+    countdownEl.style.top = "40%";
+    countdownEl.style.transform = "translate(-50%, -50%)";
+    countdownEl.style.zIndex = "250";
+    countdownEl.style.textShadow = "0 12px 35px rgba(0,0,0,0.55)";
+    countdownEl.style.color = "#ffffff";
+
+    let value = 3;
+    countdownEl.textContent = String(value);
+    countdownEl.style.display = "block";
+    countdownEl.style.opacity = "1";
+    countdownEl.style.transition = "opacity 0.2s, transform 1s";
+    countdownEl.style.transform = "translate(-50%, -50%) scale(1)";
+
+    countdownInterval = setInterval(() => {
+      value -= 1;
+      if (value > 0) {
+        countdownEl.textContent = String(value);
+        return;
+      }
+
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+      countdownEl.textContent = "¡Vamos!";
+      countdownEl.style.transform = "translate(-50%, -50%) scale(0.85)";
+
+      setTimeout(finish, 450);
+    }, 1000);
+  }
+
   const startGameAfterCountdown = async () => {
-    if (countdownActive) return;
-    countdownActive = true;
+    if (startSequenceTriggered) return;
+    startSequenceTriggered = true;
 
     try {
       if (window.AUDIO_CTX && window.AUDIO_CTX.state !== "running") {
@@ -76,49 +269,28 @@
     const assetsReady = await waitAssets(60000);
 
     if (startHintEl) startHintEl.style.display = "none";
-    if (countdownEl) {
-      countdownEl.style.display = "block";
-      let value = 3;
-      countdownEl.textContent = String(value);
 
-      countdownInterval = setInterval(() => {
-        value -= 1;
-        if (value > 0) {
-          countdownEl.textContent = String(value);
-          return;
-        }
+    const originalSpeed = speed;
+    speed = 0;
 
-        clearInterval(countdownInterval);
-        countdownInterval = null;
-        countdownEl.textContent = "¡Vamos!";
+    initializeWorld();
 
-        setTimeout(() => {
-          startScreenEl.style.display = "none";
-          countdownEl.style.display = "none";
-          countdownEl.textContent = "3";
-
-          hudEl.style.display = "block";
-          gameStartTimestamp = Date.now();
-          scoreSubmitted = false;
-          pendingScorePromise = null;
-          init();
-          animate();
-          if (!timerHandle) {
-            timerHandle = setInterval(() => {
-              if (gameStarted && !isPaused) {
-                timer++;
-                timerEl.textContent = timer;
-              }
-            }, 1000);
-          }
-
-          if (!assetsReady) {
-            console.warn("Assets did not finish loading in time. Using fallbacks where needed.");
-            overlayEl.style.display = "none";
-          }
-        }, 450);
-      }, 1000);
+    if (tutorialActive) {
+      updateTutorialUI();
+      if (!assetsReady) {
+        console.warn("Assets did not finish loading in time. Using fallbacks where needed.");
+        overlayEl.style.display = "none";
+      }
+      startSequenceTriggered = false;
+      return;
     }
+
+    runCountdown(() => {
+      if (!assetsReady) {
+        console.warn("Assets did not finish loading in time. Using fallbacks where needed.");
+        overlayEl.style.display = "none";
+      }
+    }, originalSpeed || BASE_SPEED);
   };
 
   const handleStartInteraction = () => {
@@ -142,6 +314,9 @@
     }
 
     if (!isPaused) {
+      if (skyMesh) {
+        skyMesh.position.copy(camera.position);
+      }
       player.position.x += (lanes[targetLane] - player.position.x) * 0.2;
 
       if (isJumping) {
@@ -150,41 +325,64 @@
         if (player.position.y <= groundY) {
           player.position.y = groundY;
           isJumping = false;
+          const data = ensureUserData(player);
+          const baseMin = data.baseMin ?? 0;
+          groundBottom = groundY + baseMin;
         }
+      }
+      if (!isJumping && playerState === "jump") {
+        const previousPosition = player ? player.position.clone() : null;
+        const previousRotationY = player ? player.rotation.y : Math.PI;
+        swapToRunModel(previousPosition, previousRotationY);
       }
 
       // Obstáculos
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-      const obs = obstacles[i];
-      obs.position.z += speed * 50;
-      if (obs.position.z > 10) {
-        recycleObstacle(obs);
-        continue;
-      }
-      if (
-        Math.abs(player.position.z - obs.position.z) < (playerHalfDepth + 0.8) &&
-        Math.abs(player.position.x - obs.position.x) < (playerHalfWidth + 0.8) &&
-        Math.abs(player.position.y - (obs.position.y || groundY)) < (playerHalfHeight + 0.6)
-      ) {
-        // Hit + vida
-        if (window.SFX) window.SFX.play("hit");
-        lives--;
-        livesEl.textContent = lives;
-        triggerHitPause();
-
-        // Si aún quedan vidas, reproduce "life" para feedback
-        if (lives > 0 && window.SFX) setTimeout(() => window.SFX.play("life"), 60);
-
-        recycleObstacle(obs);
-
-        if (lives <= 0 && !scoreSubmitted) {
-          scoreSubmitted = true;
-          lives = 0;
+      const playerFeet = player.position.y - playerHalfHeight;
+      const playerHead = player.position.y + playerHalfHeight;
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.position.z += speed * 50;
+        if (obs.position.z > 10) {
+          recycleObstacle(obs);
+          continue;
+        }
+        const obsMinLocal = obs.userData?.hitMin ?? -0.2;
+        const obsMaxLocal = obs.userData?.hitMax ?? (obsMinLocal + 1);
+        const obsBottom = obsMinLocal + obs.position.y;
+        const obsTop = obsMaxLocal + obs.position.y;
+        const verticalOverlap = playerFeet <= obsTop && playerHead >= obsBottom;
+        if (
+          Math.abs(player.position.z - obs.position.z) < (playerHalfDepth + 0.8) &&
+          Math.abs(player.position.x - obs.position.x) < (playerHalfWidth + 0.8) &&
+          verticalOverlap
+        ) {
+          if (tutorialActive) {
+            recycleObstacle(obs);
+            continue;
+          }
+          // Hit + vida
+          if (window.SFX) window.SFX.play("hit");
+          lives--;
           livesEl.textContent = lives;
+          triggerHitPause();
 
-          if (window.SFX) window.SFX.play("gameover");
+          // Si aún quedan vidas, reproduce "life" para feedback
+          if (lives > 0 && window.SFX) setTimeout(() => window.SFX.play("life"), 60);
 
-          const goToRanking = () => {
+          recycleObstacle(obs);
+
+          if (lives <= 0 && !scoreSubmitted) {
+            if (mixer) mixer.stopAllAction();
+            isJumping = false;
+            swapToDeathModel();
+            speed = 0;
+            scoreSubmitted = true;
+            lives = 0;
+            livesEl.textContent = lives;
+
+            if (window.SFX) window.SFX.play("gameover");
+
+            const goToRanking = () => {
             const target = (window.parent && window.parent !== window) ? window.parent : window;
             try {
               const origin = window.origin || (window.location.protocol + '//' + window.location.host);
@@ -226,34 +424,43 @@
       }
     }
 
-    // Monedas
-    for (let i = coins.length - 1; i >= 0; i--) {
-      const coin = coins[i];
-      if (coin.rotation) coin.rotation.y += 0.1;
-      coin.position.z += speed * 50;
-      if (coin.position.z > 10) {
-        recycleCoin(coin);
-        continue;
+      // Monedas
+      for (let i = coins.length - 1; i >= 0; i--) {
+        const coin = coins[i];
+        if (coin.rotation) coin.rotation.y += 0.1;
+        coin.position.z += speed * 50;
+        if (coin.position.z > 10) {
+          recycleCoin(coin);
+          continue;
+        }
+        const coinMinLocal = coin.userData?.hitMin ?? -0.2;
+        const coinMaxLocal = coin.userData?.hitMax ?? (coinMinLocal + 0.5);
+        const coinBottom = coinMinLocal + coin.position.y;
+        const coinTop = coinMaxLocal + coin.position.y;
+        const verticalCoinOverlap = playerFeet <= coinTop && playerHead >= coinBottom;
+        if (
+          Math.abs(player.position.z - coin.position.z) < (playerHalfDepth + 0.8) &&
+          Math.abs(player.position.x - coin.position.x) < (playerHalfWidth + 0.8) &&
+          verticalCoinOverlap
+        ) {
+          coinCount++;
+          coinsEl.textContent = coinCount;
+          if (window.SFX) window.SFX.play("coin");
+          recycleCoin(coin);
+        }
       }
-      if (
-        Math.abs(player.position.z - coin.position.z) < (playerHalfDepth + 0.8) &&
-        Math.abs(player.position.x - coin.position.x) < (playerHalfWidth + 0.8) &&
-        Math.abs(player.position.y - (coin.position.y || groundY)) < (playerHalfHeight + 0.6)
-      ) {
-        coinCount++;
-        coinsEl.textContent = coinCount;
-        if (window.SFX) window.SFX.play("coin");
-        recycleCoin(coin);
-      }
-    }
 
       for (let seg of floorSegments) {
         seg.position.z += speed * 50;
-        if (seg.position.z > streetSegmentLength) seg.position.z -= streetLoopLength;
+        if (seg.position.z > streetFrontOffset) {
+          seg.position.z -= streetLoopLength;
+        }
       }
       for (let bld of buildings) {
         bld.position.z += speed * 50;
-        if (bld.position.z > 10) bld.position.z -= streetLoopLength;
+        if (bld.position.z > 10) {
+          recycleBuilding(bld);
+        }
       }
     }
 
@@ -267,25 +474,28 @@
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 1000);
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setClearColor(0x0b3fe6, 1);
+    renderer.setPixelRatio(Math.min(MAX_PIXEL_RATIO, window.devicePixelRatio || 1));
+    renderer.setClearColor(SKY_BOTTOM_COLOR.getHex(), 1);
     document.body.appendChild(renderer.domElement);
 
-    scene.background = new THREE.Color(0x0b3fe6);
+    skyMesh = createSkyDome();
+    scene.add(skyMesh);
 
     const ambientLight = new THREE.AmbientLight(0xfffbe6, 1.15);
     scene.add(ambientLight);
-    const sunLight = new THREE.DirectionalLight(0xfff2cc, 1.1);
+    const sunLight = new THREE.DirectionalLight(0xfff2cc, IS_MOBILE_ENV ? 0.8 : 1.1);
     sunLight.position.set(40, 60, 10);
-    sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.camera.near = 10;
-    sunLight.shadow.camera.far = 120;
-    sunLight.shadow.camera.left = -50;
-    sunLight.shadow.camera.right = 50;
-    sunLight.shadow.camera.top = 50;
-    sunLight.shadow.camera.bottom = -50;
+    if (!IS_MOBILE_ENV) {
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 1024;
+      sunLight.shadow.mapSize.height = 1024;
+      sunLight.shadow.camera.near = 10;
+      sunLight.shadow.camera.far = 120;
+      sunLight.shadow.camera.left = -50;
+      sunLight.shadow.camera.right = 50;
+      sunLight.shadow.camera.top = 50;
+      sunLight.shadow.camera.bottom = -50;
+    }
     scene.add(sunLight);
 
     const streetPool = window.ASSET_POOLS?.street || [];
@@ -303,6 +513,8 @@
         const segmentsNeeded = Math.max(12, Math.ceil(240 / streetSegmentLength));
         streetLoopLength = streetSegmentLength * segmentsNeeded;
         const frontOffset = streetSegmentLength * 0.5 + 5;
+        streetFrontOffset = frontOffset;
+        const extraSeg = window.GET_RANDOM_ASSET_CLONE("street");
         for (let i = 0; i < segmentsNeeded; i++) {
           const seg = i === 0 ? primary : window.GET_RANDOM_ASSET_CLONE("street");
           if (!seg) break;
@@ -317,6 +529,16 @@
           seg.position.z = frontOffset - i * streetSegmentLength;
           floorSegments.push(seg);
           scene.add(seg);
+        }
+        if (extraSeg) {
+          extraSeg.position.set(0, 0, 0);
+          extraSeg.updateMatrixWorld(true);
+          const bboxExtra = new THREE.Box3().setFromObject(extraSeg);
+          const minExtra = bboxExtra.min.y;
+          if (isFinite(minExtra)) extraSeg.position.y = -minExtra;
+          extraSeg.position.z = frontOffset + streetSegmentLength;
+          floorSegments.push(extraSeg);
+          scene.add(extraSeg);
         }
       }
     }
@@ -337,6 +559,15 @@
       const segmentsNeeded = 20;
       streetLoopLength = streetSegmentLength * segmentsNeeded;
       const frontOffset = streetSegmentLength * 0.5 + 5;
+      streetFrontOffset = frontOffset;
+      const extraFloor = new THREE.Mesh(
+        new THREE.BoxGeometry(fallbackLength * 2, 0.1, fallbackLength),
+        new THREE.MeshStandardMaterial({ color: 0x444444 })
+      );
+      extraFloor.position.z = frontOffset + streetSegmentLength;
+      extraFloor.position.y = -0.02;
+      floorSegments.push(extraFloor);
+      scene.add(extraFloor);
       for (let i = 0; i < segmentsNeeded; i++) {
         const floor = new THREE.Mesh(
           new THREE.BoxGeometry(fallbackLength * 2, 0.1, fallbackLength),
@@ -351,31 +582,38 @@
 
     const basePlayer = window.PLAYER_MODEL;
     if (basePlayer) {
-      player = basePlayer;
-      window.PLAYER_MODEL = null;
-      scene.add(player);
-      player.position.set(0, 0, 0);
-      player.updateMatrixWorld(true);
-      const bbox = new THREE.Box3().setFromObject(player);
-      const size = bbox.getSize(new THREE.Vector3());
-      playerHalfHeight = size.y / 2 || 0.5;
-      playerHalfWidth = size.x / 2 || 0.5;
-      playerHalfDepth = size.z / 2 || 0.5;
-      groundY = bbox.min.y + playerHalfHeight;
-      player.position.set(lanes[targetLane], groundY, 5);
+      const runInstance = prepareModel(basePlayer, window.PLAYER_ANIMATIONS);
+      if (runInstance) {
+        scene.add(runInstance);
+        player = runInstance;
+        player.position.set(0, 0, 0);
+        player.updateMatrixWorld(true);
+        const bbox = new THREE.Box3().setFromObject(player);
+        const size = bbox.getSize(new THREE.Vector3());
+        const data = ensureUserData(player);
+        const baseMin = data.baseMin ?? bbox.min.y;
+        const baseHeight = data.baseHeight ?? size.y;
+        playerHalfHeight = baseHeight / 2 || 0.5;
+        playerHalfWidth = size.x / 2 || 0.5;
+        playerHalfDepth = size.z / 2 || 0.5;
+        groundY = -baseMin;
+        player.position.set(lanes[targetLane], groundY, 5);
+        groundBottom = player.position.y + baseMin;
 
-      const clips =
-        (player.animations && player.animations.length ? player.animations : window.PLAYER_ANIMATIONS) || [];
-      if (clips.length > 0) {
-        mixer = new THREE.AnimationMixer(player);
-        const clipIndex = 0;
-        const action = mixer.clipAction(clips[clipIndex]);
-        console.log("Using animation clip", clipIndex, clips[clipIndex]?.name);
-        action.reset().setLoop(THREE.LoopRepeat, Infinity).play();
-      } else {
-        console.warn("Player model loaded without animations.");
+        const clips =
+          (player.animations && player.animations.length ? player.animations : window.PLAYER_ANIMATIONS) || [];
+        if (clips.length > 0) {
+          mixer = new THREE.AnimationMixer(player);
+          const clipIndex = 0;
+          const action = mixer.clipAction(clips[clipIndex]);
+          console.log("Using animation clip", clipIndex, clips[clipIndex]?.name);
+          action.reset().setLoop(THREE.LoopRepeat, Infinity).play();
+        } else {
+          console.warn("Player model loaded without animations.");
+        }
       }
-    } else {
+    }
+    if (!player) {
       player = new THREE.Mesh(
         new THREE.BoxGeometry(1, 1, 1),
         new THREE.MeshStandardMaterial({ color: 0x00ff00 })
@@ -385,6 +623,7 @@
       playerHalfDepth = 0.5;
       groundY = 0.5;
       player.position.set(lanes[targetLane], groundY, 5);
+      groundBottom = groundY - playerHalfHeight;
       scene.add(player);
     }
 
@@ -406,15 +645,20 @@
       if (e.code === "ArrowLeft" && targetLane > 0) {
         targetLane--;
         if (window.SFX) window.SFX.play("move");
+        registerTutorialAction("left");
       }
       if (e.code === "ArrowRight" && targetLane < 2) {
         targetLane++;
         if (window.SFX) window.SFX.play("move");
+        registerTutorialAction("right");
       }
       if (e.code === "ArrowUp" && !isJumping) {
+        if (mixer) mixer.stopAllAction();
         yVelocity = jumpVelocity;
         isJumping = true;
+        swapToJumpModel();
         if (window.SFX) window.SFX.play("jump");
+        registerTutorialAction("jump");
       }
     });
 
@@ -432,15 +676,20 @@
         if (dx > 30 && targetLane < 2) {
           targetLane++;
           if (window.SFX) window.SFX.play("move");
+          registerTutorialAction("right");
         } else if (dx < -30 && targetLane > 0) {
           targetLane--;
           if (window.SFX) window.SFX.play("move");
+          registerTutorialAction("left");
         }
       } else {
         if (dy < -30 && !isJumping) {
+          if (mixer) mixer.stopAllAction();
           yVelocity = jumpVelocity;
           isJumping = true;
+          swapToJumpModel();
           if (window.SFX) window.SFX.play("jump");
+          registerTutorialAction("jump");
         }
       }
     });
@@ -458,6 +707,71 @@
     return node.userData;
   }
 
+  function prepareModel(template, animations) {
+    if (!template) return null;
+    const data = ensureUserData(template);
+    template.traverse((child) => {
+      if (child.isMesh || child.isSkinnedMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (child.material && "skinning" in child.material) {
+          child.material.skinning = true;
+        }
+        if (child.isSkinnedMesh) {
+          child.frustumCulled = false;
+        }
+        if (child.geometry && !child.geometry.boundingBox) {
+          child.geometry.computeBoundingBox();
+        }
+      }
+    });
+
+    const clips =
+      (animations && animations.length
+        ? animations
+        : template.animations || data.animations || template.userData?.animations || []);
+    template.animations = clips;
+    data.animations = clips;
+    template.userData.animations = clips;
+
+    const bbox = new THREE.Box3().setFromObject(template);
+    const size = bbox.getSize(new THREE.Vector3());
+    if (!Number.isFinite(size.y) || size.y === 0) {
+      size.y = 1;
+    }
+    data.baseMin = data.baseMin ?? bbox.min.y;
+    data.baseMax = data.baseMax ?? bbox.max.y;
+    data.baseHeight = data.baseHeight ?? (bbox.max.y - bbox.min.y || size.y);
+    return template;
+  }
+
+  function createSkyDome() {
+    const radius = 500;
+    const geometry = new THREE.SphereGeometry(radius, 32, 32);
+    geometry.scale(-1, 1, 1);
+    const positionAttr = geometry.getAttribute("position");
+    const colors = new Float32Array(positionAttr.count * 3);
+
+    for (let i = 0; i < positionAttr.count; i++) {
+      const y = positionAttr.getY(i);
+      const t = THREE.MathUtils.clamp((y + radius) / (2 * radius), 0, 1);
+      const color = SKY_BOTTOM_COLOR.clone().lerp(SKY_TOP_COLOR, t);
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    const material = new THREE.MeshBasicMaterial({
+      side: THREE.BackSide,
+      vertexColors: true,
+      depthWrite: false,
+    });
+    const dome = new THREE.Mesh(geometry, material);
+    dome.name = "SkyDome";
+    return dome;
+  }
+
   function createObstacleMesh() {
     const clone = (typeof window.GET_RANDOM_ASSET_CLONE === "function")
       ? window.GET_RANDOM_ASSET_CLONE("obstacles")
@@ -465,26 +779,34 @@
 
     if (clone) {
       const data = ensureUserData(clone);
-      if (data.baseY == null) {
-        clone.position.set(0, 0, 0);
-        clone.updateMatrixWorld(true);
-        const bbox = new THREE.Box3().setFromObject(clone);
-        const minY = bbox.min.y;
-        const maxY = bbox.max.y;
-        const align = isFinite(minY) ? -minY : 0;
-        const height = isFinite(maxY) && isFinite(minY) ? maxY - minY : 1;
-        data.baseY = align + height * 0.05 + 0.35;
-      }
+      clone.position.set(0, 0, 0);
+      clone.updateMatrixWorld(true);
+      const bbox = new THREE.Box3().setFromObject(clone);
+      const minY = bbox.min.y;
+      const maxY = bbox.max.y;
+      const align = isFinite(minY) ? -minY : 0;
+      const desiredBottom = 0.02;
+      data.baseY = align + desiredBottom;
+      data.hitMin = minY;
+      data.hitMax = maxY;
       return clone;
     }
 
-    const fallback = new THREE.Mesh(
+  const fallback = new THREE.Mesh(
       new THREE.BoxGeometry(1, 1, 1),
       new THREE.MeshStandardMaterial({ color: 0xff0000 })
     );
     const data = ensureUserData(fallback);
     fallback.scale.set(1, 1, 1);
-    data.baseY = 1.25;
+    fallback.position.set(0, 0, 0);
+    fallback.updateMatrixWorld(true);
+    const bbox = new THREE.Box3().setFromObject(fallback);
+    const minY = bbox.min.y;
+    const maxY = bbox.max.y;
+    const desiredBottom = 0.02;
+    data.baseY = (isFinite(minY) ? -minY : 0) + desiredBottom;
+    data.hitMin = minY;
+    data.hitMax = maxY;
     return fallback;
   }
 
@@ -495,16 +817,16 @@
 
     if (clone) {
       const data = ensureUserData(clone);
-      if (data.baseY == null) {
-        clone.position.set(0, 0, 0);
-        clone.updateMatrixWorld(true);
-        const bbox = new THREE.Box3().setFromObject(clone);
-        const minY = bbox.min.y;
-        const maxY = bbox.max.y;
-        const align = isFinite(minY) ? -minY : 0;
-        const height = isFinite(maxY) && isFinite(minY) ? maxY - minY : 0.6;
-        data.baseY = align + height * 0.25 + 0.6;
-      }
+      clone.position.set(0, 0, 0);
+      clone.updateMatrixWorld(true);
+      const bbox = new THREE.Box3().setFromObject(clone);
+      const minY = bbox.min.y;
+      const maxY = bbox.max.y;
+      const align = isFinite(minY) ? -minY : 0;
+      const desiredBottom = 0.35;
+      data.baseY = align + desiredBottom;
+      data.hitMin = minY;
+      data.hitMax = maxY;
       return clone;
     }
 
@@ -513,7 +835,15 @@
       new THREE.MeshStandardMaterial({ color: 0xffff00 })
     );
     const data = ensureUserData(fallback);
-    data.baseY = 0.85;
+    fallback.position.set(0, 0, 0);
+    fallback.updateMatrixWorld(true);
+    const bbox = new THREE.Box3().setFromObject(fallback);
+    const minY = bbox.min.y;
+    const maxY = bbox.max.y;
+    const desiredBottom = 0.35;
+    data.baseY = (isFinite(minY) ? -minY : 0) + desiredBottom;
+    data.hitMin = minY;
+    data.hitMax = maxY;
     return fallback;
   }
 
@@ -579,7 +909,185 @@
     if (coin.rotation) coin.rotation.set(0, 0, 0);
   }
 
-  function getStoredSessionData() {
+  function recycleBuilding(building) {
+    const data = ensureUserData(building);
+    const side = data.streetSide ?? 0;
+    const depth = data.buildingDepth ?? 14;
+    const gap = data.streetGap ?? 1.5;
+    const offsetX = data.streetOffsetX ?? (side + (side < 0 ? -3 : 3));
+    const rotationY = data.streetRotation ?? (side < 0 ? Math.PI : 0);
+
+    let farthestFront = Infinity;
+    for (const other of buildings) {
+      if (other === building) continue;
+      const otherData = ensureUserData(other);
+      if ((otherData.streetSide ?? 0) !== side) continue;
+      const otherDepth = otherData.buildingDepth ?? depth;
+      const otherFront = other.position.z + otherDepth / 2;
+      if (otherFront < farthestFront) farthestFront = otherFront;
+    }
+
+    if (!isFinite(farthestFront)) {
+      farthestFront = -50;
+    }
+
+    const newFront = farthestFront - depth - gap;
+    building.position.z = newFront - depth / 2;
+    building.rotation.y = rotationY;
+    building.position.x = offsetX;
+  }
+
+function swapToDeathModel() {
+  const deathTemplate = window.PLAYER_DEATH_MODEL;
+  playerState = "death";
+  if (!deathTemplate || !scene) {
+    return;
+  }
+  const deathAnimations = window.PLAYER_DEATH_ANIMATIONS || deathTemplate.animations || deathTemplate.userData?.animations || [];
+  const previousPosition = player ? player.position.clone() : new THREE.Vector3(0, groundY, 5);
+  const previousRotationY = player ? player.rotation.y : Math.PI;
+
+  if (player) {
+    scene.remove(player);
+  }
+
+  const deathInstance = prepareModel(deathTemplate, deathAnimations);
+  if (!deathInstance) {
+    swapToRunModel(previousPosition, previousRotationY);
+    return;
+  }
+  scene.add(deathInstance);
+  player = deathInstance;
+  player.position.copy(previousPosition);
+  player.rotation.y = previousRotationY;
+
+  const bbox = new THREE.Box3().setFromObject(player);
+  const size = bbox.getSize(new THREE.Vector3());
+  const data = ensureUserData(player);
+  const baseMin = data.baseMin ?? bbox.min.y;
+  const baseHeight = data.baseHeight ?? size.y;
+  playerHalfHeight = baseHeight / 2 || playerHalfHeight;
+  playerHalfWidth = size.x / 2 || playerHalfWidth;
+  playerHalfDepth = size.z / 2 || playerHalfDepth;
+  const targetGround = previousPosition ? previousPosition.y : (groundBottom - baseMin);
+  player.position.y = targetGround;
+  groundY = targetGround;
+  groundBottom = groundY + baseMin;
+
+  hitPauseUntil = 0;
+  isPaused = false;
+  playerState = "death";
+
+  mixer = new THREE.AnimationMixer(player);
+  if (deathAnimations.length) {
+    const action = mixer.clipAction(deathAnimations[0]);
+    action.reset();
+    action.setLoop(THREE.LoopOnce, 1);
+    action.clampWhenFinished = true;
+    action.play();
+    mixer.update(0.001);
+  }
+}
+
+function swapToJumpModel() {
+  const jumpTemplate = window.PLAYER_JUMP_MODEL;
+  playerState = "jump";
+  if (!jumpTemplate || !scene) {
+    return;
+  }
+  const jumpAnimations = window.PLAYER_JUMP_ANIMATIONS || jumpTemplate.animations || jumpTemplate.userData?.animations || [];
+  const previousPosition = player ? player.position.clone() : new THREE.Vector3(0, groundY, 5);
+  const previousRotationY = player ? player.rotation.y : Math.PI;
+
+  if (player) {
+    scene.remove(player);
+  }
+
+  const jumpInstance = prepareModel(jumpTemplate, jumpAnimations);
+  if (!jumpInstance) {
+    swapToRunModel(previousPosition, previousRotationY);
+    return;
+  }
+  scene.add(jumpInstance);
+  player = jumpInstance;
+  player.position.copy(previousPosition);
+  player.rotation.y = previousRotationY;
+
+  const bbox = new THREE.Box3().setFromObject(player);
+  const size = bbox.getSize(new THREE.Vector3());
+  const data = ensureUserData(player);
+  const baseMin = data.baseMin ?? bbox.min.y;
+  const baseHeight = data.baseHeight ?? size.y;
+  playerHalfHeight = baseHeight / 2 || playerHalfHeight;
+  playerHalfWidth = size.x / 2 || playerHalfWidth;
+  playerHalfDepth = size.z / 2 || playerHalfDepth;
+  const targetGround = previousPosition ? previousPosition.y : (groundBottom - baseMin);
+  player.position.y = targetGround;
+  groundY = targetGround;
+  groundBottom = groundY + baseMin;
+
+  mixer = new THREE.AnimationMixer(player);
+  if (jumpAnimations.length) {
+    const action = mixer.clipAction(jumpAnimations[0]);
+    action.reset();
+    action.setLoop(THREE.LoopOnce, 1);
+    action.clampWhenFinished = false;
+    action.play();
+    mixer.update(0.001);
+  }
+}
+
+function swapToRunModel(previousPosition, previousRotationY) {
+  const runTemplate = window.PLAYER_MODEL;
+  playerState = "run";
+  if (!runTemplate || !scene) {
+    return;
+  }
+  const runAnimations = window.PLAYER_ANIMATIONS || runTemplate.animations || runTemplate.userData?.animations || [];
+
+  const runInstance = prepareModel(runTemplate, runAnimations);
+  if (!runInstance) {
+    return;
+  }
+
+  if (player && player !== runInstance) {
+    scene.remove(player);
+  }
+
+  scene.add(runInstance);
+  player = runInstance;
+  if (previousPosition) {
+    player.position.copy(previousPosition);
+  }
+  if (previousRotationY !== undefined) {
+    player.rotation.y = previousRotationY;
+  }
+
+  const bbox = new THREE.Box3().setFromObject(player);
+  const size = bbox.getSize(new THREE.Vector3());
+  const data = ensureUserData(player);
+  const baseMin = data.baseMin ?? bbox.min.y;
+  const baseHeight = data.baseHeight ?? size.y;
+  playerHalfHeight = baseHeight / 2 || playerHalfHeight;
+  playerHalfWidth = size.x / 2 || playerHalfWidth;
+  playerHalfDepth = size.z / 2 || playerHalfDepth;
+  const targetGround = previousPosition ? previousPosition.y : (groundBottom - baseMin);
+  player.position.y = targetGround;
+  groundY = targetGround;
+  groundBottom = groundY + baseMin;
+
+  hitPauseUntil = 0;
+  isPaused = false;
+
+  mixer = new THREE.AnimationMixer(player);
+  if (runAnimations.length) {
+    const action = mixer.clipAction(runAnimations[0]);
+    action.reset().setLoop(THREE.LoopRepeat, Infinity).play();
+    mixer.update(0.001);
+  }
+}
+
+function getStoredSessionData() {
     try {
       if (!window.localStorage) return null;
       const raw = window.localStorage.getItem("session");
@@ -664,38 +1172,68 @@
 
   function generateCity() {
     const sides = [-10, 10];
-    const walkwayStart = -20;
+    const walkwayStart = -10;
     const walkwayEnd = -210;
     const walkwayStep = 12;
-    const hasCity = typeof window.GET_RANDOM_ASSET_CLONE === "function";
+    const minGap = 1.5;
+    const tempVec = new THREE.Vector3();
+    const tempBox = new THREE.Box3();
+    const hasCity =
+      LOAD_CITY_ASSETS &&
+      !IS_MOBILE_ENV &&
+      typeof window.GET_RANDOM_ASSET_CLONE === "function";
     const hasScenery =
-      hasCity && Array.isArray(window.ASSET_POOLS?.cityScenery) && window.ASSET_POOLS.cityScenery.length > 0;
+      LOAD_DECORATION &&
+      hasCity &&
+      Array.isArray(window.ASSET_POOLS?.cityScenery) &&
+      window.ASSET_POOLS.cityScenery.length > 0;
     const hasBuildings =
-      hasCity && Array.isArray(window.ASSET_POOLS?.cityBuildings) && window.ASSET_POOLS.cityBuildings.length > 0;
+      LOAD_BUILDINGS &&
+      hasCity &&
+      Array.isArray(window.ASSET_POOLS?.cityBuildings) &&
+      window.ASSET_POOLS.cityBuildings.length > 0;
 
     // Continuous building rows
     if (hasCity && hasBuildings) {
-      const buildingStart = -120;
+      const buildingStart = -20;
       const buildingEnd = -380;
-      const buildingStep = 16;
       for (let side of sides) {
         let cursor = buildingStart;
         while (cursor > buildingEnd) {
-          let building = window.GET_RANDOM_ASSET_CLONE("cityBuildings");
+          const building = window.GET_RANDOM_ASSET_CLONE("cityBuildings");
           if (!building) break;
+
+          building.userData = { ...(building.userData || {}) };
           building.position.set(0, 0, 0);
           building.rotation.set(0, 0, 0);
+
+          const rotationY = side < 0 ? Math.PI : 0;
+          building.rotation.y = rotationY;
           building.updateMatrixWorld(true);
-          const bbox = new THREE.Box3().setFromObject(building);
+
+          const bbox = tempBox.setFromObject(building);
+          const size = bbox.getSize(tempVec);
+          const depth = Math.max(4, building.userData?.buildingDepth || size.z || size.x || 14);
           const minY = bbox.min.y;
+          const halfDepth = depth / 2;
+
           building.position.y = isFinite(minY) ? -minY : 0;
           const lateralOffset = side < 0 ? -3 : 3;
-          building.position.x = side + lateralOffset;
-          building.position.z = cursor;
-          building.rotation.y = side < 0 ? Math.PI : -Math.PI ;
-          cursor -= buildingStep;
+          const offsetX = side + lateralOffset;
+          building.position.x = offsetX;
+          building.position.z = cursor - halfDepth;
+
+          const data = ensureUserData(building);
+          data.streetSide = side;
+          data.buildingDepth = depth;
+          data.streetGap = minGap;
+          data.streetRotation = rotationY;
+          data.streetOffsetX = offsetX;
+
           scene.add(building);
           buildings.push(building);
+
+          cursor -= depth + minGap;
         }
       }
     }
@@ -714,15 +1252,27 @@
           obj = null;
         }
         if (obj) {
+          obj.userData = { ...(obj.userData || {}) };
           obj.position.set(0, 0, 0);
           obj.rotation.set(0, 0, 0);
+          const rotationY = side < 0 ? Math.PI : 0;
+          obj.rotation.y = rotationY;
           obj.updateMatrixWorld(true);
-          const bbox = new THREE.Box3().setFromObject(obj);
+          const bbox = tempBox.setFromObject(obj);
+          const size = bbox.getSize(tempVec);
+          const depth = Math.max(2, obj.userData?.buildingDepth || size.z || size.x || 2);
           const minY = bbox.min.y;
           obj.position.y = isFinite(minY) ? -minY : 0;
           const lateralOffset = side < 0 ? 5 : -5;
-          obj.position.x = side + lateralOffset;
+          const offsetX = side + lateralOffset;
+          obj.position.x = offsetX;
           obj.position.z = z;
+          const data = ensureUserData(obj);
+          data.streetSide = side;
+          data.buildingDepth = depth;
+          data.streetGap = Math.max(1, walkwayStep - depth);
+          data.streetRotation = rotationY;
+          data.streetOffsetX = offsetX;
           scene.add(obj);
           buildings.push(obj);
         } else {
@@ -731,7 +1281,26 @@
             new THREE.BoxGeometry(2, h, 2),
             new THREE.MeshStandardMaterial({ color: 0x8888ff })
           );
-          box.position.set(side, h / 2, z);
+          box.position.set(0, 0, 0);
+          box.rotation.set(0, 0, 0);
+          const rotationY = side < 0 ? Math.PI : 0;
+          box.rotation.y = rotationY;
+          box.updateMatrixWorld(true);
+          const bbox = tempBox.setFromObject(box);
+          const size = bbox.getSize(tempVec);
+          const depth = Math.max(2, size.z || size.x || 2);
+          const minY = bbox.min.y;
+          box.position.y = isFinite(minY) ? -minY : 0;
+          const lateralOffset = side < 0 ? 5 : -5;
+          const offsetX = side + lateralOffset;
+          box.position.x = offsetX;
+          box.position.z = z;
+          const data = ensureUserData(box);
+          data.streetSide = side;
+          data.buildingDepth = depth;
+          data.streetGap = Math.max(1, walkwayStep - depth);
+          data.streetRotation = rotationY;
+          data.streetOffsetX = offsetX;
           scene.add(box);
           buildings.push(box);
         }
