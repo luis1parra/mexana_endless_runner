@@ -31,6 +31,9 @@
   let streetFrontOffset = 0;
   let streetRecycleThreshold = 0;
   let streetRecycleShift = 0;
+  let cloudMesh = null;
+  const pickupEffects = [];
+  const tempForwardVec = new THREE.Vector3();
   const SKY_TOP_COLOR = new THREE.Color(0x0b3fe6);
   const SKY_BOTTOM_COLOR = new THREE.Color(0x5aa8ff);
   const IS_MOBILE_ENV =
@@ -365,6 +368,21 @@
       mixer = null;
     }
 
+    for (let i = pickupEffects.length - 1; i >= 0; i--) {
+      const effect = pickupEffects[i];
+      if (effect.points) scene?.remove(effect.points);
+      effect.geometry?.dispose?.();
+      effect.material?.dispose?.();
+    }
+    pickupEffects.length = 0;
+
+    if (cloudMesh) {
+      scene?.remove(cloudMesh);
+      cloudMesh.geometry.dispose();
+      cloudMesh.material.dispose();
+      cloudMesh = null;
+    }
+
     disposeObjectResources(scene);
 
     obstacles.length = 0;
@@ -673,6 +691,7 @@
         ) {
           coinCount++;
           coinsEl.textContent = coinCount;
+          spawnCoinPickupEffect(coin.position.clone());
           if (window.SFX) window.SFX.play("coin");
           recycleCoin(coin);
         }
@@ -692,6 +711,38 @@
           recycleBuilding(bld);
         }
       }
+    }
+
+    if (cloudMesh) {
+      cloudMesh.position.set(
+        camera.position.x,
+        camera.position.y + 30,
+        camera.position.z - 400
+      );
+      cloudMesh.rotation.set(0, 0, 0);
+    }
+
+    for (let i = pickupEffects.length - 1; i >= 0; i--) {
+      const effect = pickupEffects[i];
+      effect.elapsed += delta;
+      const t = effect.elapsed / effect.duration;
+      if (t >= 1) {
+        scene.remove(effect.points);
+        effect.geometry.dispose();
+        effect.material.dispose();
+        pickupEffects.splice(i, 1);
+        continue;
+      }
+      const positions = effect.geometry.attributes.position.array;
+      const velocities = effect.velocities;
+      for (let j = 0; j < positions.length; j += 3) {
+        velocities[j + 1] += effect.gravity * delta;
+        positions[j] += velocities[j] * delta;
+        positions[j + 1] += velocities[j + 1] * delta;
+        positions[j + 2] += velocities[j + 2] * delta;
+      }
+      effect.geometry.attributes.position.needsUpdate = true;
+      effect.material.opacity = effect.baseOpacity * (1 - t);
     }
 
     renderer.render(scene, camera);
@@ -727,6 +778,27 @@
       sunLight.shadow.camera.bottom = -50;
     }
     scene.add(sunLight);
+
+    new THREE.TextureLoader().load(
+      "assets/2d/clouds.png",
+      (texture) => {
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 0.75,
+          depthWrite: false,
+          depthTest: true,
+        });
+        const geometry = new THREE.PlaneGeometry(250, 100);
+        cloudMesh = new THREE.Mesh(geometry, material);
+        cloudMesh.renderOrder = -5;
+        scene.add(cloudMesh);
+      },
+      undefined,
+      (error) => {
+        console.warn("Failed to load clouds texture", error);
+      }
+    );
 
     const streetPool = window.ASSET_POOLS?.street || [];
     if (streetPool.length > 0 && typeof window.GET_RANDOM_ASSET_CLONE === "function") {
@@ -1182,6 +1254,53 @@
     building.position.x = offsetX;
   }
 
+  function spawnCoinPickupEffect(position) {
+    if (!scene) return;
+    const particleCount = 20;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+      const idx = i * 3;
+      positions[idx] = position.x;
+      positions[idx + 1] = position.y + 0.5;
+      positions[idx + 2] = position.z;
+
+      const theta = Math.random() * Math.PI * 2;
+      const speed = 3.5 + Math.random() * 1.5;
+      velocities[idx] = Math.cos(theta) * speed;
+      velocities[idx + 1] = 3 + Math.random() * 1.5;
+      velocities[idx + 2] = Math.sin(theta) * speed;
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    const material = new THREE.PointsMaterial({
+      color: 0x4faeff,
+      size: 0.15,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+    });
+    material.depthTest = false;
+
+    const points = new THREE.Points(geometry, material);
+    points.renderOrder = 15;
+    scene.add(points);
+
+    pickupEffects.push({
+      points,
+      geometry,
+      material,
+      velocities,
+      elapsed: 0,
+      duration: 0.6,
+      baseOpacity: material.opacity,
+      gravity: -10,
+    });
+  }
+
 function swapToDeathModel() {
   const deathTemplate = window.PLAYER_DEATH_MODEL;
   playerState = "death";
@@ -1438,7 +1557,6 @@ function getStoredSessionData() {
     const tempBox = new THREE.Box3();
     const hasCity =
       LOAD_CITY_ASSETS &&
-      !IS_MOBILE_ENV &&
       typeof window.GET_RANDOM_ASSET_CLONE === "function";
     const hasScenery =
       LOAD_DECORATION &&
@@ -1455,9 +1573,10 @@ function getStoredSessionData() {
     if (hasCity && hasBuildings) {
       const buildingStart = -20;
       const buildingEnd = -380;
+      const buildingSpacing = 18;
       for (let side of sides) {
-        let cursor = buildingStart;
-        while (cursor > buildingEnd) {
+        let index = 0;
+        while (true) {
           const building = window.GET_RANDOM_ASSET_CLONE("cityBuildings");
           if (!building) break;
 
@@ -1465,8 +1584,12 @@ function getStoredSessionData() {
           building.position.set(0, 0, 0);
           building.rotation.set(0, 0, 0);
 
-          const rotationY = side < 0 ? Math.PI : 0;
+          const rotationY = side < 0 ? 0 : Math.PI;
           building.rotation.y = rotationY;
+          const defaultRot = building.userData?.defaultRotationY;
+          if (building.userData?.assetCategory !== "building" && Number.isFinite(defaultRot)) {
+            building.rotation.y = defaultRot;
+          }
           building.updateMatrixWorld(true);
 
           const bbox = tempBox.setFromObject(building);
@@ -1478,8 +1601,10 @@ function getStoredSessionData() {
           building.position.y = isFinite(minY) ? -minY : 0;
           const lateralOffset = side < 0 ? -3 : 3;
           const offsetX = side + lateralOffset;
+          const positionZ = buildingStart - index * buildingSpacing;
+          if (positionZ < buildingEnd) break;
           building.position.x = offsetX;
-          building.position.z = cursor - halfDepth;
+          building.position.z = positionZ - halfDepth;
 
           const data = ensureUserData(building);
           data.streetSide = side;
@@ -1490,8 +1615,7 @@ function getStoredSessionData() {
 
           scene.add(building);
           buildings.push(building);
-
-          cursor -= depth + minGap;
+          index += 1;
         }
       }
     }
@@ -1513,8 +1637,18 @@ function getStoredSessionData() {
           obj.userData = { ...(obj.userData || {}) };
           obj.position.set(0, 0, 0);
           obj.rotation.set(0, 0, 0);
-          const rotationY = side < 0 ? Math.PI : 0;
+          const rotationY = side < 0 ? -Math.PI / 2 : Math.PI / 2;
           obj.rotation.y = rotationY;
+          const data = ensureUserData(obj);
+          const defaultRot = data.defaultRotationY;
+          if (Number.isFinite(defaultRot)) {
+            obj.rotation.y = defaultRot;
+          }
+          if (data.cityKey === "citylamppost.fbx") {
+            const lampRot = side < 0 ? -Math.PI / 2 : Math.PI / 2;
+            obj.rotation.y = lampRot;
+            data.defaultRotationY = lampRot;
+          }
           obj.updateMatrixWorld(true);
           const bbox = tempBox.setFromObject(obj);
           const size = bbox.getSize(tempVec);
@@ -1525,12 +1659,12 @@ function getStoredSessionData() {
           const offsetX = side + lateralOffset;
           obj.position.x = offsetX;
           obj.position.z = z;
-          const data = ensureUserData(obj);
-          data.streetSide = side;
-          data.buildingDepth = depth;
-          data.streetGap = Math.max(1, walkwayStep - depth);
-          data.streetRotation = rotationY;
-          data.streetOffsetX = offsetX;
+          const decorData = ensureUserData(obj);
+          decorData.streetSide = side;
+          decorData.buildingDepth = depth;
+          decorData.streetGap = Math.max(1, walkwayStep - depth);
+          decorData.streetRotation = rotationY;
+          decorData.streetOffsetX = offsetX;
           scene.add(obj);
           buildings.push(obj);
         } else {

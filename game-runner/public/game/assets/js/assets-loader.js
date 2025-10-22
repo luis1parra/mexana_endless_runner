@@ -52,11 +52,21 @@
         "assets/3d/deodorantSprayUltra.fbx",
     ];
 
-    const OBSTACLE_FBX_URLS = [
-        "assets/3d/obstacleCar.glb",
-        "assets/3d/obstacleTrafficCone.glb",
-        "assets/3d/obstacleBarrier.glb"
-    ];
+const OBSTACLE_FBX_URLS = [
+    "assets/3d/obstacleCar.fbx",
+    "assets/3d/obstacleTrafficCone.fbx",
+    "assets/3d/obstacleBarrier.fbx"
+];
+
+const OBSTACLE_SCALE_MAP = {
+    "obstaclecar.fbx": 0.025,
+    "obstacletrafficcone.fbx": 1.4,
+    "obstaclebarrier.fbx": 2.7,
+};
+
+const CITY_DECOR_ROTATION_MAP = {
+    "citylamppost.fbx": Math.PI/2,
+};
 
 const CITY_DECOR_FBX_URLS = [
     "assets/3d/cityBusStop1.fbx",
@@ -216,7 +226,7 @@ const CITY_BUILDING_FBX_URLS = [
         } else if (kind === "street") {
             const initialBox = new THREE.Box3().setFromObject(obj);
             const initialSize = initialBox.getSize(new THREE.Vector3());
-            const targetLength = 6.5;
+            const targetLength = 13;
             const baseLength = initialSize.z || targetLength;
             const scaleFactor = targetLength / baseLength;
             obj.scale.multiplyScalar(scaleFactor);
@@ -233,6 +243,16 @@ const CITY_BUILDING_FBX_URLS = [
             obj.userData.streetWidth = size.x || 10;
             obj.userData.assetCategory = "street";
             obj.rotation.y = 0;
+        } else if (kind === "obstacle") {
+            const key = (resourceUrl || "").toLowerCase().split("/").pop();
+            const scaleFactor = (key && OBSTACLE_SCALE_MAP[key]) || 0.6;
+            obj.scale.multiplyScalar(scaleFactor);
+            obj.rotation.y = -Math.PI / 2;
+            obj.updateMatrixWorld(true);
+            const bbox = new THREE.Box3().setFromObject(obj);
+            const minY = bbox.min.y;
+            if (isFinite(minY)) obj.position.y = -minY;
+            obj.userData.assetCategory = "obstacle";
         } else {
             obj.scale.setScalar(2.5);
             obj.rotation.y = -Math.PI / 2;
@@ -242,17 +262,24 @@ const CITY_BUILDING_FBX_URLS = [
                 obj.scale.multiplyScalar(0.5);
             }
             if (kind === "city" && resourceUrl) {
-                if (resourceUrl.toLowerCase().includes("building")) {
+                const lower = resourceUrl.toLowerCase();
+                const decorKey = lower.split("/").pop();
+                if (lower.includes("building")) {
                     obj.scale.multiplyScalar(.06);
                     obj.userData.assetCategory = "building";
-                } else if (resourceUrl.toLowerCase().includes("tree")) {
+                } else if (lower.includes("tree")) {
                     obj.userData.assetCategory = "scenery";
-                    obj.scale.multiplyScalar(0.07); // reduce FBX tree drastically
+                    obj.scale.multiplyScalar(0.04); // reduce FBX tree drastically
                     obj.rotation.y = 0;
                 } else {
                     obj.userData.assetCategory = "scenery";
                     obj.scale.multiplyScalar(2);
                 }
+                if (decorKey && decorKey in CITY_DECOR_ROTATION_MAP) {
+                    obj.rotation.y = CITY_DECOR_ROTATION_MAP[decorKey];
+                }
+                obj.userData.cityKey = decorKey || null;
+                obj.userData.defaultRotationY = obj.rotation?.y ?? 0;
             }
         }
         obj.updateMatrixWorld(true);
@@ -350,7 +377,7 @@ const CITY_BUILDING_FBX_URLS = [
         const coinModels = await loadAll(coinUrls, "coin");
         const obstacleModels = await loadAll(obstacleUrls, "obstacle");
         let cityModels = [];
-        if (LOAD_CITY_ASSETS && !IS_MOBILE_ENV) {
+        if (LOAD_CITY_ASSETS) {
             const decorModels = LOAD_DECORATION ? await loadAll(decorUrls, "city") : [];
             const buildingModels = LOAD_BUILDINGS ? await loadAll(buildingUrls, "city") : [];
             cityModels = decorModels.concat(buildingModels);
