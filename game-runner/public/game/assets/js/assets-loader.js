@@ -42,11 +42,11 @@
         : (IS_MOBILE_ENV ? 1 : undefined);
     window.IS_MOBILE_ENV = IS_MOBILE_ENV;
 
-    const COIN_FBX_URLS = [
-        "assets/3d/deodorantBottleAven.fbx",
-        "assets/3d/deodorantBottleClassic.fbx",
-        "assets/3d/deodorantBottleLady.fbx",
-        "assets/3d/deodorantSprayAven.fbx",
+const COIN_FBX_URLS = [
+    "assets/3d/deodorantBottleAven.fbx",
+    "assets/3d/deodorantBottleClassic.fbx",
+    "assets/3d/deodorantBottleLady.fbx",
+    "assets/3d/deodorantSprayAven.fbx",
         "assets/3d/deodorantSprayClassic.fbx",
         "assets/3d/deodorantSprayLady.fbx",
         "assets/3d/deodorantSprayUltra.fbx",
@@ -57,6 +57,16 @@ const OBSTACLE_FBX_URLS = [
     "assets/3d/obstacleTrafficCone.fbx",
     "assets/3d/obstacleBarrier.fbx"
 ];
+
+const COIN_SCORE_MAP = {
+    "deodorantbottleaven.fbx": 1,
+    "deodorantbottleclassic.fbx": 2,
+    "deodorantbottlelady.fbx": 3,
+    "deodorantsprayaven.fbx": 4,
+    "deodorantsprayclassic.fbx": 5,
+    "deodorantspraylady.fbx": 6,
+    "deodorantsprayultra.fbx": 7,
+};
 
 const OBSTACLE_SCALE_MAP = {
     "obstaclecar.fbx": 0.025,
@@ -253,14 +263,21 @@ const CITY_BUILDING_FBX_URLS = [
             const minY = bbox.min.y;
             if (isFinite(minY)) obj.position.y = -minY;
             obj.userData.assetCategory = "obstacle";
+        } else if (kind === "coin") {
+            const key = (resourceUrl || "").toLowerCase().split("/").pop();
+            const value = (key && COIN_SCORE_MAP[key]) || 1;
+            obj.scale.multiplyScalar(0.5);
+            obj.userData.assetCategory = "coin";
+            obj.userData.scoreValue = value;
+            obj.updateMatrixWorld(true);
+            const bbox = new THREE.Box3().setFromObject(obj);
+            const minY = bbox.min.y;
+            if (isFinite(minY)) obj.position.y = -minY;
         } else {
             obj.scale.setScalar(2.5);
             obj.rotation.y = -Math.PI / 2;
             // Si alguna moneda viene “de canto”, podrías activar:
             // if (kind === 'coin') obj.rotation.x = Math.PI / 2;
-            if (kind === "coin") {
-                obj.scale.multiplyScalar(0.5);
-            }
             if (kind === "city" && resourceUrl) {
                 const lower = resourceUrl.toLowerCase();
                 const decorKey = lower.split("/").pop();

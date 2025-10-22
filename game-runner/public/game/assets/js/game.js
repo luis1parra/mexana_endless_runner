@@ -34,6 +34,7 @@
   let cloudMesh = null;
   const pickupEffects = [];
   const tempForwardVec = new THREE.Vector3();
+  const cameraLookTarget = new THREE.Vector3();
   const SKY_TOP_COLOR = new THREE.Color(0x0b3fe6);
   const SKY_BOTTOM_COLOR = new THREE.Color(0x5aa8ff);
   const IS_MOBILE_ENV =
@@ -43,6 +44,8 @@
       (typeof navigator !== "undefined" && navigator.userAgent) || ""
     );
   const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1.5 : 2;
+  const MAX_SPEED = IS_MOBILE_ENV ? 0.032 : 0.028;
+  const SPEED_ACCELERATION = IS_MOBILE_ENV ? 0.000035 : 0.00003;
   const OBSTACLE_POOL_SIZE = Number.isFinite(window.OBSTACLE_POOL_SIZE)
     ? Math.max(1, Number(window.OBSTACLE_POOL_SIZE))
     : (IS_MOBILE_ENV ? 3 : 5);
@@ -62,6 +65,21 @@
   const managedTimeouts = new Set();
   let rafHandle = null;
   let cleanedUp = false;
+  const CAMERA_SETTINGS = IS_MOBILE_ENV
+    ? {
+        height: 3.6,
+        distance: 8.0,
+        lookOffsetY: 0.95,
+        lookOffsetZ: -0.45,
+        followXFactor: 0.2,
+      }
+    : {
+        height: 4.0,
+        distance: 9.0,
+        lookOffsetY: 1.25,
+        lookOffsetZ: -0.6,
+        followXFactor: 0.25,
+      };
 
   const supportsPassiveOptions = (() => {
     if (typeof window === "undefined") return false;
@@ -531,7 +549,7 @@
         console.warn("Assets did not finish loading in time. Using fallbacks where needed.");
         overlayEl.style.display = "none";
       }
-    }, originalSpeed || BASE_SPEED);
+    }, BASE_SPEED);
   };
 
   const handleStartInteraction = () => {
@@ -559,6 +577,20 @@
     }
 
     if (!isPaused) {
+      if (!tutorialActive && speed < MAX_SPEED) {
+        speed = Math.min(MAX_SPEED, speed + SPEED_ACCELERATION * delta);
+      }
+
+      if (camera && player) {
+        const desiredX = player.position.x * CAMERA_SETTINGS.followXFactor;
+        camera.position.x += (desiredX - camera.position.x) * 0.1;
+        camera.position.y += ((player.position.y + CAMERA_SETTINGS.height) - camera.position.y) * 0.08;
+        camera.position.z += ((player.position.z + CAMERA_SETTINGS.distance) - camera.position.z) * 0.08;
+        cameraLookTarget.copy(player.position);
+        cameraLookTarget.y += CAMERA_SETTINGS.lookOffsetY;
+        cameraLookTarget.z += CAMERA_SETTINGS.lookOffsetZ;
+        camera.lookAt(cameraLookTarget);
+      }
       if (skyMesh) {
         skyMesh.position.copy(camera.position);
       }
@@ -689,8 +721,11 @@
           Math.abs(player.position.x - coin.position.x) < (playerHalfWidth + 0.8) &&
           verticalCoinOverlap
         ) {
-          coinCount++;
-          coinsEl.textContent = coinCount;
+        const coinValue = Number.isFinite(coin.userData?.scoreValue)
+          ? coin.userData.scoreValue
+          : 1;
+        coinCount += coinValue;
+        coinsEl.textContent = Math.round(coinCount);
           spawnCoinPickupEffect(coin.position.clone());
           if (window.SFX) window.SFX.play("coin");
           recycleCoin(coin);
@@ -937,8 +972,11 @@
       scene.add(player);
     }
 
-    camera.position.set(0, 3, 10);
-    camera.lookAt(player.position);
+    camera.position.set(0, CAMERA_SETTINGS.height, CAMERA_SETTINGS.distance);
+    cameraLookTarget.copy(player.position);
+    cameraLookTarget.y += CAMERA_SETTINGS.lookOffsetY;
+    cameraLookTarget.z += CAMERA_SETTINGS.lookOffsetZ;
+    camera.lookAt(cameraLookTarget);
 
     initializeObstacles();
     initializeCoins();
