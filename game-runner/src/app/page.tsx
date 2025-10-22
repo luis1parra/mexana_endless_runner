@@ -1,13 +1,11 @@
 'use client';
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { LoginModal } from "../components/modals/LoginModal";
 import { RegistrationModal } from "../components/modals/RegistrationModal";
-import homeBackground from "../assets/images/homebackground.png";
 
 export default function Home() {
 
@@ -15,20 +13,16 @@ export default function Home() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#E6F1FF] text-[#0B1E52]">
-      <main className="mx-auto w-full flex-1 px-6 py-12 lg:px-10 lg:py-16">
-        <section className="relative overflow-hidden rounded-[48px] bg-gradient-to-r from-[#1A2798] via-[#2F4DD7] to-[#4065FF] px-8 py-12 text-white shadow-[0_30px_60px_rgba(25,53,140,0.28)] md:px-12 lg:px-16">
-          <div className="pointer-events-none absolute -left-28 top-24 h-64 w-64 rounded-full bg-white/15 blur-3xl" />
-          <div className="pointer-events-none absolute -right-28 -top-24 h-80 w-80 rounded-full bg-[#6AA4FF]/40 blur-3xl" />
-          <div className="pointer-events-none absolute right-28 bottom-24 h-48 w-48 rounded-full bg-[#9FC0FF]/30 blur-2xl" />
+    <div className="flex min-h-screen flex-col bg-white text-[#0B1E52]">
+      <main className="flex mx-auto w-full flex-1 px-2 py-6 lg:px-10 lg:py-16">
+        <section className="w-full bg-white bg-[url('../assets/images/homebackground_mobile.png')] sm:bg-[url('../assets/images/homebackground.png')] bg-cover bg-no-repeat bg-center relative rounded-[24px] px-3 py-12 pt-2 text-white md:px-8 lg:px-12 lg:rounded-[48px]">
+
           <Header
             activeHref="/"
-            onRegisterClick={() => setIsRegistrationOpen(true)}
-            onLoginClick={() => setIsLoginOpen(true)}
           />
 
           <div className="relative mt-16 grid items-center gap-14 lg:grid-cols-12">
-            <div className="lg:col-span-6 xl:col-span-5">
+            <div className="md:col-span-6 xl:col-span-5">
               <h1 className="text-[48px] font-black leading-[1.05] tracking-tight text-white drop-shadow-md md:text-[56px] lg:text-[64px]">
                 FRESH GAME
               </h1>
@@ -55,32 +49,21 @@ export default function Home() {
                 </Link>
               </div>
               <p className="mt-6 text-sm text-white/80">
-                Aplican terminos y condiciones.{" "}
+                Aplican términos y condiciones.{" "}
                 <Link
                   href="#"
                   className="font-semibold underline underline-offset-4 hover:text-white"
                 >
-                  Consultalos aqui
+                  Consúltalos aquí
                 </Link>
               </p>
             </div>
-            <div className="relative z-10 lg:col-span-6 lg:col-start-7 xl:col-span-7">
-              <div className="relative mx-auto w-full max-w-[520px] overflow-hidden rounded-[36px] shadow-[0_25px_45px_rgba(25,53,140,0.35)]">
-                <Image
-                  src={homeBackground}
-                  alt="Jugadores celebrando la frescura Mexsana"
-                  className="h-auto w-full object-cover"
-                  sizes="(max-width: 1024px) 100vw, 520px"
-                  priority
-                />
-              </div>
-            </div>
           </div>
 
-          <div className="absolute bottom-6 right-8 hidden flex-col rounded-xl bg-white px-5 py-3 text-xs text-[#495784] shadow-lg sm:flex">
+          {/* <div className="absolute bottom-6 right-8 hidden flex-col rounded-xl bg-white px-5 py-3 text-xs text-[#495784] shadow-lg sm:flex">
             <span className="font-semibold text-[#0F1F5B]">reCAPTCHA</span>
             <span>Privacidad - Condiciones</span>
-          </div>
+          </div> */}
         </section>
       </main>
       <Footer />

@@ -155,7 +155,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
     event.preventDefault();
     setSubmitError(null);
 
-    //router.push("/juego");
+    router.push("/juego");
 
     const formData = new FormData(event.currentTarget);
     const getValue = (key: string) => formData.get(key)?.toString().trim() ?? "";
@@ -301,28 +301,28 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
         >
           <CloseIcon className="h-6 w-6" />
         </button>
-        <h2 className="text-center text-2xl font-black uppercase tracking-[0.12em] text-[#2450F0] md:text-[30px]">
-          Tu proxima partida comienza aqui!
+        <h2 className="text-center text-xl font-black text-[#2450F0] md:text-[22px]">
+          ¡Tu próxima partida comienza aquí!
         </h2>
         <form className="mt-10 space-y-5" onSubmit={handleSubmit}>
           <InputField
             id="loginEmail"
-            label="Correo electronico"
-            placeholder="Correo electronico"
+            label="Correo electrónico"
+            placeholder="Correo electrónico"
             icon={<MailIcon className="h-5 w-5" />}
             type="email"
           />
           <InputField
             id="loginPurchasePlace"
-            label="Donde realizaste la compra?"
-            placeholder="Donde realizaste la compra?"
+            label="¿Dónde realizaste la compra?"
+            placeholder="¿Dónde realizaste la compra?"
             icon={<CartIcon className="h-5 w-5" />}
             options={purchaseOptions}
           />
           <InputField
             id="loginInvoiceNumber"
-            label="Numero de factura"
-            placeholder="Numero de factura"
+            label="Número de factura"
+            placeholder="Número de factura"
             icon={<ReceiptIcon className="h-5 w-5" />}
           />
           <div className="rounded-[28px] bg-[#F5F7FD] px-6 py-5 shadow-[inset_0_1px_2px_rgba(12,37,106,0.12)]">
@@ -330,7 +330,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
               Adjuntar foto de la factura
             </p>
             <p className="mt-1 text-sm text-[#4A5785]">
-              Adjunta una sola imagen de la factura en buena resolucion en
+              Adjunta una sola imagen de la factura en buena resolución en
               formato JPG o PNG.
             </p>
             <input
@@ -372,10 +372,10 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
             />
             <span>
               Autorizo el{" "}
-              <span className="font-semibold">
+              <span className="font-bold">
                 Tratamiento de Datos Personales
               </span>{" "}
-              y envio, llamadas o mensajes.
+              y envío, llamadas o mensajes.
             </span>
           </label>
           <div className="flex flex-col items-center gap-4">

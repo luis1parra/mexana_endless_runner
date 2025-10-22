@@ -375,19 +375,19 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
         >
           <CloseIcon className="h-6 w-6" />
         </button>
-        <h2 className="text-center text-3xl font-black uppercase tracking-[0.12em] text-[#2450F0] md:text-[34px]">
+        <h2 className="text-center text-3xl font-black text-[#2450F0] md:text-[34px]">
           Registrarse
         </h2>
         <form
-          className="mt-10 grid gap-8 md:grid-cols-[1fr_auto]"
+          className="mt-10 grid gap-8 md:grid-cols-2 md:items-start"
           onSubmit={handleSubmit}
         >
-          <div className="grid gap-5">
+          <div className="flex min-w-0 flex-col gap-5">
             {leftFields.map((field) => (
               <InputField key={field.id} {...field} />
             ))}
           </div>
-          <div className="flex flex-col gap-5">
+          <div className="flex min-w-0 flex-col gap-5">
             {rightFields.map((field) => (
               <InputField key={field.id} {...field} />
             ))}
