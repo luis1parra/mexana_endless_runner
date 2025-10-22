@@ -59,11 +59,11 @@
           const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
 
           if (isMobile) {
-            window.COIN_MODEL_LIMIT = 1;
+            window.COIN_MODEL_LIMIT = 7;
             window.OBSTACLE_MODEL_LIMIT = 1;
-            window.CITY_DECOR_MODEL_LIMIT = 0;
-            window.CITY_BUILDING_MODEL_LIMIT = 0;
-            window.COIN_POOL_SIZE = 4;
+            window.CITY_DECOR_MODEL_LIMIT = 3;
+            window.CITY_BUILDING_MODEL_LIMIT = 2;
+            window.COIN_POOL_SIZE = 2;
             window.OBSTACLE_POOL_SIZE = 2;
             window.PLAYER_VARIANT = "girl";
             window.ENABLE_TUTORIAL = true;
