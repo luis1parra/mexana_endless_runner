@@ -56,17 +56,29 @@
     <script>
       (function () {
         try {
-          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
+          const ua = (navigator.userAgent || "").toLowerCase();
+          const isIOS = /iphone|ipad|ipod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+          const isAndroid = /android/.test(ua);
+          const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent || "");
+          const isChrome = /chrome/.test(ua) && !/edge|opr/.test(ua);
+          const isMobile = isIOS || isAndroid;
 
           if (isMobile) {
-            window.COIN_MODEL_LIMIT = 7;
+            window.COIN_MODEL_LIMIT = 4;
             window.OBSTACLE_MODEL_LIMIT = 1;
-            window.CITY_DECOR_MODEL_LIMIT = 3;
-            window.CITY_BUILDING_MODEL_LIMIT = 3;
+            window.CITY_DECOR_MODEL_LIMIT = 2;
+            window.CITY_BUILDING_MODEL_LIMIT = 2;
             window.COIN_POOL_SIZE = 2;
             window.OBSTACLE_POOL_SIZE = 2;
             window.PLAYER_VARIANT = "girl";
             window.ENABLE_TUTORIAL = true;
+            if (isIOS && isSafari) {
+              window.SPEED_MULTIPLIER = .8; // iOS Safari
+            } else if (isAndroid && isChrome) {
+              window.SPEED_MULTIPLIER = .9; // Android Chrome
+            } else {
+              window.SPEED_MULTIPLIER = 1.02; // otros móviles
+            }
           } else {
             window.COIN_MODEL_LIMIT = 7;
             window.OBSTACLE_MODEL_LIMIT = 3;
@@ -76,6 +88,13 @@
             window.OBSTACLE_POOL_SIZE = 5;
             window.PLAYER_VARIANT = "boy";
             window.ENABLE_TUTORIAL = false;
+            if (isSafari) {
+              window.SPEED_MULTIPLIER = .8; // macOS Safari
+            } else if (isChrome) {
+              window.SPEED_MULTIPLIER = .9; // Windows/Linux Chrome
+            } else {
+              window.SPEED_MULTIPLIER = 1.02; // otros desktop
+            }
           }
         } catch (err) {
           console.warn("[config] platform overrides failed", err);
