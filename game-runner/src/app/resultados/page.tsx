@@ -190,25 +190,29 @@ export default function ResultadosPage() {
     <div className="flex min-h-screen flex-col bg-[#4FA6FF] text-white">
       <main className="mx-auto flex w-full flex-1 items-center justify-center px-6 py-12">
         <section className="w-full max-w-[1100px] rounded-[48px] bg-[#64B6FF] px-6 py-10 shadow-[0_40px_90px_rgba(14,73,178,0.35)] md:px-10 lg:px-16">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-center">
-            <div className="flex flex-col items-center gap-8">
-              <div className="w-full overflow-hidden bg-[#2963F0] p-6 shadow-[0_25px_45px_rgba(13,59,168,0.4)]">
+          <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-center lg:gap-10">
+            <div className="flex flex-col items-center gap-6 lg:gap-8">
+              <div className="flex w-full flex-col items-start text-left lg:hidden">
+                <p className="text-xl font-bold text-[#004ed8] md:text-2xl">{score.nickname}</p>
+                <h1 className="mt-1 text-[44px] font-black leading-[1] text-[#004ed8]">Tus resultados</h1>
+              </div>
+              <div className="w-1/2 min-w-[200px] overflow-hidden bg-[#2963F0] p-3 shadow-[0_25px_45px_rgba(13,59,168,0.4)] lg:w-full">
                 <div className="relative aspect-square w-full overflow-hidden bg-white/10">
                   <Image
                     src={avatarAsset.image}
                     alt={avatarAsset.alt}
                     className="h-full w-full object-cover"
-                    sizes="(max-width: 1024px) 100vw, 360px"
+                    sizes="(max-width: 1024px) 50vw, 360px"
                     priority
                   />
                 </div>
               </div>
               <div className="flex flex-col items-center">
                 <div className="rounded-[24px] bg-[#1D4CD8] px-8 py-3 text-center shadow-[0_18px_32px_rgba(16,60,173,0.35)]">
-                  <div className="text-3xl font-black leading-none">
+                  <div className="text-5xl font-black leading-none">
                     {score.position !== null ? score.position : "--"}
                   </div>
-                  <div className="mt-1 text-sm font-semibold uppercase tracking-[0.22em] text-white/85">
+                  <div className="mt-1 text-md font-semibold text-white/85">
                     Puesto
                   </div>
                 </div>
@@ -216,17 +220,17 @@ export default function ResultadosPage() {
             </div>
 
             <div className="flex flex-col gap-8">
-              <div>
-                <p className="text-xl font-bold text-white/85 md:text-2xl">{score.nickname}</p>
-                <h1 className="mt-2 text-[52px] font-black italic leading-[1] text-[#1B3BD7] drop-shadow-[0_10px_25px_rgba(19,55,180,0.35)] md:text-[64px]">
+              <div className="hidden lg:block">
+                <p className="text-xl font-bold text-[#004ed8] md:text-2xl">{score.nickname}</p>
+                <h1 className="mt-2 text-[52px] font-black leading-[1] text-[#004ed8] drop-shadow-[0_10px_25px_rgba(19,55,180,0.35)] md:text-[64px]">
                   Tus resultados
                 </h1>
               </div>
 
               <div className="flex flex-col gap-6">
                 <div className="rounded-[36px] bg-[#234DDC] px-6 py-6 shadow-[0_22px_44px_rgba(15,65,184,0.35)] sm:px-8">
-                  <div className="text-lg font-semibold uppercase tracking-wide text-white/90">
-                    Puntuacion
+                  <div className="text-lg font-semibold tracking-wide text-white/90">
+                    Puntuación
                   </div>
                   <div className="mt-4 rounded-full bg-[#FFD730] px-6 py-3 text-center text-3xl font-black text-[#1F3FCF] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px]">
                     {formatPoints(score.score)}
@@ -234,8 +238,8 @@ export default function ResultadosPage() {
                 </div>
 
                 <div className="rounded-[36px] bg-[#234DDC] px-6 py-6 shadow-[0_22px_44px_rgba(15,65,184,0.35)] sm:px-8">
-                  <div className="text-lg font-semibold uppercase tracking-wide text-white/90">
-                    Nuevo record
+                  <div className="text-lg font-semibold tracking-wide text-white/90">
+                    Nuevo récord
                   </div>
                   <div className="mt-4 rounded-full bg-[#FFD730] px-6 py-3 text-center text-3xl font-black text-[#1F3FCF] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px]">
                     {formatPoints(score.record, { signed: true })}
@@ -253,7 +257,7 @@ export default function ResultadosPage() {
                 <button
                   type="button"
                   onClick={() => setIsLoginOpen(true)}
-                  className="inline-flex w-full items-center justify-center rounded-full border border-white px-8 py-4 text-lg font-semibold text-white/90 transition hover:bg-white/10 sm:w-auto"
+                  className="cursor-pointer inline-flex w-full items-center justify-center rounded-full border border-white px-8 py-4 text-lg font-semibold text-white/90 transition hover:bg-white/10 sm:w-auto"
                 >
                   Jugar de nuevo
                 </button>

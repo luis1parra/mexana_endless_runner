@@ -77,7 +77,7 @@ export function InvalidInvoiceModal({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
+            className="cursor-pointer absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30"
             aria-label="Cerrar mensaje"
           >
             <span className="text-2xl leading-none">&times;</span>
@@ -107,7 +107,7 @@ export function InvalidInvoiceModal({
         <button
           type="button"
           onClick={onBackToStart}
-          className="mt-10 inline-flex items-center justify-center rounded-full border border-white px-10 py-3 text-lg font-semibold text-white transition hover:bg-white/10"
+          className="cursor-pointer mt-10 inline-flex items-center justify-center rounded-full border border-white px-10 py-3 text-lg font-semibold text-white transition hover:bg-white/10"
         >
           Volver al inicio
         </button>

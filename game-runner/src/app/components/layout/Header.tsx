@@ -10,7 +10,7 @@ import { RegistrationModal } from "../../../components/modals/RegistrationModal"
 
 const navLinks = [
   { label: "Inicio", href: "/" },
-  { label: "Dinamica del juego", href: "/dinamica" },
+  { label: "Dinámica del juego", href: "/dinamica" },
   { label: "Ranking", href: "/ranking" },
 ];
 
@@ -54,9 +54,9 @@ export function Header({
     onAction?: () => void,
   ) => {
     const desktopClasses =
-      "rounded-full bg-white px-6 py-2 text-sm font-semibold text-[#1D3FCE] shadow-[0_10px_30px_rgba(16,38,109,0.25)] transition hover:bg-[#F2F6FF] lg:px-8 lg:py-2.5 lg:text-base";
+      "cursor-pointer rounded-full bg-white px-6 py-2 text-sm font-semibold text-[#1D3FCE] shadow-[0_10px_30px_rgba(16,38,109,0.25)] transition hover:bg-[#F2F6FF] lg:px-8 lg:py-2.5 lg:text-base";
     const mobileClasses =
-      "inline-flex w-full items-center justify-center rounded-full bg-[#1D3FCE] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_32px_rgba(16,38,109,0.3)] transition hover:bg-[#1532A8]";
+      "cursor-pointer inline-flex w-full items-center justify-center rounded-full bg-[#1D3FCE] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_32px_rgba(16,38,109,0.3)] transition hover:bg-[#1532A8]";
     const className = variant === "mobile" ? mobileClasses : desktopClasses;
 
     // if (onRegisterClick) {
@@ -81,10 +81,9 @@ export function Header({
     onAction?: () => void
   ) => {
     const desktopClasses =
-      //"rounded-full bg-white px-6 py-2 text-sm font-semibold text-[#1D3FCE] shadow-[0_10px_30px_rgba(16,38,109,0.25)] transition hover:bg-[#F2F6FF] lg:px-8 lg:py-2.5 lg:text-base";
-      "rounded-full border border-white/70 px-6 py-2 text-sm font-semibold text-white transition hover:bg-white/10 lg:px-8 lg:py-2.5 lg:text-base"
+      "cursor-pointer rounded-full border border-white/70 px-6 py-2 text-sm font-semibold text-white transition hover:bg-white/10 lg:px-8 lg:py-2.5 lg:text-base"
     const mobileClasses =
-      "inline-flex w-full items-center justify-center rounded-full bg-[#1D3FCE] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_32px_rgba(16,38,109,0.3)] transition hover:bg-[#1532A8]";
+      "cursor-pointer inline-flex w-full items-center justify-center rounded-full bg-[#1D3FCE] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_32px_rgba(16,38,109,0.3)] transition hover:bg-[#1532A8]";
     const className = variant === "mobile" ? mobileClasses : desktopClasses;
 
     // if (onLoginClick) {

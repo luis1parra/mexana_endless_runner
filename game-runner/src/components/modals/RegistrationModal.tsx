@@ -125,8 +125,8 @@ const leftFields: InputFieldProps[] = [
   },
   {
     id: "email",
-    label: "Correo electronico",
-    placeholder: "Correo electronico",
+    label: "Correo electrónico",
+    placeholder: "Correo electrónico",
     icon: <MailIcon className="h-5 w-5" />,
     type: "email",
   },
@@ -145,8 +145,8 @@ const leftFields: InputFieldProps[] = [
   },
   {
     id: "gender",
-    label: "Genero",
-    placeholder: "Genero",
+    label: "Género",
+    placeholder: "Género",
     icon: <UserIcon className="h-5 w-5" />,
     options: [
       { label: "Femenino", value: "F" },
@@ -160,8 +160,8 @@ const leftFields: InputFieldProps[] = [
 const rightFields: InputFieldProps[] = [
   {
     id: "purchasePlace",
-    label: "Donde realizaste la compra?",
-    placeholder: "Donde realizaste la compra?",
+    label: "¿Dónde realizaste la compra?",
+    placeholder: "¿Dónde realizaste la compra?",
     icon: <CartIcon className="h-5 w-5" />,
     options: [
       { label: "Supermercado", value: "supermercado" },
@@ -172,8 +172,8 @@ const rightFields: InputFieldProps[] = [
   },
   {
     id: "invoiceNumber",
-    label: "Numero de factura",
-    placeholder: "Numero de factura",
+    label: "Número de factura",
+    placeholder: "Número de factura",
     icon: <ReceiptIcon className="h-5 w-5" />,
   },
 ];
@@ -223,7 +223,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
 
     const file = files[0];
     if (!file.type.startsWith("image/")) {
-      setSubmitError("Solo se permite subir una imagen en formato JPG o PNG.");
+      setSubmitError("Sólo se permite subir una imagen en formato JPG o PNG.");
       setAttachment(null);
       event.target.value = "";
       return;
@@ -263,7 +263,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
     }
 
     if (!Number.isFinite(edadValue) || edadValue <= 0) {
-      setSubmitError("Ingresa una edad valida.");
+      setSubmitError("Ingresa una edad válida.");
       return;
     }
 
@@ -396,7 +396,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 Adjuntar foto de la factura
               </p>
               <p className="mt-1 text-sm text-[#4A5785]">
-                Adjunta una sola imagen de la factura en buena resolucion en
+                Adjunta una sola imagen de la factura en buena resolución en
                 formato JPG o PNG.
               </p>
               <input
@@ -443,7 +443,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 <span className="font-semibold">
                   Tratamiento de Datos Personales
                 </span>{" "}
-                y envio, llamadas o mensajes.
+                  y envío, llamadas o mensajes.
               </span>
             </label>
           </div>
