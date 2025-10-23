@@ -123,28 +123,55 @@
   const startHintEl = document.getElementById("startHint");
   const tutorialOverlayEl = document.getElementById("tutorialOverlay");
   const tutorialInstructionEl = document.getElementById("tutorialInstruction");
+  const coinBannerEl = document.getElementById("coinBanner");
+  const coinBannerImageEl = document.getElementById("coinBannerImage");
+  const coinBannerTitleEl = document.getElementById("coinBannerTitle");
+  const coinBannerPointsValueEl = document.getElementById("coinBannerPointsValue");
+  const coinBannerPointsSuffixEl = document.getElementById("coinBannerPointsSuffix");
 
   let tutorialActive = ENABLE_TUTORIAL;
   const tutorialSteps = tutorialActive ? ["jump", "right", "left"] : [];
   let tutorialStepIndex = 0;
+  let coinBannerTimeout = null;
 
-  const tutorialMessages = {
-    jump:
-      '<span class="tutorial-icon">⬆️</span><div class="tutorial-text">Presiona <strong>flecha arriba</strong> (PC) o haz <strong>swipe hacia arriba</strong> (móvil) para saltar.</div>',
-    right:
-      '<span class="tutorial-icon">➡️</span><div class="tutorial-text">Presiona <strong>flecha derecha</strong> o desliza hacia la derecha para cambiar de carril.</div>',
-    left:
-      '<span class="tutorial-icon">⬅️</span><div class="tutorial-text">Presiona <strong>flecha izquierda</strong> o desliza hacia la izquierda para volver.</div>',
-    done:
-      '<span class="tutorial-icon">✅</span><div class="tutorial-text">¡Perfecto! Ahora empieza el juego.</div>',
+  const buildTutorialText = (direction, extra = "") => {
+    const base = IS_MOBILE_ENV
+      ? `Desliza hacia ${direction} en la pantalla`
+      : `Desliza hacia ${direction} con las flechas del teclado`;
+    return `${base}${extra ? ` ${extra}` : ""}`.trim();
   };
+  const tutorialConfigs = {
+    jump: {
+      layout: "up",
+      text: `${buildTutorialText("arriba", "para saltar.")}`,
+    },
+    right: {
+      layout: "right",
+      text: `${buildTutorialText("la derecha", "para esquivar obstáculos.")}`,
+    },
+    left: {
+      layout: "left",
+      text: `${buildTutorialText("la izquierda", "para esquivar obstáculos.")}`,
+    },
+    done: {
+      layout: "up",
+      text: "¡Perfecto! Ahora empieza el juego.",
+      hideArrow: true,
+    },
+  };
+  const TUTORIAL_ARROW_SRC = "./assets/2d/flechaTutorial.png";
 
   function showTutorialOverlay(messageKey) {
     if (!tutorialOverlayEl || !tutorialInstructionEl) return;
-    const html = tutorialMessages[messageKey];
-    if (html) {
-      tutorialInstructionEl.innerHTML = html;
-    }
+    const config = tutorialConfigs[messageKey];
+    if (!config) return;
+    const layout = config.layout || "up";
+    const classes = ["tutorial-card", `tutorial-card--${layout}`];
+    tutorialInstructionEl.className = classes.join(" ");
+    const arrowMarkup = config.hideArrow
+      ? ""
+      : `<img src="${TUTORIAL_ARROW_SRC}" alt="" class="tutorial-arrow tutorial-arrow--${layout}">`;
+    tutorialInstructionEl.innerHTML = `${arrowMarkup}<p class="tutorial-text-block">${config.text}</p>`;
     tutorialOverlayEl.classList.add("tutorial-overlay--active");
   }
 
@@ -312,6 +339,13 @@
     return id;
   }
 
+  function clearManagedTimeout(id) {
+    if (id != null) {
+      clearTimeout(id);
+      managedTimeouts.delete(id);
+    }
+  }
+
   function clearAllTimeouts() {
     for (const id of managedTimeouts) {
       clearTimeout(id);
@@ -375,6 +409,18 @@
 
     clearAllIntervals();
     clearAllTimeouts();
+    coinBannerTimeout = null;
+    if (coinBannerEl) {
+      coinBannerEl.classList.remove("coin-banner--visible");
+    }
+    if (coinBannerImageEl) {
+      coinBannerImageEl.removeAttribute("src");
+      coinBannerImageEl.style.visibility = "hidden";
+      coinBannerImageEl.alt = "";
+    }
+    if (coinBannerTitleEl) coinBannerTitleEl.textContent = "";
+    if (coinBannerPointsValueEl) coinBannerPointsValueEl.textContent = "";
+    if (coinBannerPointsSuffixEl) coinBannerPointsSuffixEl.textContent = "";
     removeManagedEvents();
     hitFlashTimeout = null;
 
@@ -725,7 +771,7 @@
               }
             }
             goToRanking();
-          }, 250);
+          }, 2500);
         }
       }
     }
@@ -749,8 +795,42 @@
           Math.abs(player.position.x - coin.position.x) < (playerHalfWidth + 0.8) &&
           verticalCoinOverlap
         ) {
-          coinCount++;
+          const value = Number.isFinite(coin.userData?.scoreValue) ? coin.userData.scoreValue : 1;
+          coinCount += value;
           coinsEl.textContent = coinCount;
+          const hudImage = coin.userData?.hudImage;
+          const hudTitle = coin.userData?.hudTitle || "Recompensa obtenida";
+          const hudSubtitle = coin.userData?.hudSubtitle || "puntos";
+          if (coinBannerEl) {
+            if (coinBannerImageEl) {
+              if (hudImage) {
+                coinBannerImageEl.src = hudImage;
+                coinBannerImageEl.style.visibility = "visible";
+              } else {
+                coinBannerImageEl.removeAttribute("src");
+                coinBannerImageEl.style.visibility = "hidden";
+              }
+              coinBannerImageEl.alt = hudTitle;
+            }
+            if (coinBannerTitleEl) {
+              coinBannerTitleEl.textContent = hudTitle;
+            }
+            if (coinBannerPointsValueEl) {
+              coinBannerPointsValueEl.textContent = `+${value}`;
+            }
+            if (coinBannerPointsSuffixEl) {
+              coinBannerPointsSuffixEl.textContent = hudSubtitle;
+            }
+            coinBannerEl.classList.add("coin-banner--visible");
+            if (coinBannerTimeout) {
+              clearManagedTimeout(coinBannerTimeout);
+              coinBannerTimeout = null;
+            }
+            coinBannerTimeout = setManagedTimeout(() => {
+              coinBannerEl.classList.remove("coin-banner--visible");
+              coinBannerTimeout = null;
+            }, 1600);
+          }
           spawnCoinPickupEffect(coin.position.clone());
           if (window.SFX) window.SFX.play("coin");
           recycleCoin(coin);

@@ -68,6 +68,16 @@ const COIN_SCORE_MAP = {
     "deodorantsprayultra.fbx": 7,
 };
 
+const COIN_LABEL_MAP = {
+    "deodorantbottleaven.fbx": "Mexsana Aven",
+    "deodorantbottleclassic.fbx": "Mexsana Classic",
+    "deodorantbottlelady.fbx": "Mexsana Lady",
+    "deodorantsprayaven.fbx": "Mexsana Spray Aven",
+    "deodorantsprayclassic.fbx": "Mexsana Spray Classic",
+    "deodorantspraylady.fbx": "Mexsana Spray Lady",
+    "deodorantsprayultra.fbx": "Mexsana Ultra",
+};
+
 const OBSTACLE_SCALE_MAP = {
     "obstaclecar.fbx": 0.025,
     "obstacletrafficcone.fbx": 1.4,
@@ -272,11 +282,21 @@ const CITY_BUILDING_FBX_URLS = [
             });
         });
     } else if (kind === "coin") {
-        const key = (resourceUrl || "").toLowerCase().split("/").pop();
+        const fileName = (resourceUrl || "").split("/").pop() || "";
+        const key = fileName.toLowerCase();
         const value = (key && COIN_SCORE_MAP[key]) || 1;
         obj.scale.multiplyScalar(1.2);
         obj.userData.assetCategory = "coin";
         obj.userData.scoreValue = value;
+        if (key && COIN_LABEL_MAP[key]) {
+            obj.userData.hudTitle = COIN_LABEL_MAP[key];
+        }
+        obj.userData.hudSubtitle = "puntos frescura";
+        if (resourceUrl) {
+            obj.userData.hudImage = resourceUrl
+                .replace(/assets\/3d\//i, "assets/2d/")
+                .replace(/\.[^.]+$/, ".png");
+        }
         obj.updateMatrixWorld(true);
         const bbox = new THREE.Box3().setFromObject(obj);
         const minY = bbox.min.y;
