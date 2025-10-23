@@ -258,22 +258,41 @@ const CITY_BUILDING_FBX_URLS = [
             const scaleFactor = (key && OBSTACLE_SCALE_MAP[key]) || 0.6;
             obj.scale.multiplyScalar(scaleFactor);
             obj.rotation.y = -Math.PI / 2;
-            obj.updateMatrixWorld(true);
-            const bbox = new THREE.Box3().setFromObject(obj);
-            const minY = bbox.min.y;
-            if (isFinite(minY)) obj.position.y = -minY;
-            obj.userData.assetCategory = "obstacle";
-        } else if (kind === "coin") {
-            const key = (resourceUrl || "").toLowerCase().split("/").pop();
-            const value = (key && COIN_SCORE_MAP[key]) || 1;
-            obj.scale.multiplyScalar(0.5);
-            obj.userData.assetCategory = "coin";
-            obj.userData.scoreValue = value;
-            obj.updateMatrixWorld(true);
-            const bbox = new THREE.Box3().setFromObject(obj);
-            const minY = bbox.min.y;
-            if (isFinite(minY)) obj.position.y = -minY;
-        } else {
+        obj.updateMatrixWorld(true);
+        const bbox = new THREE.Box3().setFromObject(obj);
+        const minY = bbox.min.y;
+        if (isFinite(minY)) obj.position.y = -minY;
+        obj.userData.assetCategory = "obstacle";
+        obj.traverse((child) => {
+            const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
+            materials.forEach((mat) => {
+                if (mat && mat.color && mat.color.isColor) {
+                    mat.color.offsetHSL(0, 0, 0.2);
+                }
+            });
+        });
+    } else if (kind === "coin") {
+        const key = (resourceUrl || "").toLowerCase().split("/").pop();
+        const value = (key && COIN_SCORE_MAP[key]) || 1;
+        obj.scale.multiplyScalar(1.2);
+        obj.userData.assetCategory = "coin";
+        obj.userData.scoreValue = value;
+        obj.updateMatrixWorld(true);
+        const bbox = new THREE.Box3().setFromObject(obj);
+        const minY = bbox.min.y;
+        if (isFinite(minY)) obj.position.y = -minY;
+        obj.traverse((child) => {
+            const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
+            materials.forEach((mat) => {
+                if (mat && mat.color && mat.color.isColor) {
+                    mat.color.offsetHSL(0, 0, 0.5);
+                }
+                if (mat && typeof mat.emissiveIntensity === "number") {
+                    mat.emissiveIntensity = (mat.emissiveIntensity || 0) + 0.35;
+                }
+            });
+        });
+    } else {
             obj.scale.setScalar(2.5);
             obj.rotation.y = -Math.PI / 2;
             // Si alguna moneda viene “de canto”, podrías activar:

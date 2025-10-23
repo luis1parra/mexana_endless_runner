@@ -6,7 +6,13 @@
   const obstacles = [], coins = [], lanes = [-2, 0, 2], buildings = [], floorSegments = [];
   let streetSegmentLength = 20;
   let streetLoopLength = 200;
-  const BASE_SPEED = 0.01;
+  const SPEED_MULTIPLIER =
+    typeof window !== "undefined" && Number.isFinite(Number(window.SPEED_MULTIPLIER))
+      ? Math.max(0.1, Number(window.SPEED_MULTIPLIER))
+      : 1;
+  const BASE_SPEED = 0.01 * SPEED_MULTIPLIER;
+  const MAX_SPEED = 0.05 * SPEED_MULTIPLIER;
+  const SPEED_ACCELERATION = 0.0001 * SPEED_MULTIPLIER;
   const ENABLE_TUTORIAL = typeof window !== "undefined" ? window.ENABLE_TUTORIAL !== false : true;
   let speed = ENABLE_TUTORIAL ? 0 : BASE_SPEED;
   let jumpVelocity = 0.2,
@@ -33,8 +39,9 @@
   let streetRecycleShift = 0;
   let cloudMesh = null;
   const pickupEffects = [];
-  const tempForwardVec = new THREE.Vector3();
   const cameraLookTarget = new THREE.Vector3();
+  let lookTargetBaseY = 0;
+  const tempForwardVec = new THREE.Vector3();
   const SKY_TOP_COLOR = new THREE.Color(0x0b3fe6);
   const SKY_BOTTOM_COLOR = new THREE.Color(0x5aa8ff);
   const IS_MOBILE_ENV =
@@ -44,8 +51,6 @@
       (typeof navigator !== "undefined" && navigator.userAgent) || ""
     );
   const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1.5 : 2;
-  const MAX_SPEED = IS_MOBILE_ENV ? 0.032 : 0.028;
-  const SPEED_ACCELERATION = IS_MOBILE_ENV ? 0.000035 : 0.00003;
   const OBSTACLE_POOL_SIZE = Number.isFinite(window.OBSTACLE_POOL_SIZE)
     ? Math.max(1, Number(window.OBSTACLE_POOL_SIZE))
     : (IS_MOBILE_ENV ? 3 : 5);
@@ -68,18 +73,19 @@
   const CAMERA_SETTINGS = IS_MOBILE_ENV
     ? {
         height: 3.6,
-        distance: 8.0,
-        lookOffsetY: 0.95,
+        distance: 5.0,
+        lookOffsetY: 2.25,
         lookOffsetZ: -0.45,
-        followXFactor: 0.2,
+        followXFactor: 0.8,
       }
     : {
         height: 4.0,
-        distance: 9.0,
-        lookOffsetY: 1.25,
+        distance: 5.0,
+        lookOffsetY: 2.25,
         lookOffsetZ: -0.6,
-        followXFactor: 0.25,
+        followXFactor: 0.8,
       };
+  lookTargetBaseY = groundY + CAMERA_SETTINGS.lookOffsetY;
 
   const supportsPassiveOptions = (() => {
     if (typeof window === "undefined") return false;
@@ -549,7 +555,7 @@
         console.warn("Assets did not finish loading in time. Using fallbacks where needed.");
         overlayEl.style.display = "none";
       }
-    }, BASE_SPEED);
+    }, originalSpeed || BASE_SPEED);
   };
 
   const handleStartInteraction = () => {
@@ -580,19 +586,26 @@
       if (!tutorialActive && speed < MAX_SPEED) {
         speed = Math.min(MAX_SPEED, speed + SPEED_ACCELERATION * delta);
       }
-
       if (camera && player) {
         const desiredX = player.position.x * CAMERA_SETTINGS.followXFactor;
-        camera.position.x += (desiredX - camera.position.x) * 0.1;
-        camera.position.y += ((player.position.y + CAMERA_SETTINGS.height) - camera.position.y) * 0.08;
+        camera.position.x += (desiredX - camera.position.x) * 0.2;
+        camera.position.y += (CAMERA_SETTINGS.height - camera.position.y) * 0.08;
         camera.position.z += ((player.position.z + CAMERA_SETTINGS.distance) - camera.position.z) * 0.08;
-        cameraLookTarget.copy(player.position);
-        cameraLookTarget.y += CAMERA_SETTINGS.lookOffsetY;
-        cameraLookTarget.z += CAMERA_SETTINGS.lookOffsetZ;
+        cameraLookTarget.set(
+          player.position.x,
+          lookTargetBaseY,
+          player.position.z + CAMERA_SETTINGS.lookOffsetZ
+        );
         camera.lookAt(cameraLookTarget);
       }
+
       if (skyMesh) {
-        skyMesh.position.copy(camera.position);
+        skyMesh.position.set(
+          camera.position.x,
+          camera.position.y + 30,
+          camera.position.z - 400
+        );
+        skyMesh.rotation.set(0, 0, 0);
       }
       player.position.x += (lanes[targetLane] - player.position.x) * 0.2;
 
@@ -688,7 +701,6 @@
             : null;
 
           setManagedTimeout(async () => {
-            alert(`Game Over!!\nScore: ${coinCount}`);
             if (pendingScorePromise && typeof pendingScorePromise.then === "function") {
               try {
                 await pendingScorePromise;
@@ -721,11 +733,8 @@
           Math.abs(player.position.x - coin.position.x) < (playerHalfWidth + 0.8) &&
           verticalCoinOverlap
         ) {
-        const coinValue = Number.isFinite(coin.userData?.scoreValue)
-          ? coin.userData.scoreValue
-          : 1;
-        coinCount += coinValue;
-        coinsEl.textContent = Math.round(coinCount);
+          coinCount++;
+          coinsEl.textContent = coinCount;
           spawnCoinPickupEffect(coin.position.clone());
           if (window.SFX) window.SFX.play("coin");
           recycleCoin(coin);
@@ -973,9 +982,11 @@
     }
 
     camera.position.set(0, CAMERA_SETTINGS.height, CAMERA_SETTINGS.distance);
-    cameraLookTarget.copy(player.position);
-    cameraLookTarget.y += CAMERA_SETTINGS.lookOffsetY;
-    cameraLookTarget.z += CAMERA_SETTINGS.lookOffsetZ;
+    cameraLookTarget.set(
+      player.position.x,
+      lookTargetBaseY,
+      player.position.z + CAMERA_SETTINGS.lookOffsetZ
+    );
     camera.lookAt(cameraLookTarget);
 
     initializeObstacles();
