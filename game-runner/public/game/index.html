@@ -11,14 +11,28 @@
 <body>
     <div id="hud">
         <div class="hud-card hud-card--left">
-            <div class="hud-card__icon" aria-hidden="true">🧴</div>
+            <div class="hud-card__icon" aria-hidden="true"></div>
             <div class="hud-card__value" id="coins">0</div>
         </div>
         <div class="hud-card hud-card--right">
-            <div class="hud-card__icon" aria-hidden="true">🦶</div>
+            <div class="hud-card__icon" aria-hidden="true"></div>
             <div class="hud-card__value" id="lives">3</div>
         </div>
         <span id="timer" class="hud-timer" aria-hidden="true">0</span>
+    </div>
+    <div id="coinBanner" aria-live="polite" aria-atomic="true">
+        <div class="coin-banner__inner">
+            <div class="coin-banner__image">
+                <img id="coinBannerImage" src="" alt="" />
+            </div>
+            <div class="coin-banner__text">
+                <div id="coinBannerTitle" class="coin-banner__title"></div>
+                <div class="coin-banner__points">
+                    <span id="coinBannerPointsValue" class="coin-banner__points-value"></span>
+                    <span id="coinBannerPointsSuffix" class="coin-banner__points-suffix"></span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="startScreen">
@@ -64,9 +78,9 @@
           const isMobile = isIOS || isAndroid;
 
           if (isMobile) {
-            window.COIN_MODEL_LIMIT = 7;
+            window.COIN_MODEL_LIMIT = 5;
             window.OBSTACLE_MODEL_LIMIT = 2;
-            window.CITY_DECOR_MODEL_LIMIT = 2;
+            window.CITY_DECOR_MODEL_LIMIT = 1;
             window.CITY_BUILDING_MODEL_LIMIT = 2;
             window.COIN_POOL_SIZE = 3;
             window.OBSTACLE_POOL_SIZE = 1;
@@ -87,7 +101,7 @@
             window.COIN_POOL_SIZE = 8;
             window.OBSTACLE_POOL_SIZE = 5;
             window.PLAYER_VARIANT = "boy";
-            window.ENABLE_TUTORIAL = false;
+            window.ENABLE_TUTORIAL = true;
             if (isSafari) {
               window.SPEED_MULTIPLIER = .8; // macOS Safari
             } else if (isChrome) {
