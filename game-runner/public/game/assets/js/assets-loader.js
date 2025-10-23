@@ -29,10 +29,10 @@
     const LOAD_DECORATION = window.LOAD_DECORATION !== false;
     const LOAD_BUILDINGS = window.LOAD_BUILDINGS !== false;
     const COIN_MODEL_LIMIT = Number.isFinite(window.COIN_MODEL_LIMIT)
-        ? Math.max(1, Number(window.COIN_MODEL_LIMIT))
+        ? Math.max(0, Number(window.COIN_MODEL_LIMIT))
         : (IS_MOBILE_ENV ? 2 : undefined);
     const OBSTACLE_MODEL_LIMIT = Number.isFinite(window.OBSTACLE_MODEL_LIMIT)
-        ? Math.max(1, Number(window.OBSTACLE_MODEL_LIMIT))
+        ? Math.max(0, Number(window.OBSTACLE_MODEL_LIMIT))
         : (IS_MOBILE_ENV ? 2 : undefined);
     const CITY_DECOR_MODEL_LIMIT = Number.isFinite(window.CITY_DECOR_MODEL_LIMIT)
         ? Math.max(0, Number(window.CITY_DECOR_MODEL_LIMIT))
@@ -105,10 +105,10 @@ const CITY_BUILDING_FBX_URLS = [
         },
     };
 
-    const coinUrls = COIN_MODEL_LIMIT ? COIN_FBX_URLS.slice(0, COIN_MODEL_LIMIT) : COIN_FBX_URLS;
-    const obstacleUrls = OBSTACLE_MODEL_LIMIT ? OBSTACLE_FBX_URLS.slice(0, OBSTACLE_MODEL_LIMIT) : OBSTACLE_FBX_URLS;
-    const decorUrls = CITY_DECOR_MODEL_LIMIT ? CITY_DECOR_FBX_URLS.slice(0, CITY_DECOR_MODEL_LIMIT) : CITY_DECOR_FBX_URLS;
-    const buildingUrls = CITY_BUILDING_MODEL_LIMIT ? CITY_BUILDING_FBX_URLS.slice(0, CITY_BUILDING_MODEL_LIMIT) : CITY_BUILDING_FBX_URLS;
+    const coinUrls = Number.isFinite(COIN_MODEL_LIMIT) ? COIN_FBX_URLS.slice(0, COIN_MODEL_LIMIT) : COIN_FBX_URLS;
+    const obstacleUrls = Number.isFinite(OBSTACLE_MODEL_LIMIT) ? OBSTACLE_FBX_URLS.slice(0, OBSTACLE_MODEL_LIMIT) : OBSTACLE_FBX_URLS;
+    const decorUrls = Number.isFinite(CITY_DECOR_MODEL_LIMIT) ? CITY_DECOR_FBX_URLS.slice(0, CITY_DECOR_MODEL_LIMIT) : CITY_DECOR_FBX_URLS;
+    const buildingUrls = Number.isFinite(CITY_BUILDING_MODEL_LIMIT) ? CITY_BUILDING_FBX_URLS.slice(0, CITY_BUILDING_MODEL_LIMIT) : CITY_BUILDING_FBX_URLS;
 
     const PLAYER_FBX_URL = PLAYER_MODEL_URLS[PLAYER_VARIANT].run;
     const PLAYER_JUMP_URL = PLAYER_MODEL_URLS[PLAYER_VARIANT].jump;

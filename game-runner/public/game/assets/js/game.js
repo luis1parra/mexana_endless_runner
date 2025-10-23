@@ -51,11 +51,13 @@
       (typeof navigator !== "undefined" && navigator.userAgent) || ""
     );
   const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1.5 : 2;
-  const OBSTACLE_POOL_SIZE = Number.isFinite(window.OBSTACLE_POOL_SIZE)
-    ? Math.max(1, Number(window.OBSTACLE_POOL_SIZE))
+  const rawObstaclePool = Number(window.OBSTACLE_POOL_SIZE);
+  const OBSTACLE_POOL_SIZE = Number.isFinite(rawObstaclePool)
+    ? Math.max(0, rawObstaclePool)
     : (IS_MOBILE_ENV ? 3 : 5);
-  const COIN_POOL_SIZE = Number.isFinite(window.COIN_POOL_SIZE)
-    ? Math.max(1, Number(window.COIN_POOL_SIZE))
+  const rawCoinPool = Number(window.COIN_POOL_SIZE);
+  const COIN_POOL_SIZE = Number.isFinite(rawCoinPool)
+    ? Math.max(0, rawCoinPool)
     : (IS_MOBILE_ENV ? 5 : 8);
   const LOAD_CITY_ASSETS =
     typeof window !== "undefined" ? window.LOAD_CITY_ASSETS !== false : true;
@@ -441,6 +443,7 @@
     gameStartTimestamp = Date.now();
     scoreSubmitted = false;
     pendingScorePromise = null;
+
     init();
     animate();
     if (!timerHandle) {
@@ -537,7 +540,7 @@
 
     const originalSpeed = speed;
     speed = 0;
-
+   
     initializeWorld();
 
     if (tutorialActive) {
@@ -562,12 +565,25 @@
     startGameAfterCountdown().catch((error) => console.error("Failed to start game:", error));
   };
 
+  const startEventConfig = [
+    ["click", undefined],
+    ["touchstart", { passive: true }],
+    ["pointerdown", { passive: true }],
+  ];
   if (startScreenEl) {
-    addManagedEvent(startScreenEl, "click", handleStartInteraction);
-    addManagedEvent(startScreenEl, "touchstart", handleStartInteraction, { passive: true });
+    for (const [type, opts] of startEventConfig) {
+      addManagedEvent(startScreenEl, type, handleStartInteraction, opts);
+    }
   }
-  addManagedEvent(document, "click", handleStartInteraction, { once: true });
-  addManagedEvent(document, "touchstart", handleStartInteraction, { passive: true, once: true });
+  for (const [type, opts] of startEventConfig) {
+    let docOpts;
+    if (typeof opts === "object" && opts !== null) {
+      docOpts = { ...opts, once: true };
+    } else {
+      docOpts = { once: true };
+    }
+    addManagedEvent(document, type, handleStartInteraction, docOpts);
+  }
 
   function animate() {
     rafHandle = requestAnimationFrame(animate);
@@ -793,6 +809,7 @@
   }
 
   function init() {
+     
     gameStarted = true;
     clock.start();
     scene = new THREE.Scene();
