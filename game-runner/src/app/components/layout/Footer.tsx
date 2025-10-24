@@ -5,7 +5,7 @@ import logo from "@/assets/images/logo_footer.png";
 
 const legalLinks = [
   { label: "Pie de imprenta", href: "#" },
-  { label: "Términos y condiciones", href: "#" },
+  { label: "Términos y condiciones", href: "/terminos" },
   { label: "Políticas de privacidad", href: "#" },
 ];
 
@@ -16,23 +16,23 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-[#00A4FF] text-white">
+    <footer className="bg-[var(--cplblue)] text-white">
       <div className="mx-auto flex w-full flex-col gap-10 px-6 py-12 items-center lg:flex-row lg:items-start lg:justify-evenly">
-        <div className="w-60 self-center text-3xl font-black italic tracking-[0.14em] text-white md:text-4xl">
+        <div className="w-50 self-center text-3xl font-black italic tracking-[0.14em] text-white md:text-4xl">
           <Image src={logo} alt="Mexsana" />
         </div>
-        <div className="flex flex-col gap-2 text-sm text-white/80 text-center lg:text-left">
+        <div className="flex flex-col gap-2 text-md text-white/80 text-center lg:text-left">
           {legalLinks.map((link) => (
             <Link key={link.label} href={link.href} className="transition hover:text-white">
               {link.label}
             </Link>
           ))}
         </div>
-        <div className="flex flex-col gap-2 text-sm text-white/80 text-center lg:text-left">
+        <div className="flex flex-col gap-2 text-md text-white/80 text-center lg:text-left">
           <span>Diseñado por: DENICOLÁS\TBWA</span>
           <span>2025 © MEXSANA</span>
         </div>
-        <div className="flex flex-col gap-3 text-sm items-center lg:items-start">
+        <div className="flex flex-col gap-3 text-md items-center lg:items-start">
           <span className="font-bold text-lg text-white">Conéctate con lo último:</span>
           <div className="flex gap-3">
             {socialLinks.map(({ label, href, Icon }) => (

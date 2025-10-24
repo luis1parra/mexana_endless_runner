@@ -42,6 +42,8 @@ const fieldContainerClass =
   "flex items-center gap-3 rounded-full bg-[#F5F7FD] px-5 py-3 shadow-[inset_0_1px_2px_rgba(12,37,106,0.12)]";
 const inputClass =
   "w-full bg-transparent text-sm font-medium text-[#1A1A1A] placeholder:text-[#1A1A1A] focus:outline-none";
+const iconWrapperClass =
+  "aspect-square shrink-0 self-stretch flex items-center justify-center text-[#ff0000] w-10 h-10 [&>svg]:h-[70%] [&>svg]:w-[70%]";
 
 const InputField = ({
   id,
@@ -54,7 +56,7 @@ const InputField = ({
   <label className="flex flex-col gap-2 text-sm font-semibold text-[#0F1F5B]" htmlFor={id}>
     <span className="sr-only">{label}</span>
     <div className={`${fieldContainerClass}`}>
-      <span className="text-[#2450F0]">{icon}</span>
+      <span className={iconWrapperClass}>{icon}</span>
       {options ? (
         <div className="relative w-full">
           <select
@@ -371,11 +373,11 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
           type="button"
           onClick={onClose}
           aria-label="Cerrar registro"
-          className="absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#2450F0] text-white transition hover:bg-[#1C3AD4]"
+          className="cursor-pointer absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--cpdblue)] text-white transition hover:bg-[#1C3AD4]"
         >
           <CloseIcon className="h-6 w-6" />
         </button>
-        <h2 className="text-center text-3xl font-black text-[#2450F0] md:text-[34px]">
+        <h2 className="text-center text-3xl font-extrabold italic text-[var(--cpdblue)] md:text-[34px]">
           Registrarse
         </h2>
         <form
@@ -412,7 +414,9 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 onClick={handleAttachClick}
                 className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#2450F0] hover:text-[#1C3AD4]"
               >
-                <PlusCircleIcon className="h-5 w-5" />
+                <span className={iconWrapperClass}>
+                  <PlusCircleIcon className="h-5 w-5" />
+                </span>
                 Adjuntar foto
               </button>
               {attachment && (
@@ -456,7 +460,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`mx-auto flex w-full max-w-[240px] items-center justify-center rounded-full px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitting ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[#2450F0] hover:bg-[#1C3AD4]"}`}
+              className={`cursor-pointer mx-auto flex w-full max-w-[240px] items-center justify-center rounded-full px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitting ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[var(--cpdblue)] hover:bg-[#1C3AD4]"}`}
               aria-busy={isSubmitting}
             >
               {isSubmitting ? "Registrando..." : "Empezar a jugar"}

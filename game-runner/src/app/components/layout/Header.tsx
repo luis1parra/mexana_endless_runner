@@ -54,9 +54,9 @@ export function Header({
     onAction?: () => void,
   ) => {
     const desktopClasses =
-      "cursor-pointer rounded-full bg-white px-6 py-2 text-sm font-semibold text-[#1D3FCE] shadow-[0_10px_30px_rgba(16,38,109,0.25)] transition hover:bg-[#F2F6FF] lg:px-8 lg:py-2.5 lg:text-base";
+      "cursor-pointer rounded-full bg-white px-6 py-2 text-sm font-semibold text-[var(--cpdblue)] shadow-[0_10px_30px_rgba(16,38,109,0.25)] transition hover:bg-[#F2F6FF] lg:px-8 lg:py-2.5 lg:text-base";
     const mobileClasses =
-      "cursor-pointer inline-flex w-full items-center justify-center rounded-full bg-[#1D3FCE] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_32px_rgba(16,38,109,0.3)] transition hover:bg-[#1532A8]";
+      "cursor-pointer items-center justify-center rounded-full bg-[var(--cpdblue)] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_32px_rgba(16,38,109,0.3)] transition hover:bg-[#1532A8]";
     const className = variant === "mobile" ? mobileClasses : desktopClasses;
 
     // if (onRegisterClick) {
@@ -121,7 +121,7 @@ export function Header({
         <div>{renderLoginAction()}</div>
       </div>
       <div className="hidden justify-between items-center gap-6 md:flex">
-        <div className="flex flex-wrap items-center gap-6">
+        <div className="flex flex-wrap items-center gap-6 xl:gap-12">
           {navLinks.map((link) => (
             <Link
               key={link.label}
@@ -139,30 +139,32 @@ export function Header({
         </div>
       </div>
       {isMenuOpen ? (
-        <div
-          id="mobile-navigation"
-          className="absolute z-100 left-0 top-full mt-4 w-full max-w-[400px] rounded-3xl bg-white px-6 py-6 text-left text-base font-semibold text-[#0D0D0D] shadow-[0_24px_48px_rgba(13,32,94,0.18)] normal-case lg:hidden"
-        >
-          <div className="pb-4">
-            {renderLogo("w-3/4 text-3xl font-black tracking-[0.14em] text-[#1D3FCE] drop-shadow-none")}
-          </div>
-          <div className="h-px w-full bg-[#1D3FCE]/40" />
-          <div className="mt-6 flex flex-col gap-5 text-lg">
-            {navLinks.map((link) => (
-              <Link
-                key={`mobile-${link.label}`}
-                href={link.href}
-                onClick={closeMenu}
-                className={`transition-colors hover:text-[#1D3FCE] ${
-                  link.href === activeHref ? "text-[#1D3FCE]" : "text-[#0D0D0D]"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-          <div className="mt-8">
-            {renderRegisterAction("mobile", closeMenu)}
+        <div className="fixed z-99 inset-0 bg-black/50" onClick={closeMenu}>
+          <div
+            id="mobile-navigation"
+            className="z-100 left-0 top-full w-full bg-white px-9 py-8 text-left text-base font-semibold shadow-[0_24px_48px_rgba(13,32,94,0.18)] normal-case lg:hidden"
+          >
+            <div className="pb-4">
+              {renderLogo("w-50 text-3xl tracking-[0.14em] text-[var(--cpdblue)] drop-shadow-none")}
+            </div>
+            <div className="h-[2px] w-full bg-[var(--cpdblue)]/40" />
+            <div className="mt-6 flex flex-col gap-5 text-lg">
+              {navLinks.map((link) => (
+                <Link
+                  key={`mobile-${link.label}`}
+                  href={link.href}
+                  onClick={closeMenu}
+                  className={`transition-colors hover:text-[var(--cpdblue)] ${
+                    link.href === activeHref ? "text-[var(--cpdblue)]" : "text-[var(--cngray)]"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+            <div className="mt-8">
+              {renderRegisterAction("mobile", closeMenu)}
+            </div>
           </div>
         </div>
       ) : null}

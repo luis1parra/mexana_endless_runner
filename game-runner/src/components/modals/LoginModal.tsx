@@ -37,6 +37,9 @@ const fieldContainerClass =
   "flex items-center gap-3 rounded-full bg-[#F5F7FD] px-5 py-3 shadow-[inset_0_1px_2px_rgba(12,37,106,0.12)]";
 const inputClass =
   "w-full bg-transparent text-sm font-medium text-[#1A1A1A] placeholder:text-[#1A1A1A] focus:outline-none";
+const iconWrapperClass =
+  "aspect-square shrink-0 self-stretch flex items-center justify-center text-[var(--cpdblue)] w-10 h-10 [&>svg]:h-[70%] [&>svg]:w-[70%]";
+
 
 const InputField = ({
   id,
@@ -49,7 +52,7 @@ const InputField = ({
   <label className="flex flex-col gap-2 text-sm font-semibold text-[#0F1F5B]" htmlFor={id}>
     <span className="sr-only">{label}</span>
     <div className={fieldContainerClass}>
-      <span className="text-[#2450F0]">{icon}</span>
+      <span className={iconWrapperClass}>{icon}</span>
       {options ? (
         <div className="relative w-full">
           <select
@@ -344,9 +347,11 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
             <button
               type="button"
               onClick={handleAttachClick}
-              className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#2450F0] hover:text-[#1C3AD4]"
+              className="cursor-pointer mt-4 flex items-center gap-2 text-sm font-semibold text-[#2450F0] hover:text-[#1C3AD4]"
             >
-              <PlusCircleIcon className="h-5 w-5" />
+              <span className={iconWrapperClass}>
+                <PlusCircleIcon className="h-5 w-5" />
+              </span>
               Adjuntar foto
             </button>
             {attachment && (
