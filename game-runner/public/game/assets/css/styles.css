@@ -240,7 +240,7 @@ body.hit-flash::after {
 
 .hud-progress--lives .hud-progress__fill {
   background-image: url("../2d/vidasBarra.png");
-  transform-origin: right center;
+  transform-origin: left center;
 }
 
 @media (max-width: 768px) {
