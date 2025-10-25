@@ -1,6 +1,9 @@
 
 // Encapsulado
 (() => {
+  console.log("PLAYER_VARIANT from game.js", window.PLAYER_VARIANT);
+  console.log("ENABLE_TUTORIAL from game.js", window.ENABLE_TUTORIAL);
+
   let scene, camera, renderer;
   let player, targetLane = 1;
   const obstacles = [], coins = [], lanes = [-2, 0, 2], buildings = [], floorSegments = [];

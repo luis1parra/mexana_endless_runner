@@ -7,7 +7,7 @@ import avatarBoy from "@/assets/images/avatarman.png";
 import avatarGirl from "@/assets/images/avatarwoman.png";
 import avatarBoyThumb from "@/assets/images/avatarman_tumb.png";
 import avatarGirlThumb from "@/assets/images/avatarwoman_tumb.png";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/services/api";
 
 type AvatarKey = "boy" | "girl";
@@ -34,6 +34,7 @@ const avatars: Record<AvatarKey, AvatarInfo> = {
 const fallbackNickname = "Jugador Mexsana";
 
 export default function JuegoPage() {
+  const search = useSearchParams();
   const [nickname, setNickname] = useState(fallbackNickname);
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarKey>("boy");
   const [showGame, setShowGame] = useState(false);
@@ -161,6 +162,8 @@ export default function JuegoPage() {
         throw new Error("No fue posible actualizar tu avatar.");
       }
 
+      // Exponer selección también en window por si se usa fuera del iframe
+      // Nota: el juego corre en un iframe con su propio window; pasamos el valor por querystring.
       window.PLAYER_VARIANT = selectedAvatar;
       setShowGame(true);
     } catch (error) {
@@ -173,7 +176,12 @@ export default function JuegoPage() {
   if (showGame) {
     return (
       <div className="min-h-screen bg-black">
-        <iframe src="../game/index.html" title="Mexsana Endless Runner" className="h-screen w-full border-0" allow="autoplay; fullscreen" />
+        <iframe
+          src={`../game/index.html?player_variant=${encodeURIComponent(selectedAvatar)}${search?.get("enableTutorial") ? `&tutorial=${encodeURIComponent(search.get("enableTutorial") as string)}` : ""}`}
+          title="Mexsana Endless Runner"
+          className="h-screen w-full border-0"
+          allow="autoplay; fullscreen"
+        />
       </div>
     );
   }

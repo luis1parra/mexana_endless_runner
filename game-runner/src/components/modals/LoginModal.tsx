@@ -251,9 +251,9 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
       }
 
       onClose();
-      // Navega al juego estático en public/ respetando basePath de Next
-      //router.push("/game/index.html");
-      router.push("/juego");
+      // Navega al juego con bandera para el tutorial
+      // Si necesitas desactivarlo, cambia a enableTutorial=0
+      router.push("/juego?enableTutorial=0");
     } catch (error) {
       setSubmitError(
         error instanceof Error
