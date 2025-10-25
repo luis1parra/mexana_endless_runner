@@ -193,6 +193,24 @@ const CITY_BUILDING_FBX_URLS = [
 
     const fbxLoader = new THREE.FBXLoader(manager);
     const gltfLoader = new THREE.GLTFLoader(manager);
+    const playerTextureLoader = new THREE.TextureLoader(manager);
+    let cachedPlayerTexture = null;
+
+    function getPlayerTexture() {
+        if (cachedPlayerTexture) return cachedPlayerTexture;
+        try {
+            const tex = playerTextureLoader.load("assets/2d/boy_texture.png");
+            tex.flipY = false;
+            if (typeof THREE !== "undefined" && THREE.sRGBEncoding !== undefined) {
+                tex.encoding = THREE.sRGBEncoding;
+            }
+            cachedPlayerTexture = tex;
+            return tex;
+        } catch (err) {
+            console.warn("[assets@132] fallback player texture failed", err);
+            return null;
+        }
+    }
 
     // Transforms comunes (ajústalos a tus modelos si quieres)
     function applyCommonTransforms(obj, kind /* 'coin' | 'obstacle' | 'city' | 'player' */, resourceUrl = "") {
@@ -243,6 +261,22 @@ const CITY_BUILDING_FBX_URLS = [
             }
             obj.rotation.y = Math.PI;
             obj.userData.defaultRotationY = obj.rotation.y;
+
+            const fallbackTexture = getPlayerTexture();
+            obj.traverse((child) => {
+                if (!child.isMesh && !child.isSkinnedMesh) return;
+                const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
+                materials.forEach((mat) => {
+                    if (!mat) return;
+                    if (fallbackTexture && (!mat.map || !mat.map.image)) {
+                        mat.map = fallbackTexture;
+                        mat.needsUpdate = true;
+                    }
+                    if (mat.emissive && mat.emissive.isColor) {
+                        mat.emissive.multiplyScalar(0.75);
+                    }
+                });
+            });
         } else if (kind === "street") {
             const initialBox = new THREE.Box3().setFromObject(obj);
             const initialSize = initialBox.getSize(new THREE.Vector3());
