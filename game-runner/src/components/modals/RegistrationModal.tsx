@@ -367,8 +367,8 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0B1E52]/70 px-4 py-8">
-      <div className="relative w-full max-w-[980px] rounded-[40px] bg-white px-6 py-10 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-12">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4 py-8">
+      <div className="overflow-y-auto relative w-full max-w-[980px] max-h-[98vh] rounded-[40px] bg-white px-6 py-10 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-12">
         <button
           type="button"
           onClick={onClose}
@@ -377,11 +377,11 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
         >
           <CloseIcon className="h-6 w-6" />
         </button>
-        <h2 className="text-center text-3xl font-extrabold italic text-[var(--cpdblue)] md:text-[34px]">
+        <h2 className="mt-6 text-center text-3xl font-extrabold italic text-[var(--cpdblue)] md:text-[34px]">
           Registrarse
         </h2>
         <form
-          className="mt-10 grid gap-8 md:grid-cols-2 md:items-start"
+          className="mt-8 grid gap-8 md:grid-cols-2 md:items-start"
           onSubmit={handleSubmit}
         >
           <div className="flex min-w-0 flex-col gap-5">

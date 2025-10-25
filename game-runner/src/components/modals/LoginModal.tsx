@@ -158,7 +158,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
     event.preventDefault();
     setSubmitError(null);
 
-    router.push("/juego");
+    // router.push("/juego");
 
     const formData = new FormData(event.currentTarget);
     const getValue = (key: string) => formData.get(key)?.toString().trim() ?? "";
@@ -295,7 +295,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0B1E52]/70 px-4 py-8">
-      <div className="relative w-full max-w-[560px] rounded-[32px] bg-white px-6 py-9 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-10">
+      <div className="overflow-y-auto relative w-full max-w-[720px] max-h-[98vh] rounded-[32px] bg-white px-6 py-9 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-10">
         <button
           type="button"
           onClick={onClose}
@@ -304,10 +304,10 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
         >
           <CloseIcon className="h-6 w-6" />
         </button>
-        <h2 className="text-center text-xl font-black text-[#2450F0] md:text-[22px]">
+        <h2 className="mt-10 text-center text-xl font-black text-[#2450F0] md:text-[22px]">
           ¡Tu próxima partida comienza aquí!
         </h2>
-        <form className="mt-10 space-y-5" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <InputField
             id="loginEmail"
             label="Correo electrónico"

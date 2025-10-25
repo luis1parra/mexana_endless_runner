@@ -161,6 +161,7 @@ export default function JuegoPage() {
         throw new Error("No fue posible actualizar tu avatar.");
       }
 
+      window.PLAYER_VARIANT = selectedAvatar;
       setShowGame(true);
     } catch (error) {
       setStartError(error instanceof Error ? error.message : "No fue posible iniciar el juego.");
@@ -220,7 +221,7 @@ export default function JuegoPage() {
                           key={key}
                           type="button"
                           onClick={() => setSelectedAvatar(key)}
-                          className={`rounded-[10px] mx-3 p-1 transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-white/40 ${
+                          className={`cursor-pointer rounded-[10px] mx-3 p-1 transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-white/40 ${
                             isActive ? "border-white bg-white text-[#1A2798] shadow-[0_20px_40px_rgba(11,33,110,0.35)]" : "border-transparent bg-white/18 text-white hover:bg-white/28"
                           }`}
                           aria-pressed={isActive}>
@@ -244,7 +245,7 @@ export default function JuegoPage() {
                         type="button"
                         onClick={handleStartGame}
                         disabled={isStartingGame}
-                        className={`w-fit rounded-full px-10 py-4 text-lg font-semibold text-[#1D3FCE] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition ${
+                        className={`cursor-pointer w-fit rounded-full px-10 py-4 text-lg font-semibold text-[#1D3FCE] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition ${
                           isStartingGame ? "cursor-not-allowed bg-white/80 text-[#1D3FCE]/70" : "bg-white hover:bg-[#F2F6FF]"
                         }`}
                         aria-busy={isStartingGame}>
@@ -256,7 +257,7 @@ export default function JuegoPage() {
                       <button
                         type="button"
                         onClick={() => setIsModalOpen(true)}
-                        className="mx-5 w-fit rounded-full bg-white px-10 py-4 text-lg font-semibold text-[#1D3FCE] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition hover:bg-[#F2F6FF]">
+                        className="cursor-pointer mx-5 w-fit rounded-full bg-white px-10 py-4 text-lg font-semibold text-[#1D3FCE] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition hover:bg-[#F2F6FF]">
                         Factura Inválida
                       </button>
                     </div>
