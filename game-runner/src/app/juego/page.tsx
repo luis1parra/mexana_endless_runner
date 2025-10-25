@@ -7,7 +7,7 @@ import avatarBoy from "@/assets/images/avatarman.png";
 import avatarGirl from "@/assets/images/avatarwoman.png";
 import avatarBoyThumb from "@/assets/images/avatarman_tumb.png";
 import avatarGirlThumb from "@/assets/images/avatarwoman_tumb.png";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
 
 type AvatarKey = "boy" | "girl";
@@ -34,7 +34,6 @@ const avatars: Record<AvatarKey, AvatarInfo> = {
 const fallbackNickname = "Jugador Mexsana";
 
 export default function JuegoPage() {
-  const search = useSearchParams();
   const [nickname, setNickname] = useState(fallbackNickname);
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarKey>("boy");
   const [showGame, setShowGame] = useState(false);
@@ -42,6 +41,7 @@ export default function JuegoPage() {
   const [sessionIdUserGame, setSessionIdUserGame] = useState<string | number | null>(null);
   const [isStartingGame, setIsStartingGame] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+  const [tutorialQS, setTutorialQS] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -82,6 +82,20 @@ export default function JuegoPage() {
       }
     } catch {
       // Ignoramos errores de lectura/parseo del storage.
+    }
+  }, []);
+
+  // Leer querystring del cliente sin useSearchParams para evitar Suspense en build
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const params = new URLSearchParams(window.location.search || "");
+      const t = params.get("enableTutorial");
+      if (t !== null && t !== undefined) {
+        setTutorialQS(String(t));
+      }
+    } catch {
+      // ignore
     }
   }, []);
 
@@ -177,7 +191,7 @@ export default function JuegoPage() {
     return (
       <div className="min-h-screen bg-black">
         <iframe
-          src={`../game/index.html?player_variant=${encodeURIComponent(selectedAvatar)}${search?.get("enableTutorial") ? `&tutorial=${encodeURIComponent(search.get("enableTutorial") as string)}` : ""}`}
+          src={`../game/index.html?player_variant=${encodeURIComponent(selectedAvatar)}${tutorialQS ? `&tutorial=${encodeURIComponent(tutorialQS)}` : ""}`}
           title="Mexsana Endless Runner"
           className="h-screen w-full border-0"
           allow="autoplay; fullscreen"
