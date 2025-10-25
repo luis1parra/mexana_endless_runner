@@ -1590,9 +1590,9 @@ function swapToJumpModel() {
     const action = mixer.clipAction(jumpAnimations[0]);
     action.reset();
     action.setLoop(THREE.LoopOnce, 1);
-    action.clampWhenFinished = false;
+    action.clampWhenFinished = true;
     action.play();
-    mixer.update(0.001);
+    mixer.update(1 / 60);
   }
 }
 
