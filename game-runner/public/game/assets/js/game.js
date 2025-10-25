@@ -128,6 +128,34 @@
   const coinBannerTitleEl = document.getElementById("coinBannerTitle");
   const coinBannerPointsValueEl = document.getElementById("coinBannerPointsValue");
   const coinBannerPointsSuffixEl = document.getElementById("coinBannerPointsSuffix");
+  const coinsProgressFill = document.getElementById("coinsProgressFill");
+  const livesProgressFill = document.getElementById("livesProgressFill");
+
+  const COIN_PROGRESS_TARGET = Number.isFinite(window.COIN_TARGET_SCORE) && window.COIN_TARGET_SCORE > 0
+    ? Number(window.COIN_TARGET_SCORE)
+    : 5000;
+  const rawLivesMax = Number(window.LIVES_MAX);
+  const LIVES_MAX = Number.isFinite(rawLivesMax) && rawLivesMax > 0 ? Math.floor(rawLivesMax) : 3;
+
+  function applyProgress(fillEl, ratio) {
+    if (!fillEl || !fillEl.parentElement) return;
+    const normalized = Math.max(0, Math.min(1, ratio));
+    fillEl.style.transform = `scaleX(${normalized})`;
+    fillEl.style.opacity = normalized <= 0 ? "0" : "1";
+  }
+
+  function updateCoinProgress() {
+    const ratio = COIN_PROGRESS_TARGET > 0 ? coinCount / COIN_PROGRESS_TARGET : 0;
+    applyProgress(coinsProgressFill, ratio);
+  }
+
+  function updateLivesProgress() {
+    const ratio = LIVES_MAX > 0 ? lives / LIVES_MAX : 0;
+    applyProgress(livesProgressFill, ratio);
+  }
+
+  updateCoinProgress();
+  updateLivesProgress();
 
   let tutorialActive = ENABLE_TUTORIAL;
   const tutorialSteps = tutorialActive ? ["jump", "right", "left"] : [];
@@ -486,6 +514,12 @@
       countdownEl.textContent = "3";
     }
     if (hudEl) hudEl.style.display = "block";
+    coinCount = 0;
+    coinsEl.textContent = coinCount;
+    lives = Math.max(0, LIVES_MAX);
+    livesEl.textContent = lives;
+    updateCoinProgress();
+    updateLivesProgress();
     gameStartTimestamp = Date.now();
     scoreSubmitted = false;
     pendingScorePromise = null;
@@ -716,6 +750,7 @@
           if (window.SFX) window.SFX.play("hit");
           lives--;
           livesEl.textContent = lives;
+          updateLivesProgress();
           triggerHitPause();
 
           // Si aún quedan vidas, reproduce "life" para feedback
@@ -732,6 +767,7 @@
             scoreSubmitted = true;
             lives = 0;
             livesEl.textContent = lives;
+            updateLivesProgress();
 
             if (window.SFX) window.SFX.play("gameover");
 
@@ -798,6 +834,7 @@
           const value = Number.isFinite(coin.userData?.scoreValue) ? coin.userData.scoreValue : 1;
           coinCount += value;
           coinsEl.textContent = coinCount;
+          updateCoinProgress();
           const hudImage = coin.userData?.hudImage;
           const hudTitle = coin.userData?.hudTitle || "Recompensa obtenida";
           const hudSubtitle = coin.userData?.hudSubtitle || "puntos";
@@ -1094,6 +1131,8 @@
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      updateCoinProgress();
+      updateLivesProgress();
     };
     addManagedEvent(window, "resize", handleResize);
 

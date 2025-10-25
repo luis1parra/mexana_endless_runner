@@ -1,5 +1,5 @@
 // Encapsulado para evitar colisiones globales
-(async () => {
+async function __runAssetPipeline() {
     if (typeof THREE !== "undefined" && THREE.Cache) {
         THREE.Cache.enabled = true;
     }
@@ -558,4 +558,33 @@ const CITY_BUILDING_FBX_URLS = [
     // Diagnóstico global
     window.addEventListener("error", (e) => console.error("[window error]", e.error || e.message));
     window.addEventListener("unhandledrejection", (e) => console.error("[unhandledrejection]", e.reason));
+}
+
+let __assetPipelinePromise = null;
+
+function startAssetPipeline() {
+    if (!__assetPipelinePromise) {
+        __assetPipelinePromise = __runAssetPipeline().catch((err) => {
+            console.error("[assets@132] init failed", err);
+            __assetPipelinePromise = null;
+            throw err;
+        });
+    }
+    return __assetPipelinePromise;
+}
+
+(function scheduleAssetPipeline() {
+    if (typeof window === "undefined") {
+        startAssetPipeline();
+        return;
+    }
+
+    window.START_ASSET_LOADING = startAssetPipeline;
+
+    const delayMs = typeof window.ASSET_LOAD_DELAY_MS === "number" ? window.ASSET_LOAD_DELAY_MS : 2000;
+    if (window.DEFER_ASSET_LOADING === true) {
+        setTimeout(startAssetPipeline, delayMs);
+    } else {
+        startAssetPipeline();
+    }
 })();
