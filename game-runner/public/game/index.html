@@ -12,11 +12,21 @@
     <div id="hud">
         <div class="hud-card hud-card--left">
             <div class="hud-card__icon" aria-hidden="true"></div>
-            <div class="hud-card__value" id="coins">0</div>
+            <div class="hud-card__metrics">
+                <div class="hud-progress hud-progress--coins">
+                    <div class="hud-progress__fill" id="coinsProgressFill"></div>
+                </div>
+                <div class="hud-card__value" id="coins">0</div>
+            </div>
         </div>
         <div class="hud-card hud-card--right">
             <div class="hud-card__icon" aria-hidden="true"></div>
-            <div class="hud-card__value" id="lives">3</div>
+            <div class="hud-card__metrics hud-card__metrics--right">
+                <div class="hud-progress hud-progress--lives">
+                    <div class="hud-progress__fill" id="livesProgressFill"></div>
+                </div>
+                <div class="hud-card__value" id="lives">3</div>
+            </div>
         </div>
         <span id="timer" class="hud-timer" aria-hidden="true">0</span>
     </div>
@@ -77,13 +87,24 @@
           const isChrome = /chrome/.test(ua) && !/edge|opr/.test(ua);
           const isMobile = isIOS || isAndroid;
 
+          window.DEFER_ASSET_LOADING = true;
+          if (typeof window.ASSET_LOAD_DELAY_MS === "undefined") {
+            window.ASSET_LOAD_DELAY_MS = 2000;
+          }
+          if (typeof window.COIN_TARGET_SCORE === "undefined") {
+            window.COIN_TARGET_SCORE = isMobile ? 500 : 500;
+          }
+          if (typeof window.LIVES_MAX === "undefined") {
+            window.LIVES_MAX = 3;
+          }
+
           if (isMobile) {
-            window.COIN_MODEL_LIMIT = 5;
-            window.OBSTACLE_MODEL_LIMIT = 2;
-            window.CITY_DECOR_MODEL_LIMIT = 1;
-            window.CITY_BUILDING_MODEL_LIMIT = 2;
-            window.COIN_POOL_SIZE = 3;
-            window.OBSTACLE_POOL_SIZE = 1;
+            window.COIN_MODEL_LIMIT = 7;
+            window.OBSTACLE_MODEL_LIMIT = 3;
+            window.CITY_DECOR_MODEL_LIMIT = 4;
+            window.CITY_BUILDING_MODEL_LIMIT = 3;
+            window.COIN_POOL_SIZE = 7;
+            window.OBSTACLE_POOL_SIZE = 3;
             window.PLAYER_VARIANT = "boy";
             window.ENABLE_TUTORIAL = true;
             if (isIOS && isSafari) {
