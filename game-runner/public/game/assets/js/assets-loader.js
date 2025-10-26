@@ -76,7 +76,8 @@ async function __runAssetPipeline() {
 
   const CITY_DECOR_FBX_URLS = ["assets/3d/cityBusStop1.fbx", "assets/3d/cityBusStop2.fbx", "assets/3d/cityLampPost.fbx", "assets/3d/cityTree.fbx"];
   const CITY_BUILDING_FBX_URLS = ["assets/3d/buildingBlue.fbx", "assets/3d/buildingOrange.fbx", "assets/3d/buildingYellow.fbx"];
-  const PLAYER_VARIANT = (window.PLAYER_VARIANT || "boy").toLowerCase() === "girl" ? "girl" : "boy";
+    const PLAYER_VARIANT = (window.PLAYER_VARIANT || "boy").toLowerCase() === "girl" ? "girl" : "boy";
+    const IS_BOY_VARIANT = PLAYER_VARIANT === "boy";
   window.PLAYER_VARIANT_RESOLVED = PLAYER_VARIANT;
 
   const PLAYER_MODEL_URLS = {
@@ -175,7 +176,7 @@ async function __runAssetPipeline() {
   function getPlayerTexture() {
     if (cachedPlayerTexture) return cachedPlayerTexture;
     try {
-      const tex = playerTextureLoader.load("assets/2d/boy_texture.png");
+      const tex = playerTextureLoader.load("assets/2d/boy_texture.jpg");
       tex.flipY = false;
       if (typeof THREE !== "undefined" && THREE.sRGBEncoding !== undefined) {
         tex.encoding = THREE.sRGBEncoding;
@@ -238,22 +239,24 @@ async function __runAssetPipeline() {
       obj.rotation.y = Math.PI;
       obj.userData.defaultRotationY = obj.rotation.y;
 
-      const fallbackTexture = getPlayerTexture();
-      obj.traverse((child) => {
-        if (!child.isMesh && !child.isSkinnedMesh) return;
-        const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
-        materials.forEach((mat) => {
-          if (!mat) return;
-          if (fallbackTexture && (!mat.map || !mat.map.image)) {
-            mat.map = fallbackTexture;
-            mat.needsUpdate = true;
-          }
-          if (mat.emissive && mat.emissive.isColor) {
-            mat.emissive.multiplyScalar(0.75);
-          }
-        });
-      });
-    } else if (kind === "street") {
+            if (IS_BOY_VARIANT) {
+                const fallbackTexture = getPlayerTexture();
+                obj.traverse((child) => {
+                    if (!child.isMesh && !child.isSkinnedMesh) return;
+                    const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
+                    materials.forEach((mat) => {
+                        if (!mat) return;
+                        if (fallbackTexture && (!mat.map || !mat.map.image)) {
+                            mat.map = fallbackTexture;
+                            mat.needsUpdate = true;
+                        }
+                        if (mat.emissive && mat.emissive.isColor) {
+                            mat.emissive.multiplyScalar(0.75);
+                        }
+                    });
+                });
+            }
+        } else if (kind === "street") {
       const initialBox = new THREE.Box3().setFromObject(obj);
       const initialSize = initialBox.getSize(new THREE.Vector3());
       const targetLength = 13;
