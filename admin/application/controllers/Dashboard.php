@@ -28,16 +28,36 @@ class Dashboard extends Authenticated_Controller {
         $config['page_query_string']    = TRUE;
         $config['query_string_segment'] = 'page';
         $config['reuse_query_string']   = TRUE;
+        $config['use_page_numbers']     = TRUE;
 
         $page   = max(1, (int) $this->input->get('page'));
-        $limit  = 10;
+        $allowedPageSizes = [5, 10, 20, 50, 100];
+        $limitParam = (int) $this->input->get('per_page');
+        $limit  = in_array($limitParam, $allowedPageSizes, true) ? $limitParam : 10;
         $offset = ($page - 1) * $limit;
 
         $total_rows = $this->facturas->count_all($filters);
         $rows       = $this->facturas->list($limit, $offset, $filters);
 
-        $config['total_rows'] = $total_rows;
-        $config['per_page']   = $limit;
+        $config['total_rows']       = $total_rows;
+        $config['per_page']         = $limit;
+        // Estilos de paginación: más separación entre enlaces
+        $config['full_tag_open']    = '<nav class="mt-2"><ul class="inline-flex items-center gap-2">';
+        $config['full_tag_close']   = '</ul></nav>';
+        $config['num_tag_open']     = '<li>';
+        $config['num_tag_close']    = '</li>';
+        $config['prev_tag_open']    = '<li>';
+        $config['prev_tag_close']   = '</li>';
+        $config['next_tag_open']    = '<li>';
+        $config['next_tag_close']   = '</li>';
+        $config['first_tag_open']   = '<li>';
+        $config['first_tag_close']  = '</li>';
+        $config['last_tag_open']    = '<li>';
+        $config['last_tag_close']   = '</li>';
+        $config['cur_tag_open']     = '<li><span class="px-3 py-1 rounded-lg bg-mxs-brand text-black font-semibold">';
+        $config['cur_tag_close']    = '</span></li>';
+        // Clase para los enlaces <a>
+        $config['attributes']       = ['class' => 'px-3 py-1 rounded-lg bg-white/10 hover:bg-white/5'];
         $this->pagination->initialize($config);
 
         // Cargar catálogo de estados para el <select>

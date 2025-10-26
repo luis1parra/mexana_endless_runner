@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image, { type StaticImageData } from "next/image";
 import { Menu } from "@/assets/icons";
 import logo from "@/assets/images/logo_mexsana.png";
+import logo2 from "@/assets/images/logo_footer.png";
 import { LoginModal } from "@/components/modals/LoginModal";
 import { RegistrationModal } from "../../../components/modals/RegistrationModal";
 
@@ -39,14 +40,19 @@ export function Header({
   const closeMenu = () => setIsMenuOpen(false);
 
   const renderLogo = (className: string) =>
-    logoHref ? (
+    activeHref!=="/terminos" ? (
       <Image
         src={logo}
         alt="Mexsana"
         className={className}
       />
     ) : (
-      <div className={className}>Mexsana</div>
+      // <div className={className}>Mexsana</div>
+      <Image
+        src={logo2}
+        alt="Mexsana"
+        className={"w-1/5 min-w-[130px] max-w-[550px] absolute left-1/2 -top-3 transform -translate-x-1/2 px-8 py-2 lg:px-10"}
+      />
     );
 
   const renderRegisterAction = (

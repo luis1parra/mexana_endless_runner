@@ -18,6 +18,23 @@ ob_start(); ?>
             <h1 class="text-lg font-semibold">Facturas</h1>
             <span class="ml-2 text-xs text-slate-400">Total: <?= number_format($total) ?></span>
           </div>
+          <form method="get" action="<?= site_url('dashboard') ?>" class="flex items-center gap-2">
+            <label for="per_page" class="text-xs text-mxs-muted">Mostrar</label>
+            <select id="per_page" name="per_page" onchange="this.form.submit()"
+              class="px-3 py-1.5 rounded-lg bg-mxs-card border border-mxs-line outline-none focus:ring-2 focus:ring-mxs-brand/40">
+              <?php foreach ([5,10,20,50,100] as $pp): ?>
+                <option value="<?= $pp ?>" <?= ((int)$per_page === (int)$pp) ? 'selected' : '' ?>><?= $pp ?> por página</option>
+              <?php endforeach; ?>
+            </select>
+            <!-- preservar filtros actuales y resetear a la pagina 1 -->
+            <input type="hidden" name="page" value="1" />
+            <input type="hidden" name="lugar_compra" value="<?= html_escape($filters['lugar_compra']) ?>" />
+            <input type="hidden" name="numero_factura" value="<?= html_escape($filters['numero_factura']) ?>" />
+            <input type="hidden" name="fecha_registro" value="<?= html_escape($filters['fecha_registro']) ?>" />
+            <input type="hidden" name="estado" value="<?= html_escape($filters['estado']) ?>" />
+            <input type="hidden" name="id_user_game" value="<?= html_escape($filters['id_user_game']) ?>" />
+            <input type="hidden" name="id_user_admin" value="<?= html_escape($filters['id_user_admin']) ?>" />
+          </form>
         </div>
       </header>
       <!-- Filtros -->
@@ -52,6 +69,8 @@ ob_start(); ?>
               </option>
             <?php endforeach; ?>
           </select>
+
+          
 
           <div class="md:col-span-6 flex gap-2">
             <button class="px-4 py-2 rounded-lg bg-mxs-brand hover:bg-mxs-brand/90 text-black font-semibold">Filtrar</button>

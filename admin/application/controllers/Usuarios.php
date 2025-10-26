@@ -29,9 +29,26 @@ class Usuarios extends Authenticated_Controller {
             'page_query_string'    => TRUE,
             'query_string_segment' => 'page',
             'reuse_query_string'   => TRUE,
+            'use_page_numbers'     => TRUE,
             'total_rows'           => $total,
             'per_page'             => $limit,
         ];
+        // Estilos de paginación similares al dashboard (más separación)
+        $config['full_tag_open']   = '<nav class="mt-2"><ul class="inline-flex items-center gap-2">';
+        $config['full_tag_close']  = '</ul></nav>';
+        $config['num_tag_open']    = '<li>';
+        $config['num_tag_close']   = '</li>';
+        $config['prev_tag_open']   = '<li>';
+        $config['prev_tag_close']  = '</li>';
+        $config['next_tag_open']   = '<li>';
+        $config['next_tag_close']  = '</li>';
+        $config['first_tag_open']  = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open']   = '<li>';
+        $config['last_tag_close']  = '</li>';
+        $config['cur_tag_open']    = '<li><span class="px-3 py-1 rounded-lg bg-mxs-brand text-black font-semibold">';
+        $config['cur_tag_close']   = '</span></li>';
+        $config['attributes']      = ['class' => 'px-3 py-1 rounded-lg bg-white/10 hover:bg-white/5'];
         $this->pagination->initialize($config);
 
         $this->load->view('usuarios/index', [

@@ -89,12 +89,12 @@ function storeFacturaImage(string $encodedImage, string $destinationDir): array
 
 $rawBody = file_get_contents('php://input');
 if ($rawBody === false || $rawBody === '') {
-    respond(400, ['error' => 'El cuerpo de la solicitud esta vacio.']);
+    respond(400, ['error' => 'El cuerpo de la solicitud esta vacío.']);
 }
 
 $payload = json_decode($rawBody, true);
 if (!is_array($payload)) {
-    respond(400, ['error' => 'El cuerpo de la solicitud no es un JSON valido.']);
+    respond(400, ['error' => 'El cuerpo de la solicitud no es un JSON válido.']);
 }
 
 $correo = strtolower(trim($payload['correo'] ?? ''));
@@ -103,7 +103,7 @@ $numeroFactura = trim($payload['numero_factura'] ?? '');
 $fotoFactura = $payload['foto_factura'] ?? '';
 
 if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-    respond(400, ['error' => 'El correo es obligatorio y debe tener un formato valido.']);
+    respond(400, ['error' => 'El correo es obligatorio y debe tener un formato válido.']);
 }
 
 if ($lugarCompra === '') {
@@ -111,7 +111,7 @@ if ($lugarCompra === '') {
 }
 
 if ($numeroFactura === '') {
-    respond(400, ['error' => 'El numero de la factura es obligatorio.']);
+    respond(400, ['error' => 'El número de la factura es obligatorio.']);
 }
 
 if ($fotoFactura === '') {
@@ -131,21 +131,21 @@ if (!$stmtUser->fetch()) {
 }
 $stmtUser->close();
 
-$stmtFacturaUnique = $conexion->prepare('SELECT 1 FROM facturas WHERE numero_factura = ? LIMIT 1');
+$stmtFacturaUnique = $conexion->prepare('SELECT 1 FROM facturas WHERE numero_factura = ? AND lugar_compra = ? LIMIT 1');
 if ($stmtFacturaUnique === false) {
-    respond(500, ['error' => 'No fue posible validar el numero de factura.']);
+    respond(500, ['error' => 'No fue posible validar el número de factura.']);
 }
-$stmtFacturaUnique->bind_param('s', $numeroFactura);
+$stmtFacturaUnique->bind_param('ss', $numeroFactura, $lugarCompra);
 $stmtFacturaUnique->execute();
 $stmtFacturaUnique->store_result();
 if ($stmtFacturaUnique->num_rows > 0) {
     $stmtFacturaUnique->close();
-    respond(409, ['error' => 'El numero de factura ya se encuentra registrado.']);
+    respond(409, ['error' => 'El número de factura ya se encuentra registrado para ese lugar de compra.']);
 }
 $stmtFacturaUnique->close();
 
 if (!$conexion->begin_transaction()) {
-    respond(500, ['error' => 'No fue posible iniciar la transaccion.']);
+    respond(500, ['error' => 'No fue posible iniciar la transacción.']);
 }
 
 $projectRoot = resolveProjectRoot();
@@ -167,8 +167,12 @@ try {
     }
 
     $stmtInsertFactura->bind_param('sssi', $lugarCompra, $numeroFactura, $storedFileName, $userId);
-    $stmtInsertFactura->execute();
-    $facturaId = $stmtInsertFactura->insert_id;
+    if (!$stmtInsertFactura->execute()) {
+        $err = $stmtInsertFactura->error ?: 'Error desconocido al ejecutar el INSERT de factura.';
+        $stmtInsertFactura->close();
+        throw new RuntimeException('No fue posible registrar la factura: ' . $err);
+    }
+    $facturaId = $conexion->insert_id;
     $stmtInsertFactura->close();
 
     $stmtUpdateLogin = $conexion->prepare('UPDATE users_game SET last_login = NOW() WHERE id_user_game = ?');
