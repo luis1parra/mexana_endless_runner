@@ -52,7 +52,7 @@ export default function TerminosPage() {
                 Fresh Game
               </h1>
 
-              <div className="text-black">
+              <div className="text-black mt-10 lg:mt-20">
                 <Section index={1} />
                 <Section index={2} />
                 <Section index={3} />

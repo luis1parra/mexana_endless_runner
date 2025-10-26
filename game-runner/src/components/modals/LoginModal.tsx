@@ -276,8 +276,10 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
     }
 
     const file = files[0];
-    if (!file.type.startsWith("image/")) {
-      setSubmitError("Solo se permite subir una imagen en formato JPG o PNG.");
+    console.log("[debug] FILE", file, file.type);
+    
+    if (!(file.type.startsWith("image/") || file.type.startsWith("application/pdf"))) {
+      setSubmitError("Sólo se permite subir una imagen en formato PNG, JPG o PDF.");
       setAttachment(null);
       event.target.value = "";
       return;
@@ -295,7 +297,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0B1E52]/70 px-4 py-8">
-      <div className="overflow-y-auto relative w-full max-w-[720px] max-h-[98vh] rounded-[32px] bg-white px-6 py-9 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-10">
+      <div className="overflow-y-auto relative w-full max-w-[720px] max-h-[98dvh] rounded-[32px] bg-white px-6 py-9 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-10">
         <button
           type="button"
           onClick={onClose}
@@ -333,15 +335,15 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
               Adjuntar foto de la factura
             </p>
             <p className="mt-1 text-sm text-[#4A5785]">
-              Adjunta una sola imagen de la factura en buena resolución en
-              formato JPG o PNG.
+              Adjunta la foto de la factura en buena resolución en
+              formato PNG, PDF o JPG.
             </p>
             <input
               ref={fileInputRef}
               id="loginAttachments"
               type="file"
               className="sr-only"
-              accept=".png,.jpg,.jpeg"
+              accept=".png,.jpg,.jpeg,.pdf"
               onChange={handleFilesSelected}
             />
             <button

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   useEffect,
@@ -224,8 +224,8 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
     }
 
     const file = files[0];
-    if (!file.type.startsWith("image/")) {
-      setSubmitError("Sólo se permite subir una imagen en formato JPG o PNG.");
+    if (!(file.type.startsWith("image/") || file.type.startsWith("application/pdf"))) {
+      setSubmitError("Sólo se permite subir una imagen en formato PNG, JPG o PDF.");
       setAttachment(null);
       event.target.value = "";
       return;
@@ -369,7 +369,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4 py-8">
-      <div className="overflow-y-auto relative w-full max-w-[980px] max-h-[98vh] rounded-[40px] bg-white px-6 py-10 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-12">
+      <div className="overflow-y-auto relative w-full max-w-[980px] max-h-[98dvh] rounded-[40px] bg-white px-6 py-10 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-12">
         <button
           type="button"
           onClick={onClose}
@@ -399,15 +399,15 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 Adjuntar foto de la factura
               </p>
               <p className="mt-1 text-sm text-[#4A5785]">
-                Adjunta una sola imagen de la factura en buena resolución en
-                formato JPG o PNG.
+                Adjunta la foto de la factura en buena resolución en
+                formato PNG, PDF o JPG.
               </p>
               <input
                 ref={fileInputRef}
                 id="invoiceAttachments"
                 type="file"
                 className="sr-only"
-                accept=".png,.jpg,.jpeg"
+                accept=".png,.jpg,.jpeg,.pdf"
                 onChange={handleFilesSelected}
               />
               <button

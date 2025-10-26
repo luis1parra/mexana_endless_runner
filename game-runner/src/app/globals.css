@@ -15,7 +15,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-futura);
   --font-mono: var(--font-geist-mono);
-  --color-cpdblue: var(--cpdblue);
 }
 
 @media (prefers-color-scheme: dark) {
