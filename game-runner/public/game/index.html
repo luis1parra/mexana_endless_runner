@@ -109,7 +109,7 @@
 
           window.DEFER_ASSET_LOADING = true;
           if (typeof window.ASSET_LOAD_DELAY_MS === "undefined") {
-            window.ASSET_LOAD_DELAY_MS = 2000;
+            window.ASSET_LOAD_DELAY_MS = 3000;
           }
           if (typeof window.COIN_TARGET_SCORE === "undefined") {
             window.COIN_TARGET_SCORE = isMobile ? 500 : 500;
@@ -117,7 +117,7 @@
           if (typeof window.LIVES_MAX === "undefined") {
             window.LIVES_MAX = 3;
           }
-
+          //window.PLAYER_VARIANT = "girl";
           if (isMobile) {
             window.COIN_MODEL_LIMIT = 7;
             window.OBSTACLE_MODEL_LIMIT = 3;
@@ -130,7 +130,7 @@
               window.ENABLE_TUTORIAL = true;
             }
             if (isIOS && isSafari) {
-              window.SPEED_MULTIPLIER = 1.9; // iOS Safari
+              window.SPEED_MULTIPLIER = 1.2; // iOS Safari
             } else if (isAndroid && isChrome) {
               window.SPEED_MULTIPLIER = .9; // Android Chrome
             } else {
@@ -148,7 +148,7 @@
               window.ENABLE_TUTORIAL = true;
             }
             if (isSafari) {
-              window.SPEED_MULTIPLIER = .8; // macOS Safari
+              window.SPEED_MULTIPLIER = 1.1; // macOS Safari
             } else if (isChrome) {
               window.SPEED_MULTIPLIER = .9; // Windows/Linux Chrome
             } else {
