@@ -55,10 +55,10 @@ async function __runAssetPipeline() {
   };
 
   const COIN_LABEL_MAP = {
-    "deodorantbottleaven.fbx": "Mexsana Aven",
+    "deodorantbottleaven.fbx": "Mexsana Avena",
     "deodorantbottleclassic.fbx": "Mexsana Classic",
     "deodorantbottlelady.fbx": "Mexsana Lady",
-    "deodorantsprayaven.fbx": "Mexsana Spray Aven",
+    "deodorantsprayaven.fbx": "Mexsana Spray Avena",
     "deodorantsprayclassic.fbx": "Mexsana Spray Classic",
     "deodorantspraylady.fbx": "Mexsana Spray Lady",
     "deodorantsprayultra.fbx": "Mexsana Ultra",
@@ -77,7 +77,7 @@ async function __runAssetPipeline() {
   const CITY_DECOR_FBX_URLS = ["assets/3d/cityBusStop1.fbx", "assets/3d/cityBusStop2.fbx", "assets/3d/cityLampPost.fbx", "assets/3d/cityTree.fbx"];
   const CITY_BUILDING_FBX_URLS = ["assets/3d/buildingBlue.fbx", "assets/3d/buildingOrange.fbx", "assets/3d/buildingYellow.fbx"];
     const PLAYER_VARIANT = (window.PLAYER_VARIANT || "boy").toLowerCase() === "girl" ? "girl" : "boy";
-    const IS_BOY_VARIANT = PLAYER_VARIANT === "boy";
+  
   window.PLAYER_VARIANT_RESOLVED = PLAYER_VARIANT;
 
   const PLAYER_MODEL_URLS = {
@@ -173,21 +173,6 @@ async function __runAssetPipeline() {
   const playerTextureLoader = new THREE.TextureLoader(manager);
   let cachedPlayerTexture = null;
 
-  function getPlayerTexture() {
-    if (cachedPlayerTexture) return cachedPlayerTexture;
-    try {
-      const tex = playerTextureLoader.load("assets/2d/boy_texture.jpg");
-      tex.flipY = false;
-      if (typeof THREE !== "undefined" && THREE.sRGBEncoding !== undefined) {
-        tex.encoding = THREE.sRGBEncoding;
-      }
-      cachedPlayerTexture = tex;
-      return tex;
-    } catch (err) {
-      console.warn("[assets@132] fallback player texture failed", err);
-      return null;
-    }
-  }
 
   // Transforms comunes (ajústalos a tus modelos si quieres)
   function applyCommonTransforms(obj, kind /* 'coin' | 'obstacle' | 'city' | 'player' */, resourceUrl = "") {
@@ -239,23 +224,7 @@ async function __runAssetPipeline() {
       obj.rotation.y = Math.PI;
       obj.userData.defaultRotationY = obj.rotation.y;
 
-            if (IS_BOY_VARIANT) {
-                const fallbackTexture = getPlayerTexture();
-                obj.traverse((child) => {
-                    if (!child.isMesh && !child.isSkinnedMesh) return;
-                    const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
-                    materials.forEach((mat) => {
-                        if (!mat) return;
-                        if (fallbackTexture && (!mat.map || !mat.map.image)) {
-                            mat.map = fallbackTexture;
-                            mat.needsUpdate = true;
-                        }
-                        if (mat.emissive && mat.emissive.isColor) {
-                            mat.emissive.multiplyScalar(0.75);
-                        }
-                    });
-                });
-            }
+           
         } else if (kind === "street") {
       const initialBox = new THREE.Box3().setFromObject(obj);
       const initialSize = initialBox.getSize(new THREE.Vector3());

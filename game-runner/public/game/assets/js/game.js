@@ -7,8 +7,25 @@
   let scene, camera, renderer;
   let player, targetLane = 1;
   const obstacles = [], coins = [], lanes = [-2, 0, 2], buildings = [], floorSegments = [];
+  const buildingRows = { left: [], right: [] };
+  const BUILDING_GRID = 0.5;
+  const BUILDING_START = -5;
+  const BUILDING_END = -380;
   let streetSegmentLength = 20;
   let streetLoopLength = 200;
+  const snapToGrid = (value, grid = BUILDING_GRID) => {
+    if (!grid) return value;
+    const scaled = value / grid;
+    if (!Number.isFinite(scaled)) return value;
+    return Math.round(scaled) * grid;
+  };
+  const snapBackToGrid = (value, grid = BUILDING_GRID) => {
+    if (!grid) return value;
+    if (!Number.isFinite(value)) return value;
+    const snapped = snapToGrid(value, grid);
+    if (snapped === value) return snapped;
+    return snapped <= value ? snapped : snapped - grid;
+  };
   const SPEED_MULTIPLIER =
     typeof window !== "undefined" && Number.isFinite(Number(window.SPEED_MULTIPLIER))
       ? Math.max(0.1, Number(window.SPEED_MULTIPLIER))
@@ -42,17 +59,41 @@
   let streetRecycleShift = 0;
   let cloudMesh = null;
   const pickupEffects = [];
+  const characterSaturationMaterials = new WeakSet();
+  const characterSaturationUniforms = new Set();
+  const CHARACTER_SATURATION_DEFAULT =
+    typeof window !== "undefined" && Number.isFinite(Number(window.CHARACTER_SATURATION))
+      ? Number(window.CHARACTER_SATURATION)
+      : 1;
+  let characterSaturationValue = CHARACTER_SATURATION_DEFAULT;
   const cameraLookTarget = new THREE.Vector3();
   let lookTargetBaseY = 0;
   const tempForwardVec = new THREE.Vector3();
   const SKY_TOP_COLOR = new THREE.Color(0x0b3fe6);
   const SKY_BOTTOM_COLOR = new THREE.Color(0x5aa8ff);
-  const IS_MOBILE_ENV =
-    typeof window !== "undefined"
-      ? !!window.IS_MOBILE_ENV
-      : /iPhone|iPad|iPod|Android/i.test(
-      (typeof navigator !== "undefined" && navigator.userAgent) || ""
-    );
+  const detectMobileUA = () => {
+    if (typeof navigator === "undefined") return false;
+    const ua = navigator.userAgent || "";
+    return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  };
+  const detectCoarsePointer = () => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+    try {
+      return window.matchMedia("(pointer: coarse)").matches;
+    } catch (_) {
+      return false;
+    }
+  };
+  const resolveMobileFlag = () => {
+    if (typeof window === "undefined") {
+      return detectMobileUA();
+    }
+    if (window.IS_MOBILE_ENV !== undefined) {
+      return !!window.IS_MOBILE_ENV;
+    }
+    return detectMobileUA() || detectCoarsePointer();
+  };
+  const IS_MOBILE_ENV = resolveMobileFlag();
   const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1.5 : 2;
   const rawObstaclePool = Number(window.OBSTACLE_POOL_SIZE);
   const OBSTACLE_POOL_SIZE = Number.isFinite(rawObstaclePool)
@@ -70,11 +111,16 @@
     typeof window !== "undefined" ? window.LOAD_DECORATION !== false : true;
   const PLAYER_VARIANT =
     typeof window !== "undefined" ? window.PLAYER_VARIANT_RESOLVED || window.PLAYER_VARIANT || "boy" : "boy";
+  const IS_LOCAL_ENV = typeof window !== "undefined" && (/^localhost$|^127\.0\.0\.1$/.test(window.location.hostname));
+  const ENABLE_LOCAL_REJECTION_MOCK = typeof window !== "undefined" && window.LOCAL_REJECTION_MOCK === true;
   const managedEvents = [];
   const managedIntervals = new Set();
   const managedTimeouts = new Set();
   let rafHandle = null;
   let cleanedUp = false;
+  let rejectionCheckInterval = null;
+  let rejectionRequestInFlight = null;
+  let rejectionActive = false;
   const CAMERA_SETTINGS = IS_MOBILE_ENV
     ? {
         height: 3.6,
@@ -108,6 +154,7 @@
     return supported;
   })();
   const SCORE_ENDPOINT = ((window && window.__APP_CONFIG__ && window.__APP_CONFIG__.remoteApiBaseUrl) || "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/") + "recpuntaje.php";
+  const REJECTION_ENDPOINT = (((window && window.__APP_CONFIG__ && window.__APP_CONFIG__.remoteApiBaseUrl) || "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/")) + "checkrechazo.php";
   const BASIC_AUTH_TOKEN =
     (window && window.BASIC_AUTH_TOKEN) ||
     (window && window.__APP_CONFIG__ && window.__APP_CONFIG__.basicAuthToken) ||
@@ -133,6 +180,19 @@
   const coinBannerPointsSuffixEl = document.getElementById("coinBannerPointsSuffix");
   const coinsProgressFill = document.getElementById("coinsProgressFill");
   const livesProgressFill = document.getElementById("livesProgressFill");
+  const rejectionPopupEl = document.getElementById("rejectionPopup");
+  const rejectionExitButtonEl = document.getElementById("rejectionExitButton");
+  const rejectionDescriptionEl = document.getElementById("rejectionDescription");
+
+  if (IS_MOBILE_ENV && tutorialOverlayEl) {
+    tutorialOverlayEl.classList.add("tutorial-overlay--mobile");
+  }
+
+  if (rejectionExitButtonEl) {
+    rejectionExitButtonEl.addEventListener("click", () => {
+      redirectToHome();
+    });
+  }
 
   const COIN_PROGRESS_TARGET = Number.isFinite(window.COIN_TARGET_SCORE) && window.COIN_TARGET_SCORE > 0
     ? Number(window.COIN_TARGET_SCORE)
@@ -165,28 +225,35 @@
   let tutorialStepIndex = 0;
   let coinBannerTimeout = null;
 
-  const buildTutorialText = (direction, extra = "") => {
-    const base = IS_MOBILE_ENV
-      ? `Desliza hacia ${direction} en la pantalla`
-      : `Desliza hacia ${direction} con las flechas del teclado`;
-    return `${base}${extra ? ` ${extra}` : ""}`.trim();
-  };
+  const tutorialCopy = IS_MOBILE_ENV
+    ? {
+        jump: "Desliza hacia arriba con el dedo",
+        right: "Desliza hacia la derecha con el dedo para esquivar obstáculos",
+        left: "Desliza hacia la izquierda con el dedo para esquivar obstáculos",
+        done: "¡Perfecto! Ahora empieza el juego.",
+      }
+    : {
+        jump: "Presiona la flecha ↑ para saltar.",
+        right: "Presiona la flecha → para esquivar obstáculos.",
+        left: "Presiona la flecha ← para esquivar obstáculos.",
+        done: "¡Perfecto! Ahora empieza el juego.",
+      };
   const tutorialConfigs = {
     jump: {
       layout: "up",
-      text: `${buildTutorialText("arriba", "para saltar.")}`,
+      text: tutorialCopy.jump,
     },
     right: {
       layout: "right",
-      text: `${buildTutorialText("la derecha", "para esquivar obstáculos.")}`,
+      text: tutorialCopy.right,
     },
     left: {
       layout: "left",
-      text: `${buildTutorialText("la izquierda", "para esquivar obstáculos.")}`,
+      text: tutorialCopy.left,
     },
     done: {
       layout: "up",
-      text: "¡Perfecto! Ahora empieza el juego.",
+      text: tutorialCopy.done,
       hideArrow: true,
     },
   };
@@ -439,6 +506,8 @@
     }
 
     clearAllIntervals();
+    rejectionCheckInterval = null;
+    rejectionRequestInFlight = null;
     clearAllTimeouts();
     coinBannerTimeout = null;
     if (coinBannerEl) {
@@ -492,6 +561,8 @@
     coins.length = 0;
     buildings.length = 0;
     floorSegments.length = 0;
+    buildingRows.left.length = 0;
+    buildingRows.right.length = 0;
 
     if (renderer) {
       try {
@@ -564,6 +635,9 @@
       }
       speed = targetSpeed;
       countdownRunning = false;
+      if (!rejectionActive) {
+        startRejectionPolling();
+      }
       if (typeof onComplete === "function") onComplete();
     };
 
@@ -610,6 +684,8 @@
   const startGameAfterCountdown = async () => {
     if (startSequenceTriggered) return;
     startSequenceTriggered = true;
+    rejectionActive = false;
+    stopRejectionPolling();
 
     try {
       if (window.AUDIO_CTX && window.AUDIO_CTX.state !== "running") {
@@ -775,21 +851,9 @@
             if (window.SFX) window.SFX.play("gameover");
 
             const goToRanking = () => {
-            const target = (window.parent && window.parent !== window) ? window.parent : window;
-            try {
-              const origin = window.origin || (window.location.protocol + '//' + window.location.host);
-              const basePath = (window.__APP_CONFIG__ && window.__APP_CONFIG__.basePath)
-                || (function () {
-                  const p = window.location.pathname || '';
-                  const idx = p.indexOf('/game/');
-                  return idx > -1 ? p.slice(0, idx) : '';
-                })();
-              const dest = origin + basePath + '/resultados/';
-              target.location.href = dest;
-            } catch (_) {
-              target.location.href = 'https://www.pressstartevolution.com/tbwa/mexana/game-runner/resultados/';
-            }
-          };
+              stopRejectionPolling();
+              navigateToAppPath('/resultados/', 'https://www.pressstartevolution.com/tbwa/mexana/game-runner/resultados/');
+            };
 
           const endTimestamp = Date.now();
           try { console.info("[game] Game over. Submitting score..."); } catch(_) {}
@@ -1209,6 +1273,105 @@
     return node.userData;
   }
 
+  function enableCharacterMaterialSaturation(material) {
+    if (!material || characterSaturationMaterials.has(material)) return;
+    characterSaturationMaterials.add(material);
+
+    const uniform = { value: characterSaturationValue };
+    characterSaturationUniforms.add(uniform);
+
+    const prevOnBeforeCompile = typeof material.onBeforeCompile === "function" ? material.onBeforeCompile.bind(material) : null;
+
+    material.onBeforeCompile = function onBeforeCompile(shader, ...args) {
+      if (prevOnBeforeCompile) {
+        prevOnBeforeCompile(shader, ...args);
+      }
+      shader.uniforms.characterSaturation = uniform;
+      if (!shader.fragmentShader.includes("characterSaturation")) {
+        if (shader.fragmentShader.includes("uniform float opacity;")) {
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "uniform float opacity;",
+            "uniform float opacity;\nuniform float characterSaturation;"
+          );
+        } else {
+          shader.fragmentShader = `uniform float characterSaturation;\n${shader.fragmentShader}`;
+        }
+        const mapInclude = "#include <map_fragment>";
+        const handler = `#include <map_fragment>
+        {
+          float cSatGray = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+          diffuseColor.rgb = mix(vec3(cSatGray), diffuseColor.rgb, characterSaturation);
+        }`;
+        if (shader.fragmentShader.indexOf(mapInclude) !== -1) {
+          shader.fragmentShader = shader.fragmentShader.replace(mapInclude, handler);
+        } else {
+          const fallbackToken = "vec4 diffuseColor = vec4( diffuse, opacity );";
+          shader.fragmentShader = shader.fragmentShader.replace(
+            fallbackToken,
+            `${fallbackToken}
+        {
+          float cSatGray = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+          diffuseColor.rgb = mix(vec3(cSatGray), diffuseColor.rgb, characterSaturation);
+        }`
+          );
+        }
+
+        const saturationPost = `{
+        float cSatGrayFinal = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+        gl_FragColor.rgb = mix(vec3(cSatGrayFinal), gl_FragColor.rgb, characterSaturation);
+      }`;
+        if (!shader.fragmentShader.includes("cSatGrayFinal")) {
+          if (shader.fragmentShader.indexOf("#include <tonemapping_fragment>") !== -1) {
+            shader.fragmentShader = shader.fragmentShader.replace("#include <tonemapping_fragment>", `${saturationPost}\n      #include <tonemapping_fragment>`);
+          } else if (shader.fragmentShader.indexOf("#include <encodings_fragment>") !== -1) {
+            shader.fragmentShader = shader.fragmentShader.replace("#include <encodings_fragment>", `${saturationPost}\n      #include <encodings_fragment>`);
+          } else {
+            shader.fragmentShader += `\n      ${saturationPost}`;
+          }
+        }
+      }
+    };
+
+    const data = ensureUserData(material);
+    data.characterSaturationUniform = uniform;
+    material.needsUpdate = true;
+  }
+
+  function applyCharacterSaturationToObject(root) {
+    if (!root || typeof root.traverse !== "function") return;
+    root.traverse((child) => {
+      if (!child || (!child.isMesh && !child.isSkinnedMesh)) return;
+      const { material } = child;
+      if (Array.isArray(material)) {
+        for (const mat of material) enableCharacterMaterialSaturation(mat);
+      } else {
+        enableCharacterMaterialSaturation(material);
+      }
+    });
+  }
+
+  function setCharacterSaturation(value) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return;
+    characterSaturationValue = numeric;
+    for (const uniform of characterSaturationUniforms) {
+      uniform.value = characterSaturationValue;
+    }
+  }
+
+  function getCharacterSaturation() {
+    return characterSaturationValue;
+  }
+
+  if (typeof window !== "undefined") {
+    if (typeof window.SET_CHARACTER_SATURATION !== "function") {
+      window.SET_CHARACTER_SATURATION = setCharacterSaturation;
+    }
+    if (typeof window.GET_CHARACTER_SATURATION !== "function") {
+      window.GET_CHARACTER_SATURATION = getCharacterSaturation;
+    }
+  }
+
   function prepareModel(template, animations) {
     if (!template) return null;
     const data = ensureUserData(template);
@@ -1247,6 +1410,8 @@
     data.baseMin = data.baseMin ?? bbox.min.y;
     data.baseMax = data.baseMax ?? bbox.max.y;
     data.baseHeight = data.baseHeight ?? (bbox.max.y - bbox.min.y || size.y);
+
+    applyCharacterSaturationToObject(template);
     return template;
   }
 
@@ -1416,31 +1581,97 @@
 
   function recycleBuilding(building) {
     const data = ensureUserData(building);
+    const category = data.assetCategory || "building";
     const side = data.streetSide ?? 0;
     const depth = data.buildingDepth ?? 14;
     const gap = data.streetGap ?? 1.5;
-    const offsetX = data.streetOffsetX ?? (side + (side < 0 ? -3 : 3));
+    const storedOffsetX = Number(data.streetOffsetX);
+    const streetWidth = Number.isFinite(data.streetWidth) ? data.streetWidth : depth;
+    const streetMargin = Number.isFinite(data.streetMarginX) ? data.streetMarginX : 1.5;
+    const halfWidth = Math.max(1, streetWidth / 2);
+    const computedOffset =
+      side + (side < 0 ? -(halfWidth + streetMargin) : (halfWidth + streetMargin));
+    const offsetX = Number.isFinite(storedOffsetX) ? storedOffsetX : snapToGrid(computedOffset);
     const rotationY = data.streetRotation ?? (side < 0 ? Math.PI : 0);
 
+    if (category !== "building") {
+      let farthestFront = Infinity;
+      for (const other of buildings) {
+        if (other === building) continue;
+        const otherData = ensureUserData(other);
+        if ((otherData.assetCategory || "building") !== category) continue;
+        if ((otherData.streetSide ?? 0) !== side) continue;
+        const otherDepth = otherData.buildingDepth ?? depth;
+        const otherFrontRaw = otherData.streetFront ?? (other.position.z + otherDepth / 2);
+        const otherFront = snapBackToGrid(otherFrontRaw);
+        if (otherFront < farthestFront) farthestFront = otherFront;
+      }
+
+      if (!isFinite(farthestFront)) {
+        farthestFront = snapBackToGrid(data.streetFront ?? -20);
+      }
+
+      const newFrontRaw = farthestFront; //- (depth + gap);
+      const newFront = snapBackToGrid(newFrontRaw);
+      const centerZ = snapToGrid(newFront - depth / 2);
+      building.position.z = centerZ;
+      building.rotation.y = rotationY;
+      building.position.x = offsetX;
+
+      const updated = ensureUserData(building);
+      updated.streetFront = newFront;
+      updated.streetSide = side;
+      updated.buildingDepth = depth;
+      updated.streetGap = gap;
+      updated.streetRotation = rotationY;
+      updated.streetOffsetX = offsetX;
+      updated.assetCategory = category;
+      updated.streetWidth = streetWidth;
+      updated.streetMarginX = streetMargin;
+
+      building.updateMatrixWorld(true);
+      return;
+    }
+
+    const row = side < 0 ? buildingRows.left : buildingRows.right;
+    if (!row.includes(building)) row.push(building);
+
     let farthestFront = Infinity;
-    for (const other of buildings) {
+    for (const other of row) {
       if (other === building) continue;
       const otherData = ensureUserData(other);
-      if ((otherData.streetSide ?? 0) !== side) continue;
       const otherDepth = otherData.buildingDepth ?? depth;
-      const otherFront = other.position.z + otherDepth / 2;
+      const otherFrontRaw = otherData.streetFront ?? (other.position.z + otherDepth / 2);
+      const otherFront = snapBackToGrid(otherFrontRaw);
       if (otherFront < farthestFront) farthestFront = otherFront;
     }
 
     if (!isFinite(farthestFront)) {
-      farthestFront = -50;
+      farthestFront = snapBackToGrid(data.streetFront ?? -20);
     }
 
-    const newFront = farthestFront - depth - gap;
-    building.position.z = newFront - depth / 2;
+    const newFrontRaw = farthestFront; //- (depth + gap);
+    const newFront = snapBackToGrid(newFrontRaw);
+    const centerZ = snapToGrid(newFront - depth / 2);
+    
+    building.position.z = centerZ;
     building.rotation.y = rotationY;
     building.position.x = offsetX;
+
+    const updated = ensureUserData(building);
+    updated.streetFront = newFront;
+    updated.streetSide = side;
+    updated.buildingDepth = depth;
+    updated.streetGap = gap;
+    updated.streetRotation = rotationY;
+    updated.streetOffsetX = offsetX;
+    updated.assetCategory = category;
+    updated.streetWidth = streetWidth;
+    updated.streetMarginX = streetMargin;
+
+    building.updateMatrixWorld(true);
   }
+
 
   function spawnCoinPickupEffect(position) {
     if (!scene) return;
@@ -1691,6 +1922,158 @@ function getStoredSessionData() {
     };
   }
 
+  function navigateToAppPath(path, fallbackUrl) {
+    const target = window.parent && window.parent !== window ? window.parent : window;
+    try {
+      const origin = window.origin || (window.location.protocol + "//" + window.location.host);
+      const basePath = (window.__APP_CONFIG__ && window.__APP_CONFIG__.basePath)
+        || (function () {
+          const p = window.location.pathname || "";
+          const idx = p.indexOf("/game/");
+          return idx > -1 ? p.slice(0, idx) : "";
+        })();
+      const dest = origin + basePath + path;
+      target.location.href = dest;
+    } catch (_) {
+      target.location.href = fallbackUrl;
+    }
+  }
+
+  function redirectToHome() {
+    navigateToAppPath("/", "https://www.pressstartevolution.com/tbwa/mexana/");
+  }
+
+  function stopRejectionPolling() {
+    if (rejectionCheckInterval != null) {
+      clearManagedInterval(rejectionCheckInterval);
+      rejectionCheckInterval = null;
+    }
+  }
+
+  function startRejectionPolling() {
+    if (rejectionActive) return;
+    if (rejectionCheckInterval != null) return;
+    const session = getStoredSessionData();
+    let userId = toNumberOrZero(session?.id_user_game);
+    if (!userId && IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
+      userId = 13;
+    }
+    if (!userId) {
+      try {
+        console.log("[rejection] polling skipped: no id_user_game in session");
+      } catch (_) {}
+      return;
+    }
+    try {
+      console.log("[rejection] start polling", { userId });
+    } catch (_) {}
+    if (IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
+      setManagedTimeout(() => {
+        console.log("[rejection] local mock triggered");
+        handleFacturaRejection({ numero_factura: "LOCAL-TEST" });
+      }, 1000);
+      return;
+    }
+    rejectionCheckInterval = setManagedInterval(() => {
+      checkRejectionStatus().catch(() => {});
+    }, 5000);
+    checkRejectionStatus().catch(() => {});
+  }
+
+  async function checkRejectionStatus() {
+    if (rejectionActive) return;
+    if (rejectionRequestInFlight) return;
+    const session = getStoredSessionData();
+    let userId = toNumberOrZero(session?.id_user_game);
+    if (!userId && IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
+      userId = 13;
+    }
+    if (!userId) {
+      try {
+        console.log("[rejection] request skipped: no id_user_game in session");
+      } catch (_) {}
+      return;
+    }
+
+    const facturaId = toNumberOrZero(session?.id_factura);
+    const payload = { id_user_game: userId };
+    if (facturaId > 0) {
+      payload.id_factura = facturaId;
+    }
+
+    rejectionRequestInFlight = (async () => {
+      try {
+        try {
+          console.log("[rejection] polling", {
+            endpoint: REJECTION_ENDPOINT,
+            timestamp: new Date().toISOString(),
+            payload,
+          });
+        } catch (_) {}
+        const response = await fetch(REJECTION_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Basic ${BASIC_AUTH_TOKEN}`,
+          },
+          body: JSON.stringify(payload),
+          credentials: "include",
+          cache: "no-store",
+          keepalive: true,
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json().catch(() => null);
+        if (data && data.rejected) {
+          handleFacturaRejection(data.factura || null);
+        }
+      } catch (error) {
+        try { console.warn("[rejection] poll failed", error); } catch (_) {}
+      } finally {
+        rejectionRequestInFlight = null;
+      }
+    })();
+
+    return rejectionRequestInFlight;
+  }
+
+  function showRejectionOverlay(facturaInfo) {
+    if (!rejectionPopupEl) return;
+    if (rejectionDescriptionEl) {
+      let message = "Por favor, asegúrate de que el archivo sea legible, esté en formato JPG, PNG o PDF, y contenga toda la información necesaria para su validación. Por esta razón, los puntos que acumulaste no podrán ser validados.";
+      if (facturaInfo && facturaInfo.numero_factura) {
+        message += ` Número de factura: ${facturaInfo.numero_factura}.`;
+      }
+      rejectionDescriptionEl.textContent = message;
+    }
+    rejectionPopupEl.hidden = false;
+  }
+
+  function handleFacturaRejection(facturaInfo) {
+    if (rejectionActive) return;
+    rejectionActive = true;
+    stopRejectionPolling();
+    scoreSubmitted = true;
+    freezeGameForRejection();
+    showRejectionOverlay(facturaInfo);
+  }
+
+  function freezeGameForRejection() {
+    speed = 0;
+    isPaused = true;
+    gameStarted = false;
+    if (mixer) {
+      try {
+        mixer.stopAllAction();
+      } catch (_) {}
+    }
+    removeManagedEvents();
+    stopRejectionPolling();
+  }
+
   async function submitGameScore(endTimestamp) {
     if (typeof fetch !== "function") {
       return;
@@ -1757,53 +2140,88 @@ function getStoredSessionData() {
       Array.isArray(window.ASSET_POOLS?.cityBuildings) &&
       window.ASSET_POOLS.cityBuildings.length > 0;
 
+    const spawnBuildingSegment = (side, frontZ) => {
+      const clone = window.GET_RANDOM_ASSET_CLONE("cityBuildings");
+      if (!clone) return null;
+
+      clone.userData = { ...(clone.userData || {}) };
+      clone.position.set(0, 0, 0);
+      clone.rotation.set(0, 0, 0);
+
+      let rotationY = side < 0 ? 0 : Math.PI;
+      const defaultRot = clone.userData?.defaultRotationY;
+      if (clone.userData?.assetCategory !== "building" && Number.isFinite(defaultRot)) {
+        clone.rotation.y = defaultRot;
+        rotationY = clone.rotation.y;
+      } else {
+        clone.rotation.y = rotationY;
+      }
+
+      clone.updateMatrixWorld(true);
+      const bbox = tempBox.setFromObject(clone);
+      const size = bbox.getSize(tempVec);
+      const rawDepth = clone.userData?.buildingDepth ?? (size.z || size.x || 14);
+      const depth = Math.max(4, rawDepth);
+      const minY = bbox.min.y;
+
+      clone.position.y = Number.isFinite(minY) ? -minY : 0;
+      const manualOffsetX = Number(clone.userData?.streetOffsetX);
+      const baseMargin = Number.isFinite(clone.userData?.streetMarginX)
+        ? clone.userData.streetMarginX
+        : 1.5;
+      const width = Number.isFinite(size.x) ? size.x : depth;
+      const halfWidth = Math.max(1, width / 2);
+      const computedOffset =
+        side + (side < 0 ? -(halfWidth + baseMargin) : (halfWidth + baseMargin));
+      const offsetX = Number.isFinite(manualOffsetX)
+        ? manualOffsetX
+        : snapToGrid(computedOffset);
+      clone.position.x = offsetX;
+
+      const placedFront = snapBackToGrid(frontZ);
+      const zCenter = snapToGrid(placedFront - depth / 2);
+      clone.position.z = zCenter;
+
+      const data = ensureUserData(clone);
+      data.streetSide = side;
+      data.buildingDepth = depth;
+      data.streetGap = minGap;
+      data.streetRotation = clone.rotation.y;
+      data.streetOffsetX = offsetX;
+      data.streetFront = snapBackToGrid(zCenter + depth / 2);
+      data.assetCategory = "building";
+      data.streetGrid = BUILDING_GRID;
+      data.streetWidth = width;
+      data.streetMarginX = baseMargin;
+
+      scene.add(clone);
+      buildings.push(clone);
+      const row = side < 0 ? buildingRows.left : buildingRows.right;
+      row.push(clone);
+
+      const nextFrontRaw = data.streetFront - (depth + minGap);
+      const nextFront = snapBackToGrid(nextFrontRaw);
+      if (!Number.isFinite(nextFront)) return null;
+      return nextFront;
+    };
+
     // Continuous building rows
     if (hasCity && hasBuildings) {
-      const buildingStart = -20;
-      const buildingEnd = -380;
-      const buildingSpacing = 18;
-      for (let side of sides) {
-        let index = 0;
-        while (true) {
-          const building = window.GET_RANDOM_ASSET_CLONE("cityBuildings");
-          if (!building) break;
+      buildingRows.left.length = 0;
+      buildingRows.right.length = 0;
 
-          building.userData = { ...(building.userData || {}) };
-          building.position.set(0, 0, 0);
-          building.rotation.set(0, 0, 0);
+      const estimatedStep = walkwayStep;
+      const segments = Math.ceil((BUILDING_START - BUILDING_END) / estimatedStep) + 4;
 
-          const rotationY = side < 0 ? 0 : Math.PI;
-          building.rotation.y = rotationY;
-          const defaultRot = building.userData?.defaultRotationY;
-          if (building.userData?.assetCategory !== "building" && Number.isFinite(defaultRot)) {
-            building.rotation.y = defaultRot;
-          }
-          building.updateMatrixWorld(true);
-
-          const bbox = tempBox.setFromObject(building);
-          const size = bbox.getSize(tempVec);
-          const depth = Math.max(4, building.userData?.buildingDepth || size.z || size.x || 14);
-          const minY = bbox.min.y;
-          const halfDepth = depth / 2;
-
-          building.position.y = isFinite(minY) ? -minY : 0;
-          const lateralOffset = side < 0 ? -3 : 3;
-          const offsetX = side + lateralOffset;
-          const positionZ = buildingStart - index * buildingSpacing;
-          if (positionZ < buildingEnd) break;
-          building.position.x = offsetX;
-          building.position.z = positionZ - halfDepth;
-
-          const data = ensureUserData(building);
-          data.streetSide = side;
-          data.buildingDepth = depth;
-          data.streetGap = minGap;
-          data.streetRotation = rotationY;
-          data.streetOffsetX = offsetX;
-
-          scene.add(building);
-          buildings.push(building);
-          index += 1;
+      for (const side of sides) {
+        let frontZ = snapBackToGrid(BUILDING_START);
+        for (let i = 0; i < segments; i += 1) {
+          if (frontZ < BUILDING_END - estimatedStep) break;
+          const lateralOffset = side < 0 ? 5 : -5;
+          const nextFront = spawnBuildingSegment(side+lateralOffset, frontZ);
+          if (!Number.isFinite(nextFront)) break;
+          if (nextFront >= frontZ) break;
+          frontZ = nextFront;
         }
       }
     }
@@ -1832,18 +2250,21 @@ function getStoredSessionData() {
           if (Number.isFinite(defaultRot)) {
             obj.rotation.y = defaultRot;
           }
-          if (data.cityKey === "citylamppost.fbx") {
-            const lampRot = side < 0 ? -Math.PI / 2 : Math.PI / 2;
-            obj.rotation.y = lampRot;
-            data.defaultRotationY = lampRot;
-          }
+        
           obj.updateMatrixWorld(true);
           const bbox = tempBox.setFromObject(obj);
           const size = bbox.getSize(tempVec);
           const depth = Math.max(2, obj.userData?.buildingDepth || size.z || size.x || 2);
           const minY = bbox.min.y;
           obj.position.y = isFinite(minY) ? -minY : 0;
-          const lateralOffset = side < 0 ? 5 : -5;
+          let lateralOffset = side < 0 ? 5 : -5;
+          
+            if (data.cityKey === "citylamppost.fbx") {
+            const lampRot = side < 0 ? -Math.PI / 2 : Math.PI / 2;
+            obj.rotation.y = lampRot;
+            data.defaultRotationY = lampRot;
+            lateralOffset = side < 0 ? 7 : -7;
+          }
           const offsetX = side + lateralOffset;
           obj.position.x = offsetX;
           obj.position.z = z;
@@ -1853,6 +2274,8 @@ function getStoredSessionData() {
           decorData.streetGap = Math.max(1, walkwayStep - depth);
           decorData.streetRotation = rotationY;
           decorData.streetOffsetX = offsetX;
+          decorData.streetFront = obj.position.z + depth / 2;
+          decorData.assetCategory = decorData.assetCategory || "scenery";
           scene.add(obj);
           buildings.push(obj);
         } else {
@@ -1881,6 +2304,8 @@ function getStoredSessionData() {
           data.streetGap = Math.max(1, walkwayStep - depth);
           data.streetRotation = rotationY;
           data.streetOffsetX = offsetX;
+          data.streetFront = box.position.z + depth / 2;
+          data.assetCategory = "scenery";
           scene.add(box);
           buildings.push(box);
         }
