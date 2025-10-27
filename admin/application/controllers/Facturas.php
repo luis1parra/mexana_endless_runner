@@ -7,7 +7,7 @@ class Facturas extends Authenticated_Controller {
         parent::__construct();
         $this->load->model('Facturas_model', 'facturas');
         $this->load->helper(['url','form','security']);
-        $this->load->library(['form_validation']);
+        $this->load->library(['form_validation', 'invoice_mailer']);
         // Solo superadmin o validador
         $u = $this->session->userdata('user');
         if (!$u || !in_array($u['rol'], ['superadmin','validador'])) {
@@ -45,6 +45,23 @@ class Facturas extends Authenticated_Controller {
             $ok = $this->facturas->update_estado($id_factura, $estado_id, (int)$user['id']);
             $this->session->set_flashdata($ok ? 'success' : 'error',
                 $ok ? 'Estado actualizado correctamente.' : 'No se pudo actualizar el estado.');
+
+            if ($ok && $accion === 'rechazar' && !empty($row->user_correo)) {
+                $nombre = trim(($row->user_nombre ?? '') . ' ' . ($row->user_apellido ?? ''));
+                $mailSent = $this->invoice_mailer->send_rejection_notice($row->user_correo, [
+                    'numero_factura' => $row->numero_factura,
+                    'lugar_compra'   => $row->lugar_compra,
+                    'nombre'         => $nombre !== '' ? $nombre : null,
+                ]);
+
+                if (!$mailSent) {
+                    log_message('error', sprintf(
+                        'Facturas: no se pudo enviar correo de rechazo para la factura %s (%d)',
+                        $row->numero_factura,
+                        $id_factura
+                    ));
+                }
+            }
 
             // Tras validar/rechazar, vuelve al dashboard con filtros (opcional conserva estado)
             return redirect('dashboard?estado='.$estado_id);
