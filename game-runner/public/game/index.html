@@ -33,26 +33,28 @@
     <div id="coinBanner" aria-live="polite" aria-atomic="true">
         <div class="coin-banner__inner">
             <div class="coin-banner__image">
-                <img id="coinBannerImage" src="" alt="" />
+              <img id="coinBannerImage" src="" alt="" />
             </div>
             <div class="coin-banner__text">
-                <div id="coinBannerTitle" class="coin-banner__title"></div>
-                <div class="coin-banner__points">
-                    <span id="coinBannerPointsValue" class="coin-banner__points-value"></span>
-                    <span id="coinBannerPointsSuffix" class="coin-banner__points-suffix"></span>
-                </div>
+              <div id="coinBannerTitle" class="coin-banner__title"></div>
+              <span class="coin-banner__inline">
+                <span id="coinBannerPointsValue" class="coin-banner__points-value"></span>
+                <span id="coinBannerPointsSuffix" class="coin-banner__points-suffix"></span>
+              </span>
             </div>
         </div>
     </div>
 
     <div id="startScreen">
         <div class="start-banner">
-            <span class="start-banner__icon">ℹ️</span>
+            <span class="start-banner__icon" aria-hidden="true">
+              <img src="./assets/2d/informacion.svg" alt="" />
+            </span>
             <p class="start-banner__text">
                 Recordatorio: Una vez inicies la partida, no podrás salir del juego. Si lo haces, perderás la oportunidad de jugar y tendrás que ingresar una nueva factura.
             </p>
         </div>
-        <p id="startHint">Toca o haz clic para comenzar</p>
+        <button type="button" class="start-banner__cta" aria-label="Comenzar el juego">Empezar</button>
         <div id="countdown" aria-live="polite">3</div>
     </div>
 
@@ -67,6 +69,17 @@
 
     <div id="tutorialOverlay" class="tutorial-overlay">
         <div class="tutorial-card" id="tutorialInstruction"></div>
+    </div>
+
+    <div id="rejectionPopup" class="rejection-popup" role="alertdialog" aria-modal="true" aria-labelledby="rejectionTitle" aria-describedby="rejectionDescription" hidden>
+        <div class="rejection-popup__content">
+            <div class="rejection-popup__icon" aria-hidden="true"></div>
+            <h2 id="rejectionTitle">Lamentablemente la factura que subiste no es válida</h2>
+            <p id="rejectionDescription">
+                Por favor, asegúrate de que el archivo sea legible, esté en formato JPG, PNG o PDF, y contenga toda la información necesaria para su validación. Por esta razón, los puntos que acumulaste no podrán ser validados.
+            </p>
+            <button type="button" id="rejectionExitButton">Volver al inicio</button>
+        </div>
     </div>
 
     <!-- Librerías pedidas -->
@@ -108,6 +121,7 @@
           const isMobile = isIOS || isAndroid;
 
           window.DEFER_ASSET_LOADING = true;
+          window.LOCAL_REJECTION_MOCK = false;
           if (typeof window.ASSET_LOAD_DELAY_MS === "undefined") {
             window.ASSET_LOAD_DELAY_MS = 3000;
           }
@@ -139,21 +153,24 @@
           } else {
             window.COIN_MODEL_LIMIT = 7;
             window.OBSTACLE_MODEL_LIMIT = 3;
-            window.CITY_DECOR_MODEL_LIMIT = 5;
+            window.CITY_DECOR_MODEL_LIMIT = 4;
             window.CITY_BUILDING_MODEL_LIMIT = 3;
-            window.COIN_POOL_SIZE = 8;
-            window.OBSTACLE_POOL_SIZE = 5;
+            window.COIN_POOL_SIZE = 7;
+            window.OBSTACLE_POOL_SIZE = 4;
             //window.PLAYER_VARIANT = "boy";
             if (typeof window.ENABLE_TUTORIAL === "undefined") {
               window.ENABLE_TUTORIAL = true;
             }
             if (isSafari) {
-              window.SPEED_MULTIPLIER = 1.1; // macOS Safari
+              window.SPEED_MULTIPLIER = .45; // macOS Safari
             } else if (isChrome) {
-              window.SPEED_MULTIPLIER = .9; // Windows/Linux Chrome
+              window.SPEED_MULTIPLIER = .5; // Windows/Linux Chrome
             } else {
               window.SPEED_MULTIPLIER = 1.02; // otros desktop
             }
+          }
+          if (typeof window.CHARACTER_SATURATION === "undefined") {
+            window.CHARACTER_SATURATION = 0.48;
           }
         } catch (err) {
           console.warn("[config] platform overrides failed", err);
@@ -173,7 +190,8 @@
             remoteApiBaseUrl: "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/",
             basicAuthToken: "UHJlc3NzdGFydGV2b2x1dGlvbjpQcjNzdCQkMjAyNQ==",
           };
-
+         
+          
           // Feature toggles para pruebas de memoria
           if (typeof window.LOAD_CITY_ASSETS === "undefined") {
             window.LOAD_CITY_ASSETS = true;
