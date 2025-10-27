@@ -17,7 +17,10 @@ class Facturas_model extends CI_Model
         e.id_estado_factura,
         e.valor AS estado_valor,
         ua.nombre AS admin_nombre,
-        ua.apellido AS admin_apellido
+        ua.apellido AS admin_apellido,
+        ug.nombre AS user_nombre,
+        ug.apellido AS user_apellido,
+        ug.correo AS user_correo
     ';
 
     private function _base_query(array $filters = [])
@@ -25,7 +28,8 @@ class Facturas_model extends CI_Model
         $this->db->select($this->select, FALSE)
             ->from($this->table . ' f')
             ->join('estados_factura e', 'e.id_estado_factura = f.estado', 'left')
-            ->join('users_admin ua', 'ua.id_user_admin = f.id_user_admin', 'left');
+            ->join('users_admin ua', 'ua.id_user_admin = f.id_user_admin', 'left')
+            ->join('users_game ug', 'ug.id_user_game = f.id_user_game', 'left');
 
         // Filtros exactos/like seguros
         if (!empty($filters['lugar_compra'])) {
@@ -70,11 +74,15 @@ class Facturas_model extends CI_Model
             f.*,
             e.valor AS estado_valor,
             ua.nombre AS admin_nombre,
-            ua.apellido AS admin_apellido
+            ua.apellido AS admin_apellido,
+            ug.nombre AS user_nombre,
+            ug.apellido AS user_apellido,
+            ug.correo AS user_correo
         ')
             ->from($this->table . ' f')
             ->join('estados_factura e', 'e.id_estado_factura = f.estado', 'left')
             ->join('users_admin ua', 'ua.id_user_admin = f.id_user_admin', 'left')
+            ->join('users_game ug', 'ug.id_user_game = f.id_user_game', 'left')
             ->where('f.id_factura', (int)$id)
             ->limit(1)
             ->get()->row();
