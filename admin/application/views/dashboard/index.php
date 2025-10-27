@@ -86,7 +86,7 @@ ob_start(); ?>
           <table class="min-w-full text-sm">
             <thead class="bg-white/5 text-mxs-muted uppercase text-xs">
               <tr>
-                <th class="text-left px-4 py-3">ID</th>
+                <th class="text-left px-4 py-3">Email</th>
                 <th class="text-left px-4 py-3">N° Factura</th>
                 <th class="text-left px-4 py-3">Lugar compra</th>
                 <th class="text-left px-4 py-3">Fecha registro</th>
@@ -104,7 +104,7 @@ ob_start(); ?>
               <?php else: ?>
                 <?php foreach ($facturas as $f): ?>
                   <tr class="hover:bg-white/5">
-                    <td class="px-4 py-3"><?= (int)$f->id_factura ?></td>
+                    <td class="px-4 py-3"><?= html_escape($f->user_correo ?? '—') ?></td>
                     <td class="px-4 py-3 font-medium"><?= html_escape($f->numero_factura) ?></td>
                     <td class="px-4 py-3"><?= html_escape($f->lugar_compra) ?></td>
                     <td class="px-4 py-3"><?= html_escape(date('Y-m-d', strtotime($f->fecha_registro))) ?></td>
