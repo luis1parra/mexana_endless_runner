@@ -39,21 +39,21 @@ export function Header({
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
 
-  const renderLogo = (className: string) =>
-    activeHref!=="/terminos" ? (
-      <Image
-        src={logo}
-        alt="Mexsana"
-        className={className}
-      />
-    ) : (
-      // <div className={className}>Mexsana</div>
-      <Image
-        src={logo2}
-        alt="Mexsana"
-        className={"w-1/5 min-w-[130px] max-w-[550px] absolute left-1/2 -top-3 transform -translate-x-1/2 px-8 py-2 lg:px-10"}
-      />
+  const renderLogo = (wrapperClass: string, imageClass = "w-full h-auto") => {
+    const isTerminos = activeHref === "/terminos";
+    const source = isTerminos ? logo2 : logo;
+
+    return (
+      <div className={wrapperClass}>
+        <Image
+          src={source}
+          alt="Mexsana"
+          className={imageClass}
+          priority
+        />
+      </div>
     );
+  };
 
   const renderRegisterAction = (
     variant: "desktop" | "mobile" = "desktop",
@@ -66,19 +66,19 @@ export function Header({
     const className = variant === "mobile" ? mobileClasses : desktopClasses;
 
     // if (onRegisterClick) {
-      return (
-        <button
-          type="button"
-          onClick={() => {
-            setIsRegistrationOpen(true);
-            //onRegisterClick();
-            onAction?.();
-          }}
-          className={className}
-        >
-          Registrarse
-        </button>
-      );
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setIsRegistrationOpen(true);
+          //onRegisterClick();
+          onAction?.();
+        }}
+        className={className}
+      >
+        Registrarse
+      </button>
+    );
     // }
   };
 
@@ -93,27 +93,39 @@ export function Header({
     const className = variant === "mobile" ? mobileClasses : desktopClasses;
 
     // if (onLoginClick) {
-      return (
-        <button
-          type="button"
-          onClick={() => {
-            setIsLoginOpen(true);
-            //onLoginClick();
-            onAction?.();
-          }}
-          className={className}
-        >
-          Ingresar
-        </button>
-      );
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setIsLoginOpen(true);
+          //onLoginClick();
+          onAction?.();
+        }}
+        className={className}
+      >
+        Ingresar
+      </button>
+    );
     // }
   };
 
   return (
     <nav className="relative text-sm font-semibold  text-white/80 lg:text-base">
-      {renderLogo("w-1/5 min-w-[130px] max-w-[550px] absolute left-1/2 -top-3 transform -translate-x-1/2 bg-white px-8 py-2 rounded-b-[50px] lg:px-10")}
+      {/*renderLogo(
+        "w-1/5 min-w-[130px] max-w-[550px] absolute left-1/2 -top-3 transform -translate-x-1/2 bg-white px-8 py-2 rounded-b-[50px] lg:px-10",
+        "w-full h-auto"
+      )
+      renderLogo(
+        "w-1/5 min-w-[100px] max-w-[550px] absolute left-1/2 -top-6 transform -translate-x-1/2 rounded-b-[50px] lg:px-10",
+        "w-full h-auto"
+      )*/
+        renderLogo(
+          "w-1/5 min-w-[100px] max-w-[550px] absolute left-1/2 -top-6 transform -translate-x-1/2 rounded-b-[50px] lg:min-w-[130px] lg:-top-3 lg:bg-white lg:px-8 lg:py-2 lg:px-10",
+          "w-full h-auto"
+        )
+
+      }
       <div className="flex items-center justify-between md:hidden">
-        {/* {renderLogo("text-2xl font-black tracking-[0.14em] text-white drop-shadow-lg normal-case")} */}
         <button
           type="button"
           onClick={toggleMenu}
@@ -151,7 +163,10 @@ export function Header({
             className="z-100 left-0 top-full w-full bg-white px-9 py-8 text-left text-base font-semibold shadow-[0_24px_48px_rgba(13,32,94,0.18)] normal-case lg:hidden"
           >
             <div className="pb-4">
-              {renderLogo("w-50 text-3xl tracking-[0.14em] text-[var(--cpdblue)] drop-shadow-none")}
+              {renderLogo(
+                "inline-block max-w-[220px] text-[var(--cpdblue)] drop-shadow-none",
+                "w-full h-auto"
+              )}
             </div>
             <div className="h-[2px] w-full bg-[var(--cpdblue)]/40" />
             <div className="mt-6 flex flex-col gap-5 text-lg">
@@ -160,9 +175,8 @@ export function Header({
                   key={`mobile-${link.label}`}
                   href={link.href}
                   onClick={closeMenu}
-                  className={`transition-colors hover:text-[var(--cpdblue)] ${
-                    link.href === activeHref ? "text-[var(--cpdblue)]" : "text-[var(--cngray)]"
-                  }`}
+                  className={`transition-colors hover:text-[var(--cpdblue)] ${link.href === activeHref ? "text-[var(--cpdblue)]" : "text-[var(--cngray)]"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -175,14 +189,14 @@ export function Header({
         </div>
       ) : null}
       <div className="flex flex-col bg-white text-[#0B1E52]">
-      <RegistrationModal
-        open={isRegistrationOpen}
-        onClose={() => setIsRegistrationOpen(false)}
-      />
-      <LoginModal 
-        open={isLoginOpen} 
-        onClose={() => setIsLoginOpen(false)} 
-      />
+        <RegistrationModal
+          open={isRegistrationOpen}
+          onClose={() => setIsRegistrationOpen(false)}
+        />
+        <LoginModal
+          open={isLoginOpen}
+          onClose={() => setIsLoginOpen(false)}
+        />
       </div>
     </nav>
   );
