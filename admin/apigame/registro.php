@@ -226,8 +226,12 @@ try {
     }
 
     $stmtInsertUser->bind_param('sssiss', $nombre, $apellido, $nickname, $edad, $genero, $correo);
-    $stmtInsertUser->execute();
-    $userId = $stmtInsertUser->insert_id;
+    if (!$stmtInsertUser->execute()) {
+        $err = $stmtInsertUser->error ?: 'Error desconocido al ejecutar el INSERT del usuario.';
+        $stmtInsertUser->close();
+        throw new RuntimeException('No fue posible registrar al usuario: ' . $err);
+    }
+    $userId = $conexion->insert_id;
     $stmtInsertUser->close();
 
     [$storedFileName, $fileError] = storeFacturaImage((string)$fotoFactura, $facturasDir);
