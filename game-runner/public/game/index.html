@@ -136,8 +136,8 @@
             window.COIN_MODEL_LIMIT = 7;
             window.OBSTACLE_MODEL_LIMIT = 3;
             window.CITY_DECOR_MODEL_LIMIT = 4;
-            window.CITY_BUILDING_MODEL_LIMIT = 3;
-            window.COIN_POOL_SIZE = 5;
+            window.CITY_BUILDING_MODEL_LIMIT = 4;
+            window.COIN_POOL_SIZE = 7;
             window.OBSTACLE_POOL_SIZE = 3;
             //window.PLAYER_VARIANT = "boy";
             if (typeof window.ENABLE_TUTORIAL === "undefined") {
@@ -146,7 +146,7 @@
             if (isIOS && isSafari) {
               window.SPEED_MULTIPLIER = 1.2; // iOS Safari
             } else if (isAndroid && isChrome) {
-              window.SPEED_MULTIPLIER = .9; // Android Chrome
+              window.SPEED_MULTIPLIER = .5; // Android Chrome
             } else {
               window.SPEED_MULTIPLIER = 1.02; // otros móviles
             }
@@ -154,7 +154,7 @@
             window.COIN_MODEL_LIMIT = 7;
             window.OBSTACLE_MODEL_LIMIT = 3;
             window.CITY_DECOR_MODEL_LIMIT = 4;
-            window.CITY_BUILDING_MODEL_LIMIT = 3;
+            window.CITY_BUILDING_MODEL_LIMIT = 4;
             window.COIN_POOL_SIZE = 7;
             window.OBSTACLE_POOL_SIZE = 4;
             //window.PLAYER_VARIANT = "boy";
@@ -162,7 +162,7 @@
               window.ENABLE_TUTORIAL = true;
             }
             if (isSafari) {
-              window.SPEED_MULTIPLIER = .45; // macOS Safari
+              window.SPEED_MULTIPLIER = 1.4; // macOS Safari
             } else if (isChrome) {
               window.SPEED_MULTIPLIER = .5; // Windows/Linux Chrome
             } else {
