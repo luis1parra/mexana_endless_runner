@@ -75,7 +75,7 @@ async function __runAssetPipeline() {
   };
 
   const CITY_DECOR_FBX_URLS = ["assets/3d/cityBusStop1.fbx", "assets/3d/cityBusStop2.fbx", "assets/3d/cityLampPost.fbx", "assets/3d/cityTree.fbx"];
-  const CITY_BUILDING_FBX_URLS = ["assets/3d/buildingBlue.fbx", "assets/3d/buildingOrange.fbx", "assets/3d/buildingYellow.fbx"];
+  const CITY_BUILDING_FBX_URLS = ["assets/3d/buildingBlue.fbx", "assets/3d/buildingOrange.fbx", "assets/3d/buildingYellow.fbx", "assets/3d/buildingRed.fbx"];
     const PLAYER_VARIANT = (window.PLAYER_VARIANT || "boy").toLowerCase() === "girl" ? "girl" : "boy";
   
   window.PLAYER_VARIANT_RESOLVED = PLAYER_VARIANT;

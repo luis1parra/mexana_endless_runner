@@ -750,7 +750,7 @@
     if (hitPauseUntil && now >= hitPauseUntil) {
       hitPauseUntil = 0;
     }
-    isPaused = hitPauseUntil > 0;
+    isPaused = (hitPauseUntil > 0) || rejectionActive;
 
     const delta = clock.getDelta();
     if (!isPaused && mixer) {
@@ -2063,6 +2063,10 @@ function getStoredSessionData() {
 
   function freezeGameForRejection() {
     speed = 0;
+    // Evita que la aceleración siga incrementando la velocidad tras el popup
+    if (typeof MAX_SPEED === "number" && typeof BASE_SPEED === "number") {
+      speed = 0;
+    }
     isPaused = true;
     gameStarted = false;
     if (mixer) {
