@@ -1,91 +1,22 @@
 'use client';
 
-import {
-  useEffect,
-  type ChangeEvent,
-  type FormEvent,
-  type ReactNode,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, type ChangeEvent, type FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ArrowDownIcon,
-  CartIcon,
-  CloseIcon,
-  MailIcon,
-  PlusCircleIcon,
-  ReceiptIcon,
-} from "../../assets/icons";
+import { CartIcon, CloseIcon, MailIcon, PlusCircleIcon, ReceiptIcon } from "../../assets/icons";
 import { api, type ApiSessionResponse } from "../../services/api";
+import {
+  InputField,
+  type InputFieldOption,
+} from "../form/InputField";
 
 type LoginModalProps = {
   open: boolean;
   onClose: () => void;
 };
 
-type InputFieldProps = {
-  id: string;
-  label: string;
-  icon: ReactNode;
-  placeholder?: string;
-  type?: string;
-  options?: Array<{ label: string; value: string }>;
-};
-
-const fieldContainerClass =
-  "flex items-center gap-3 rounded-full bg-[#F5F7FD] px-5 py-3 shadow-[inset_0_1px_2px_rgba(12,37,106,0.12)]";
-const inputClass =
-  "w-full bg-transparent text-sm font-medium text-[#1A1A1A] placeholder:text-[#1A1A1A] focus:outline-none";
 const iconWrapperClass =
   "aspect-square shrink-0 self-stretch flex items-center justify-center text-[var(--cpdblue)] w-10 h-10 [&>svg]:h-[70%] [&>svg]:w-[70%]";
-
-
-const InputField = ({
-  id,
-  label,
-  icon,
-  placeholder,
-  type = "text",
-  options,
-}: InputFieldProps) => (
-  <label className="flex flex-col gap-2 text-sm font-semibold text-[#0F1F5B]" htmlFor={id}>
-    <span className="sr-only">{label}</span>
-    <div className={fieldContainerClass}>
-      <span className={iconWrapperClass}>{icon}</span>
-      {options ? (
-        <div className="relative w-full">
-          <select
-            id={id}
-            name={id}
-            className={`${inputClass} appearance-none pr-8`}
-            defaultValue=""
-          >
-            <option value="" disabled>
-              {placeholder ?? label}
-            </option>
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <ArrowDownIcon className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[#2450F0]" />
-        </div>
-      ) : (
-        <input
-          id={id}
-          type={type}
-          name={id}
-          className={inputClass}
-          placeholder={placeholder ?? label}
-        />
-      )}
-    </div>
-  </label>
-);
-
-const purchaseOptions = [
+const purchaseOptions: InputFieldOption[] = [
   { label: "Supermercado", value: "supermercado" },
   { label: "Farmacia", value: "farmacia" },
   { label: "Tienda online", value: "online" },
@@ -125,7 +56,9 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDataAuthorized, setIsDataAuthorized] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -144,6 +77,8 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
       setAttachment(null);
       setSubmitError(null);
       setIsSubmitting(false);
+      setIsDataAuthorized(false);
+      setFieldErrors({});
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -153,6 +88,32 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
   if (!open) {
     return null;
   }
+
+  const handleFieldValidationChange = (fieldId: string, error: string | null) => {
+    setFieldErrors((prev) => {
+      const normalized =
+        typeof error === "string" && error.trim().length > 0 ? error.trim() : null;
+
+      const hasExisting = Object.prototype.hasOwnProperty.call(prev, fieldId);
+
+      if (normalized === null) {
+        if (!hasExisting) {
+          return prev;
+        }
+        const { [fieldId]: _removed, ...rest } = prev;
+        return rest;
+      }
+
+      if (hasExisting && prev[fieldId] === normalized) {
+        return prev;
+      }
+
+      return { ...prev, [fieldId]: normalized };
+    });
+  };
+
+  const hasFieldErrors = Object.keys(fieldErrors).length > 0;
+  const isSubmitDisabled = isSubmitting || !isDataAuthorized || hasFieldErrors;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -302,7 +263,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
           type="button"
           onClick={onClose}
           aria-label="Cerrar ingreso"
-          className="absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#2450F0] text-white transition hover:bg-[#1C3AD4]"
+          className="cursor-pointer absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#2450F0] text-white transition hover:bg-[#1C3AD4]"
         >
           <CloseIcon className="h-6 w-6" />
         </button>
@@ -316,6 +277,15 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
             placeholder="Correo electrónico"
             icon={<MailIcon className="h-5 w-5" />}
             type="email"
+            validate={(value) => 
+              {
+                if(!value) return "El correo es obligatorio"
+                if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) return "Ingresa un correo válido"
+                return null
+              }
+            }
+            iconWrapperClassName={iconWrapperClass}
+            onValidationChange={handleFieldValidationChange}
           />
           <InputField
             id="loginPurchasePlace"
@@ -323,12 +293,29 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
             placeholder="¿Dónde realizaste la compra?"
             icon={<CartIcon className="h-5 w-5" />}
             options={purchaseOptions}
+            validate={(value) => 
+              {
+                if(!value) return "Selecciona una opción"
+                return null
+              }
+            }
+            iconWrapperClassName={iconWrapperClass}
+            onValidationChange={handleFieldValidationChange}
           />
           <InputField
             id="loginInvoiceNumber"
             label="Número de factura"
             placeholder="Número de factura"
             icon={<ReceiptIcon className="h-5 w-5" />}
+            validate={(value) => 
+              {
+                if(!value) return "Digita un número de factura"
+                if(!/^[a-zA-Z0-9_-]+$/.test(value)) return "Ingresa un número de factura válido"
+                return null
+              }
+            }
+            iconWrapperClassName={iconWrapperClass}
+            onValidationChange={handleFieldValidationChange}
           />
           <div className="rounded-[28px] bg-[#F5F7FD] px-6 py-5 shadow-[inset_0_1px_2px_rgba(12,37,106,0.12)]">
             <p className="text-base font-semibold text-[#0B1E52]">
@@ -375,6 +362,9 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
           <label className="flex items-start gap-3 text-sm text-[#0B1E52]">
             <input
               type="checkbox"
+              name="loginDataAuthorization"
+              checked={isDataAuthorized}
+              onChange={(event) => setIsDataAuthorized(event.target.checked)}
               className="mt-1 h-5 w-5 rounded border border-[#2450F0] accent-[#2450F0]"
             />
             <span>
@@ -393,8 +383,8 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
             )}
             <button
               type="submit"
-              disabled={isSubmitting}
-              className={`flex w-full items-center justify-center rounded-full px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitting ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[#2450F0] hover:bg-[#1C3AD4]"}`}
+              disabled={isSubmitDisabled}
+              className={`flex items-center justify-center rounded-full px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitDisabled ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[#2450F0] hover:bg-[#1C3AD4] cursor-pointer"}`}
               aria-busy={isSubmitting}
             >
               {isSubmitting ? "Ingresando..." : "Ingresar al juego"}

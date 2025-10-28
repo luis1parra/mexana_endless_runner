@@ -41,12 +41,11 @@ export function Header({
 
   const renderLogo = (wrapperClass: string, imageClass = "w-full h-auto") => {
     const isTerminos = activeHref === "/terminos";
-    const source = isTerminos ? logo2 : logo;
 
     return (
-      <div className={wrapperClass}>
+      <div className={isTerminos ? "w-1/5 min-w-[130px] max-w-[550px] absolute left-1/2 -top-3 transform -translate-x-1/2 px-8 py-2 lg:px-10" : wrapperClass}>
         <Image
-          src={source}
+          src={isTerminos ? logo2 : logo}
           alt="Mexsana"
           className={imageClass}
           priority
@@ -111,19 +110,11 @@ export function Header({
 
   return (
     <nav className="relative text-sm font-semibold  text-white/80 lg:text-base">
-      {/*renderLogo(
-        "w-1/5 min-w-[130px] max-w-[550px] absolute left-1/2 -top-3 transform -translate-x-1/2 bg-white px-8 py-2 rounded-b-[50px] lg:px-10",
-        "w-full h-auto"
-      )
-      renderLogo(
-        "w-1/5 min-w-[100px] max-w-[550px] absolute left-1/2 -top-6 transform -translate-x-1/2 rounded-b-[50px] lg:px-10",
-        "w-full h-auto"
-      )*/
+      {
         renderLogo(
           "w-1/5 min-w-[100px] max-w-[550px] absolute left-1/2 -top-6 transform -translate-x-1/2 rounded-b-[50px] lg:min-w-[130px] lg:-top-3 lg:bg-white lg:px-8 lg:py-2 lg:px-10",
           "w-full h-auto"
         )
-
       }
       <div className="flex items-center justify-between md:hidden">
         <button

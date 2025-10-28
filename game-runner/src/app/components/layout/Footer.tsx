@@ -17,7 +17,7 @@ const socialLinks = [
 export function Footer() {
   return (
     <footer className="bg-[var(--cplblue)] text-white">
-      <div className="mx-auto flex w-full flex-col gap-10 px-6 py-12 items-center lg:flex-row lg:items-start lg:justify-evenly">
+      <div className="mx-auto flex w-full flex-col gap-5 px-6 py-12 items-center lg:flex-row lg:items-start lg:justify-evenly">
         <div className="w-50 self-center text-3xl font-black italic tracking-[0.14em] text-white md:text-4xl">
           <Image src={logo} alt="Mexsana" />
         </div>

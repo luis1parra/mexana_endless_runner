@@ -3,14 +3,12 @@
 import {
   useEffect,
   type FormEvent,
-  type ReactNode,
   useRef,
   useState,
   type ChangeEvent,
 } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowDownIcon,
   CartIcon,
   CloseIcon,
   MailIcon,
@@ -23,71 +21,18 @@ import {
   type ApiSessionResponse,
   type RegistrationPayload,
 } from "../../services/api";
+import {
+  InputField,
+  type InputFieldProps,
+} from "../form/InputField";
 
 type RegistrationModalProps = {
   open: boolean;
   onClose: () => void;
 };
 
-type InputFieldProps = {
-  id: string;
-  label: string;
-  icon: ReactNode;
-  placeholder?: string;
-  type?: string;
-  options?: Array<{ label: string; value: string }>;
-};
-
-const fieldContainerClass =
-  "flex items-center gap-3 rounded-full bg-[#F5F7FD] px-5 py-3 shadow-[inset_0_1px_2px_rgba(12,37,106,0.12)]";
-const inputClass =
-  "w-full bg-transparent text-sm font-medium text-[#1A1A1A] placeholder:text-[#1A1A1A] focus:outline-none";
 const iconWrapperClass =
-  "aspect-square shrink-0 self-stretch flex items-center justify-center text-[#ff0000] w-10 h-10 [&>svg]:h-[70%] [&>svg]:w-[70%]";
-
-const InputField = ({
-  id,
-  label,
-  icon,
-  placeholder,
-  type = "text",
-  options,
-}: InputFieldProps) => (
-  <label className="flex flex-col gap-2 text-sm font-semibold text-[#0F1F5B]" htmlFor={id}>
-    <span className="sr-only">{label}</span>
-    <div className={`${fieldContainerClass}`}>
-      <span className={iconWrapperClass}>{icon}</span>
-      {options ? (
-        <div className="relative w-full">
-          <select
-            id={id}
-            name={id}
-            className={`${inputClass} appearance-none pr-8`}
-            defaultValue=""
-          >
-            <option value="" disabled>
-              {placeholder ?? label}
-            </option>
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <ArrowDownIcon className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[#2450F0]" />
-        </div>
-      ) : (
-        <input
-          id={id}
-          type={type}
-          name={id}
-          className={inputClass}
-          placeholder={placeholder ?? label}
-        />
-      )}
-    </div>
-  </label>
-);
+  "aspect-square shrink-0 self-stretch flex items-center justify-center text-[var(--cpdblue)] w-10 h-10 [&>svg]:h-[70%] [&>svg]:w-[70%]";
 
 const fileToBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -124,6 +69,12 @@ const leftFields: InputFieldProps[] = [
     label: "Nombres y apellidos",
     placeholder: "Nombres y apellidos",
     icon: <UserIcon className="h-5 w-5" />,
+    validate: (value) => 
+      {
+        if(!value) return "Digita tus nombres y apellidos"
+        if(!/^[a-zA-Z ]+$/.test(value)) return "Ingresa un nombre válido"
+        return null
+      }    
   },
   {
     id: "email",
@@ -131,12 +82,24 @@ const leftFields: InputFieldProps[] = [
     placeholder: "Correo electrónico",
     icon: <MailIcon className="h-5 w-5" />,
     type: "email",
+    validate: (value) => 
+      {
+        if(!value) return "El correo es obligatorio"
+        if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) return "Ingresa un correo válido"
+        return null
+      }
   },
   {
     id: "username",
     label: "Nombre de usuario",
     placeholder: "Nombre de usuario",
     icon: <UserIcon className="h-5 w-5" />,
+    validate: (value) => 
+      {
+        if(!value) return "Digita un nombre de usuario"
+        if(!/^[a-zA-Z0-9_-]+$/.test(value)) return "Ingresa un nombre de usuario válido"
+        return null
+      }
   },
   {
     id: "age",
@@ -144,6 +107,12 @@ const leftFields: InputFieldProps[] = [
     placeholder: "Edad",
     icon: <UserIcon className="h-5 w-5" />,
     type: "number",
+    validate: (value) => 
+      {
+        if(!value) return "Digita una edad"
+        if(!/^[0-9]+$/.test(value)) return "Ingresa una edad válida"
+        return null
+      }
   },
   {
     id: "gender",
@@ -156,6 +125,11 @@ const leftFields: InputFieldProps[] = [
       { label: "Otro", value: "O" },
       { label: "Prefiero no decirlo", value: "N" },
     ],
+    validate: (value) => 
+      {
+        if(!value) return "Selecciona una opción"
+        return null
+      }
   },
 ];
 
@@ -171,12 +145,23 @@ const rightFields: InputFieldProps[] = [
       { label: "Tienda online", value: "online" },
       { label: "Otro", value: "otro" },
     ],
+    validate: (value) => 
+      {
+        if(!value) return "Selecciona una opción"
+        return null
+      }
   },
   {
     id: "invoiceNumber",
     label: "Número de factura",
     placeholder: "Número de factura",
     icon: <ReceiptIcon className="h-5 w-5" />,
+    validate: (value) => 
+      {
+        if(!value) return "Digita un número de factura"
+        if(!/^[a-zA-Z0-9_-]+$/.test(value)) return "Ingresa un número de factura válido"
+        return null
+      }
   },
 ];
 
@@ -184,7 +169,9 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDataAuthorized, setIsDataAuthorized] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -203,6 +190,8 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
       setAttachment(null);
       setSubmitError(null);
       setIsSubmitting(false);
+      setIsDataAuthorized(false);
+      setFieldErrors({});
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -367,6 +356,32 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
     }
   };
 
+  const handleFieldValidationChange = (fieldId: string, error: string | null) => {
+    setFieldErrors((prev) => {
+      const normalized =
+        typeof error === "string" && error.trim().length > 0 ? error.trim() : null;
+
+      const hasExisting = Object.prototype.hasOwnProperty.call(prev, fieldId);
+
+      if (normalized === null) {
+        if (!hasExisting) {
+          return prev;
+        }
+        const { [fieldId]: _removed, ...rest } = prev;
+        return rest;
+      }
+
+      if (hasExisting && prev[fieldId] === normalized) {
+        return prev;
+      }
+
+      return { ...prev, [fieldId]: normalized };
+    });
+  };
+
+  const hasFieldErrors = Object.keys(fieldErrors).length > 0;
+  const isSubmitDisabled = isSubmitting || !isDataAuthorized || hasFieldErrors;
+
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4 py-8">
       <div className="overflow-y-auto relative w-full max-w-[980px] max-h-[98dvh] rounded-[40px] bg-white px-6 py-10 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-12">
@@ -387,12 +402,22 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
         >
           <div className="flex min-w-0 flex-col gap-5">
             {leftFields.map((field) => (
-              <InputField key={field.id} {...field} />
+              <InputField
+                key={field.id}
+                {...field}
+                iconWrapperClassName={iconWrapperClass}
+                onValidationChange={handleFieldValidationChange}
+              />
             ))}
           </div>
           <div className="flex min-w-0 flex-col gap-5">
             {rightFields.map((field) => (
-              <InputField key={field.id} {...field} />
+              <InputField
+                key={field.id}
+                {...field}
+                iconWrapperClassName={iconWrapperClass}
+                onValidationChange={handleFieldValidationChange}
+              />
             ))}
             <div className="rounded-[28px] bg-[#F5F7FD] px-6 py-5 shadow-[inset_0_1px_2px_rgba(12,37,106,0.12)]">
               <p className="text-base font-semibold text-[#0B1E52]">
@@ -441,6 +466,9 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
             <label className="flex items-start gap-3 text-sm text-[#0B1E52]">
               <input
                 type="checkbox"
+                name="registrationDataAuthorization"
+                checked={isDataAuthorized}
+                onChange={(event) => setIsDataAuthorized(event.target.checked)}
                 className="mt-1 h-5 w-5 rounded border border-[#2450F0] accent-[#2450F0]"
               />
               <span>
@@ -454,14 +482,14 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
           </div>
           <div className="md:col-span-2 flex flex-col items-center gap-4">
             {submitError && (
-              <p className="text-sm font-semibold text-red-600 text-center">
+              <p className="text-sm font-semibold text-red-500 text-center">
                 {submitError}
               </p>
             )}
             <button
               type="submit"
-              disabled={isSubmitting}
-              className={`cursor-pointer mx-auto flex w-full max-w-[240px] items-center justify-center rounded-full px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitting ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[var(--cpdblue)] hover:bg-[#1C3AD4]"}`}
+              disabled={isSubmitDisabled}
+              className={`mx-auto flex w-full max-w-[240px] items-center justify-center rounded-full px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitDisabled ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[var(--cpdblue)] hover:bg-[#1C3AD4] cursor-pointer"}`}
               aria-busy={isSubmitting}
             >
               {isSubmitting ? "Registrando..." : "Empezar a jugar"}

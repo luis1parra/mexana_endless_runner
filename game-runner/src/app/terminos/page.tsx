@@ -6,10 +6,10 @@ import { Footer } from "../components/layout/Footer";
 export default function TerminosPage() {
   const Section = ({ index }: { index: number }) => (
     <section className="mt-6">
-      <h3 className="text-[#2450F0] text-lg font-extrabold">
+      <h4 className="text-[var(--cpdblue)] text-[18px] font-bold md:text-[24px]">
         {index}. Lorem ipsum dolor sit amet consectetur.
-      </h3>
-      <div className="mt-3 space-y-3 text-sm leading-relaxed text-[#0B1E52]">
+      </h4>
+      <div className="mt-3 space-y-3 text-[15px] text-justify leading-none font-light text-black">
         <p>
           Lorem ipsum dolor sit amet consectetur. Condimentum vestibulum viverra
           pellentesque urna ullamcorper sem. Et ornare quis a dignissim aliquam
@@ -43,9 +43,9 @@ export default function TerminosPage() {
 
           <div className="relative">
             <div className="mx-auto w-full px-4 py-6 md:px-12 md:py-8">
-              <p className="text-center text-lg font-semibold text-[var(--cplblue)]">
+              <h3 className="text-center text-[20px] font-semibold text-[var(--cplblue)] md:text-[22px]">
                 Términos y condiciones
-              </p>
+              </h3>
               <h1 className="text-center mt-2 text-[40px] md:text-[52px] lg:text-[56px] font-black italic leading-[1.1] tracking-tight text-[var(--cpdblue)] drop-shadow-md">
                 Conoce los términos y condiciones de
                 <br />
@@ -58,10 +58,10 @@ export default function TerminosPage() {
                 <Section index={3} />
 
                 <section className="mt-6">
-                  <h3 className="text-[#2450F0] text-lg font-extrabold">
+                  <h4 className="text-[var(--cpdblue)] text-[18px] font-bold md:text-[24px]">
                     4. Lorem ipsum dolor sit amet consectetur.
-                  </h3>
-                  <div className="mt-3 space-y-3 text-sm leading-relaxed">
+                  </h4>
+                  <div className="mt-3 space-y-3 text-[15px] text-justify leading-none font-light text-black">
                     <p>
                       1. Fringilla sapien quam sed aliquam tellus felis. Eget
                       integer volutpat pharetra urna adipiscing id elit.
@@ -85,7 +85,7 @@ export default function TerminosPage() {
                 <div className="mt-10 flex justify-center">
                   <button
                     type="button"
-                    className="cursor-pointer rounded-full bg-[#1D3FCE] px-10 py-4 text-base font-semibold text-white shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition hover:bg-[#1532A8]"
+                    className="cursor-pointer rounded-full bg-[var(--cpdblue)] px-10 py-4 text-base font-semibold text-white shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition hover:bg-[#1532A8]"
                   >
                     Ver más
                   </button>

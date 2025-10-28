@@ -196,7 +196,7 @@ export default function ResultadosPage() {
                 <p className="text-xl font-bold text-[#004ed8] md:text-2xl">{score.nickname}</p>
                 <h1 className="mt-1 text-[44px] font-black leading-[1] text-[#004ed8]">Tus resultados</h1>
               </div>
-              <div className="w-1/2 min-w-[200px] overflow-hidden bg-[#2963F0] p-3 shadow-[0_25px_45px_rgba(13,59,168,0.4)] lg:w-full">
+              <div className="w-1/2 min-w-[200px] overflow-hidden bg-[#2963F0] p-0 shadow-[0_25px_45px_rgba(13,59,168,0.4)] lg:w-full">
                 <div className="relative aspect-square w-full overflow-hidden bg-white/10">
                   <Image
                     src={avatarAsset.image}
@@ -221,15 +221,15 @@ export default function ResultadosPage() {
 
             <div className="flex flex-col gap-8">
               <div className="hidden lg:block">
-                <p className="text-xl font-bold text-[#004ed8] md:text-2xl">{score.nickname}</p>
-                <h1 className="mt-2 text-[52px] font-black leading-[1] text-[#004ed8] drop-shadow-[0_10px_25px_rgba(19,55,180,0.35)] md:text-[64px]">
+                <p className="text-xl font-bold text-[var(--cpdblue)] md:text-2xl">{score.nickname}</p>
+                <h1 className="mt-2 text-[52px] font-black leading-[1] text-[var(--cpdblue)] italic drop-shadow-[0_10px_25px_rgba(19,55,180,0.35)] md:text-[64px]">
                   Tus resultados
                 </h1>
               </div>
 
               <div className="flex flex-col gap-6">
                 <div className="rounded-[36px] bg-[#234DDC] px-6 py-6 shadow-[0_22px_44px_rgba(15,65,184,0.35)] sm:px-8">
-                  <div className="text-lg font-semibold tracking-wide text-white/90">
+                  <div className="text-xl font-extrabold text-center tracking-wide text-white/90">
                     Puntuación
                   </div>
                   <div className="mt-4 rounded-full bg-[#FFD730] px-6 py-3 text-center text-3xl font-black text-[#1F3FCF] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px]">
@@ -238,7 +238,7 @@ export default function ResultadosPage() {
                 </div>
 
                 <div className="rounded-[36px] bg-[#234DDC] px-6 py-6 shadow-[0_22px_44px_rgba(15,65,184,0.35)] sm:px-8">
-                  <div className="text-lg font-semibold tracking-wide text-white/90">
+                  <div className="text-xl font-extrabold text-center tracking-wide text-white/90">
                     Nuevo récord
                   </div>
                   <div className="mt-4 rounded-full bg-[#FFD730] px-6 py-3 text-center text-3xl font-black text-[#1F3FCF] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px]">
@@ -247,7 +247,7 @@ export default function ResultadosPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+              <div className="flex flex-col w-3/4 self-center gap-4 sm:flex-row sm:items-center sm:gap-6 md:w-full md:self-start">
                 <Link
                   href="/ranking"
                   className="inline-flex w-full items-center justify-center rounded-full bg-[#1D4CD8] px-8 py-4 text-lg font-semibold text-white shadow-[0_20px_40px_rgba(17,60,175,0.35)] transition hover:bg-[#163EC2] sm:w-auto"
@@ -257,7 +257,7 @@ export default function ResultadosPage() {
                 <button
                   type="button"
                   onClick={() => setIsLoginOpen(true)}
-                  className="cursor-pointer inline-flex w-full items-center justify-center rounded-full border border-white px-8 py-4 text-lg font-semibold text-white/90 transition hover:bg-white/10 sm:w-auto"
+                  className="cursor-pointer inline-flex w-full items-center justify-center rounded-full border border-[var(--cpdblue)] px-8 py-4 text-lg font-semibold text-[var(--cpdblue)] transition hover:bg-white/10 sm:w-auto"
                 >
                   Jugar de nuevo
                 </button>
