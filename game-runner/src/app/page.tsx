@@ -23,10 +23,10 @@ export default function Home() {
 
           <div className="relative top-0 bottom-0 my-14 grid items-center gap-14 lg:grid-cols-12 lg:my-18">
             <div className="md:col-span-6 xl:col-span-6">
-              <h1 className="text-[42px] font-extrabold italic leading-[1.05] text-white drop-shadow-md md:text-[56px] lg:text-[64px]">
+              <h2 className="text-[42px] font-extrabold italic leading-[1.05] text-white drop-shadow-md md:text-[56px] lg:text-[64px]">
                 FRESH GAME
-              </h1>
-              <p className="mt-4 text-lg font-light text-white/85 md:text-[24px]">
+              </h2>
+              <p className="mt-4 text-lg font-light leading-[1.2] text-white/85 md:text-[24px]">
                 Con la Big Promo de Mexsana podrás demostrar que cuando se trata
                 de frescura, tu eres el mejor.
               </p>
