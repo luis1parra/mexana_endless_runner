@@ -34,12 +34,13 @@ ob_start(); ?>
             <input type="hidden" name="estado" value="<?= html_escape($filters['estado']) ?>" />
             <input type="hidden" name="id_user_game" value="<?= html_escape($filters['id_user_game']) ?>" />
             <input type="hidden" name="id_user_admin" value="<?= html_escape($filters['id_user_admin']) ?>" />
+            <input type="hidden" name="email" value="<?= html_escape($filters['email']) ?>" />
           </form>
         </div>
       </header>
       <!-- Filtros -->
       <section class="px-4 py-4">
-        <form class="grid grid-cols-1 md:grid-cols-6 gap-2" method="get" action="<?= site_url('dashboard') ?>">
+        <form class="grid grid-cols-1 md:grid-cols-7 gap-2" method="get" action="<?= site_url('dashboard') ?>">
           <input name="lugar_compra" value="<?= html_escape($filters['lugar_compra']) ?>" placeholder="Lugar de compra"
             class="px-3 py-2 rounded-lg bg-mxs-card border border-mxs-line outline-none focus:ring-2 focus:ring-mxs-brand/40" />
           <input name="numero_factura" value="<?= html_escape($filters['numero_factura']) ?>" placeholder="N° factura"
@@ -69,6 +70,9 @@ ob_start(); ?>
               </option>
             <?php endforeach; ?>
           </select>
+
+          <input type="email" name="email" value="<?= html_escape($filters['email']) ?>" placeholder="Email"
+            class="px-3 py-2 rounded-lg bg-mxs-card border border-mxs-line outline-none focus:ring-2 focus:ring-mxs-brand/40" />
 
           
 

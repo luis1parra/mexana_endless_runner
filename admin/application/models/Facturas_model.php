@@ -52,6 +52,9 @@ class Facturas_model extends CI_Model
         if (!empty($filters['id_user_admin'])) {
             $this->db->where('f.id_user_admin', (int)$filters['id_user_admin']);
         }
+        if (!empty($filters['email'])) {
+            $this->db->like('ug.correo', $filters['email']);
+        }
     }
 
     public function list($limit = 10, $offset = 0, array $filters = [])

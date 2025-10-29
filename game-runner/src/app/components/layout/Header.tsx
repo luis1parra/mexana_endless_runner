@@ -135,7 +135,7 @@ export function Header({
             <Link
               key={link.label}
               href={link.href}
-              className={`transition-colors hover:text-white ${link.href === activeHref ? "text-white" : ""}`}
+              className={`transition-colors hover:text-white hover:underline underline-offset-6 ${link.href === activeHref ? "text-white" : ""}`}
             >
               {link.label}
             </Link>

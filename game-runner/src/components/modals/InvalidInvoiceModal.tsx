@@ -65,7 +65,7 @@ export function InvalidInvoiceModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[140] flex items-center justify-center bg-[#1434AD]/80 px-4 py-8">
+    <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/80 px-4 py-8">
       <div
         role="dialog"
         aria-modal="true"
@@ -73,7 +73,7 @@ export function InvalidInvoiceModal({
         aria-describedby={descriptionId}
         className="relative w-full max-w-[520px] rounded-[40px] bg-[#2450F0] px-8 py-12 text-center text-white shadow-[0_45px_90px_rgba(12,35,106,0.45)]"
       >
-        {onClose && (
+        {/* {onClose && (
           <button
             type="button"
             onClick={onClose}
@@ -82,7 +82,7 @@ export function InvalidInvoiceModal({
           >
             <span className="text-2xl leading-none">&times;</span>
           </button>
-        )}
+        )} */}
 
         <div className="flex justify-center">
           <ErrorLoupe />

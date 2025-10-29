@@ -131,7 +131,7 @@ if (!$stmtUser->fetch()) {
 }
 $stmtUser->close();
 
-$stmtFacturaUnique = $conexion->prepare('SELECT 1 FROM facturas WHERE numero_factura = ? AND lugar_compra = ? LIMIT 1');
+$stmtFacturaUnique = $conexion->prepare('SELECT estado FROM facturas WHERE numero_factura = ? AND lugar_compra = ? AND estado<>"3" ORDER BY fecha_registro LIMIT 1');
 if ($stmtFacturaUnique === false) {
     respond(500, ['error' => 'No fue posible validar el número de factura.']);
 }
@@ -139,8 +139,10 @@ $stmtFacturaUnique->bind_param('ss', $numeroFactura, $lugarCompra);
 $stmtFacturaUnique->execute();
 $stmtFacturaUnique->store_result();
 if ($stmtFacturaUnique->num_rows > 0) {
+    $stmtFacturaUnique->bind_result($estadoFactura);
+    $stmtFacturaUnique->fetch();
     $stmtFacturaUnique->close();
-    respond(409, ['error' => 'El número de factura ya se encuentra registrado para ese lugar de compra.']);
+    respond(409, ['error' => 'El número de factura ya se encuentra registrado para ese lugar de compra. '.'Estado:'.$estadoFactura]);
 }
 $stmtFacturaUnique->close();
 

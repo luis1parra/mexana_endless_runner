@@ -5,9 +5,11 @@
   --foreground: #171717;
   --cpdblue: #004ED8;
   --cplblue: #00A4FF;
-  --cpfuscia: #FF0080;
+  --cpfucsia: #FF0080;
   --cporange: #FF8B00;
   --cngray: #1A1A1A;
+  --cpthumbh: #3e5ee5;
+  --cpthumbm: #ff3bd1;
 }
 
 @theme inline {

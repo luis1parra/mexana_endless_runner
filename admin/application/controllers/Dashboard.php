@@ -16,6 +16,7 @@ class Dashboard extends Authenticated_Controller {
             'estado'         => $this->input->get('estado', TRUE),
             'id_user_game'   => $this->input->get('id_user_game', TRUE),
             'id_user_admin'  => $this->input->get('id_user_admin', TRUE),
+            'email'          => $this->input->get('email', TRUE),
         ];
 
         // Por defecto, estado == 1 (si no viene nada)

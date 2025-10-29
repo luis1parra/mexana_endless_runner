@@ -69,9 +69,12 @@ const leftFields: InputFieldProps[] = [
     label: "Nombres y apellidos",
     placeholder: "Nombres y apellidos",
     icon: <UserIcon className="h-5 w-5" />,
+    //minLength: 3,
+    maxLength: 100,
     validate: (value) => 
       {
         if(!value) return "Digita tus nombres y apellidos"
+        if(value.length<3) return "El campo debe tener al menos 3 caracteres"
         if(!/^[a-zA-Z ]+$/.test(value)) return "Ingresa un nombre válido"
         return null
       }    
@@ -82,9 +85,12 @@ const leftFields: InputFieldProps[] = [
     placeholder: "Correo electrónico",
     icon: <MailIcon className="h-5 w-5" />,
     type: "email",
+    //minLength: 5,
+    maxLength: 100,
     validate: (value) => 
       {
         if(!value) return "El correo es obligatorio"
+        if(value.length<5) return "El campo debe tener al menos 5 caracteres"
         if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) return "Ingresa un correo válido"
         return null
       }
@@ -94,9 +100,12 @@ const leftFields: InputFieldProps[] = [
     label: "Nombre de usuario",
     placeholder: "Nombre de usuario",
     icon: <UserIcon className="h-5 w-5" />,
+    //minLength: 3,
+    maxLength: 30,
     validate: (value) => 
       {
         if(!value) return "Digita un nombre de usuario"
+        if(value.length<3) return "El campo debe tener al menos 3 caracteres"
         if(!/^[a-zA-Z0-9_-]+$/.test(value)) return "Ingresa un nombre de usuario válido"
         return null
       }
@@ -107,6 +116,8 @@ const leftFields: InputFieldProps[] = [
     placeholder: "Edad",
     icon: <UserIcon className="h-5 w-5" />,
     type: "number",
+    minValue: 1,
+    maxValue: 120,
     validate: (value) => 
       {
         if(!value) return "Digita una edad"
@@ -156,9 +167,12 @@ const rightFields: InputFieldProps[] = [
     label: "Número de factura",
     placeholder: "Número de factura",
     icon: <ReceiptIcon className="h-5 w-5" />,
+    //minLength: 3,
+    maxLength: 30,
     validate: (value) => 
       {
         if(!value) return "Digita un número de factura"
+        if(value.length<1) return "El campo debe tener al menos 1 caracter"
         if(!/^[a-zA-Z0-9_-]+$/.test(value)) return "Ingresa un número de factura válido"
         return null
       }
@@ -419,11 +433,11 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 onValidationChange={handleFieldValidationChange}
               />
             ))}
-            <div className="rounded-[28px] bg-[#F5F7FD] px-6 py-5 shadow-[inset_0_1px_2px_rgba(12,37,106,0.12)]">
-              <p className="text-base font-semibold text-[#0B1E52]">
+            <div className="px-0 py-3">
+              <p className="text-base font-semibold md:text-lg">
                 Adjuntar foto de la factura
               </p>
-              <p className="mt-1 text-sm text-[#4A5785]">
+              <p className="mt-1 text-md font-light">
                 Adjunta la foto de la factura en buena resolución en
                 formato PNG, PDF o JPG.
               </p>
@@ -438,7 +452,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
               <button
                 type="button"
                 onClick={handleAttachClick}
-                className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#2450F0] hover:text-[#1C3AD4]"
+                className="cursor-pointer mt-4 flex items-center gap-2 text-lg font-medium text-black hover:text-[#1C3AD4]"
               >
                 <span className={iconWrapperClass}>
                   <PlusCircleIcon className="h-5 w-5" />
@@ -471,9 +485,9 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 onChange={(event) => setIsDataAuthorized(event.target.checked)}
                 className="mt-1 h-5 w-5 rounded border border-[#2450F0] accent-[#2450F0]"
               />
-              <span>
+              <span className="font-[400]">
                 Autorizo el{" "}
-                <span className="font-semibold">
+                <span className="font-bold">
                   Tratamiento de Datos Personales
                 </span>{" "}
                   y envío, llamadas o mensajes.

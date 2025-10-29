@@ -17,7 +17,7 @@ const socialLinks = [
 export function Footer() {
   return (
     <footer className="bg-[var(--cplblue)] text-white">
-      <div className="mx-auto flex w-full flex-col gap-5 px-6 py-12 items-center lg:flex-row lg:items-start lg:justify-evenly">
+      <div className="mx-auto flex w-full flex-col gap-5 px-6 py-10 items-center lg:flex-row lg:items-start lg:justify-evenly lg:py-6">
         <div className="w-50 self-center text-3xl font-black italic tracking-[0.14em] text-white md:text-4xl">
           <Image src={logo} alt="Mexsana" />
         </div>
@@ -34,9 +34,9 @@ export function Footer() {
         </div>
         <div className="flex flex-col gap-3 text-md items-center lg:items-start">
           <span className="font-bold text-lg text-white">Conéctate con lo último:</span>
-          <div className="flex gap-3">
+          <div className="flex gap-1">
             {socialLinks.map(({ label, href, Icon }) => (
-              <Link key={label} href={href} aria-label={label} className="flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition hover:bg-white/10">
+              <Link key={label} href={href} aria-label={label} className="flex h-12 w-12 items-center justify-center rounded-full border-0 border-white/40 text-white transition hover:bg-white/10">
                 <Icon className="h-5 w-5" />
               </Link>
             ))}

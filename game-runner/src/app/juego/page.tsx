@@ -7,6 +7,7 @@ import avatarBoy from "@/assets/images/avatarman.png";
 import avatarGirl from "@/assets/images/avatarwoman.png";
 import avatarBoyThumb from "@/assets/images/avatarman_tumb.png";
 import avatarGirlThumb from "@/assets/images/avatarwoman_tumb.png";
+import { Info } from "@/assets/icons";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
 
@@ -212,9 +213,9 @@ export default function JuegoPage() {
               </div>
 
                <section className="relative top-10 bg-white/0 relative mt-10 flex flex-1 flex-col md:flex-row md:items-center lg:gap-16">
-                <div className="bg-red-400/0 relative flex flex-col items-center text-center md:w-[40%]">
+                <div className="bg-red-400/0 relative hidden flex-col items-center text-center md:w-[40%] md:flex">
                   <span className="text-lg font-semibold text-white/85">{activeAvatar.label}</span>
-                  <div className="relative mt-8 w-full ">
+                  <div className="relative mt-8 w-full">
                     <Image
                       src={activeAvatar.image}
                       alt={activeAvatar.label}
@@ -229,12 +230,12 @@ export default function JuegoPage() {
                   <div>
                     <p className="text-xl font-semibold text-white/90">¡Hola {nickname || fallbackNickname}!</p>
                     <h1 className="mt-3 text-[48px] font-black leading-[1.05] md:text-[56px] lg:text-[64px]">Escoge tu avatar Favorito</h1>
-                    <p className="mt-5 max-w-[460px] text-base leading-relaxed text-white/85 md:text-lg">
+                    <p className="mt-5 w-full text-base leading-relaxed text-white/85 md:text-lg">
                       Selecciona tu avatar preferido y da inicio a la recolección de los Big Promos de Mexsana por toda la ciudad.
                     </p>
                   </div>
 
-                  <div className="flex flex-row">
+                  <div className="flex flex-row self-center md:self-start">
                     {(Object.keys(avatars) as AvatarKey[]).map((key) => {
                       const avatarOption = avatars[key];
                       const isActive = key === selectedAvatar;
@@ -254,20 +255,34 @@ export default function JuegoPage() {
                       );
                     })}
                   </div>
+
+                  <div className="bg-blue-400/0 relative flex flex-col items-center text-center max-w-[300px] self-center md:w-[40%] md:hidden">
+                    <span className="text-lg font-semibold text-white/85">{activeAvatar.label}</span>
+                    <div className="relative mt-4 w-full">
+                      <Image
+                        src={activeAvatar.image}
+                        alt={activeAvatar.label}
+                        className={`w-full object-contain drop-shadow-[0_25px_45px_rgba(5,21,76,0.48)] ${selectedAvatarCode=='H'?'bg-[var(--cpthumbh)]/90':'bg-[var(--cpthumbm)]/90'}`}
+                        sizes="(max-width: 1024px) 80vw, 360px"
+                        priority
+                      />
+                    </div>
+                  </div>
+
                   <div className="flex flex-col gap-6">
                     <div className="flex items-start gap-3 rounded-[32px] bg-white/90 px-6 py-5 text-[#11308F] shadow-[0_25px_45px_rgba(11,37,117,0.28)]">
-                      <span className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-[#2F4DD7] text-base font-bold text-white">i</span>
+                      <span className="pt-2"><Info /></span>
                       <p className="text-sm leading-relaxed md:text-base">
                         Nota: Una vez que ingreses a la partida, no podrás salir del juego. Si lo haces, perderás la oportunidad de jugar y tendrás que ingresar una nueva factura.
                       </p>
                     </div>
 
-                    <div className="flex flex-row-reverse ">
+                    <div className="flex flex-row-reverse self-center md:self-end">
                       <button
                         type="button"
                         onClick={handleStartGame}
                         disabled={isStartingGame}
-                        className={`cursor-pointer w-fit rounded-full px-10 py-4 text-lg font-semibold text-[#1D3FCE] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition ${
+                        className={`cursor-pointer w-fit rounded-full px-10 py-4 text-lg font-semibold text-[var(--cpdblue)] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition ${
                           isStartingGame ? "cursor-not-allowed bg-white/80 text-[#1D3FCE]/70" : "bg-white hover:bg-[#F2F6FF]"
                         }`}
                         aria-busy={isStartingGame}>
@@ -276,12 +291,12 @@ export default function JuegoPage() {
 
                       {startError && <p className="max-w-md rounded-[24px] bg-white/90 px-5 py-3 text-sm font-semibold text-[#D52D2D] shadow-[0_12px_24px_rgba(12,35,106,0.2)]">{startError}</p>}
 
-                      <button
+                      {/* <button
                         type="button"
                         onClick={() => setIsModalOpen(true)}
                         className="cursor-pointer mx-5 w-fit rounded-full bg-white px-10 py-4 text-lg font-semibold text-[#1D3FCE] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition hover:bg-[#F2F6FF]">
                         Factura Inválida
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 </div>

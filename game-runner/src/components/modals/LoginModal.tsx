@@ -277,10 +277,13 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
             placeholder="Correo electrónico"
             icon={<MailIcon className="h-5 w-5" />}
             type="email"
+            //minLength={5}
+            maxLength={100}
             validate={(value) => 
               {
                 if(!value) return "El correo es obligatorio"
-                if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) return "Ingresa un correo válido"
+                if(value.length<5) return "El campo debe tener al menos 5 caracteres"
+                if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) return "Ingresa un correo válido."
                 return null
               }
             }
@@ -307,6 +310,8 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
             label="Número de factura"
             placeholder="Número de factura"
             icon={<ReceiptIcon className="h-5 w-5" />}
+            minLength={0}
+            maxLength={30}
             validate={(value) => 
               {
                 if(!value) return "Digita un número de factura"
@@ -317,11 +322,11 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
             iconWrapperClassName={iconWrapperClass}
             onValidationChange={handleFieldValidationChange}
           />
-          <div className="rounded-[28px] bg-[#F5F7FD] px-6 py-5 shadow-[inset_0_1px_2px_rgba(12,37,106,0.12)]">
-            <p className="text-base font-semibold text-[#0B1E52]">
+          <div className="px-0 py-3">
+            <p className="text-base font-semibold md:text-lg">
               Adjuntar foto de la factura
             </p>
-            <p className="mt-1 text-sm text-[#4A5785]">
+            <p className="mt-1 text-md font-light">
               Adjunta la foto de la factura en buena resolución en
               formato PNG, PDF o JPG.
             </p>
@@ -336,7 +341,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
             <button
               type="button"
               onClick={handleAttachClick}
-              className="cursor-pointer mt-4 flex items-center gap-2 text-sm font-semibold text-[#2450F0] hover:text-[#1C3AD4]"
+              className="cursor-pointer mt-4 flex items-center gap-2 text-lg font-medium text-black hover:text-[#1C3AD4]"
             >
               <span className={iconWrapperClass}>
                 <PlusCircleIcon className="h-5 w-5" />
@@ -367,7 +372,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
               onChange={(event) => setIsDataAuthorized(event.target.checked)}
               className="mt-1 h-5 w-5 rounded border border-[#2450F0] accent-[#2450F0]"
             />
-            <span>
+            <span className="font-[400]">
               Autorizo el{" "}
               <span className="font-bold">
                 Tratamiento de Datos Personales
@@ -377,7 +382,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
           </label>
           <div className="flex flex-col items-center gap-4">
             {submitError && (
-              <p className="text-sm font-semibold text-red-600 text-center">
+              <p className="text-sm font-semibold text-red-500 text-center">
                 {submitError}
               </p>
             )}

@@ -37,13 +37,13 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setIsRegistrationOpen(true)}
-                  className="cursor-pointer rounded-full bg-white px-8 py-3 text-base font-semibold text-[var(--cpdblue)] shadow-[0_15px_35px_rgba(16,38,109,0.3)] transition hover:bg-[#F2F6FF]"
+                  className="cursor-pointer rounded-full bg-white px-4 py-3 text-base font-semibold text-[var(--cpdblue)] shadow-[0_15px_35px_rgba(16,38,109,0.3)] transition hover:bg-[#F2F6FF] sm:px-8"
                 >
                   Registrarme
                 </button>
                 <Link
                   href="/dinamica"
-                  className="rounded-full border border-white/70 px-8 py-3 text-base font-semibold text-white transition hover:bg-white/10"
+                  className="rounded-full border border-white/70 px-4 py-3 text-base font-semibold text-white transition hover:bg-white/10 sm:px-8"
                 >
                   Conocer dinámica
                 </Link>
