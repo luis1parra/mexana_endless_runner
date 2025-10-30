@@ -123,19 +123,19 @@
   let rejectionActive = false;
   const CAMERA_SETTINGS = IS_MOBILE_ENV
     ? {
-        height: 3.6,
-        distance: 5.0,
-        lookOffsetY: 2.25,
-        lookOffsetZ: -0.45,
-        followXFactor: 0.8,
-      }
+      height: 3.6,
+      distance: 5.0,
+      lookOffsetY: 2.25,
+      lookOffsetZ: -0.45,
+      followXFactor: 0.8,
+    }
     : {
-        height: 4.0,
-        distance: 5.0,
-        lookOffsetY: 2.25,
-        lookOffsetZ: -0.6,
-        followXFactor: 0.8,
-      };
+      height: 4.0,
+      distance: 5.0,
+      lookOffsetY: 2.25,
+      lookOffsetZ: -0.6,
+      followXFactor: 0.8,
+    };
   lookTargetBaseY = groundY + CAMERA_SETTINGS.lookOffsetY;
 
   const supportsPassiveOptions = (() => {
@@ -150,7 +150,7 @@
       });
       window.addEventListener("testPassive", null, opts);
       window.removeEventListener("testPassive", null, opts);
-    } catch (_) {}
+    } catch (_) { }
     return supported;
   })();
   const SCORE_ENDPOINT = ((window && window.__APP_CONFIG__ && window.__APP_CONFIG__.remoteApiBaseUrl) || "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/") + "recpuntaje.php";
@@ -227,17 +227,17 @@
 
   const tutorialCopy = IS_MOBILE_ENV
     ? {
-        jump: "Desliza hacia arriba con el dedo",
-        right: "Desliza hacia la derecha con el dedo para esquivar obstáculos",
-        left: "Desliza hacia la izquierda con el dedo para esquivar obstáculos",
-        done: "¡Perfecto! Ahora empieza el juego.",
-      }
+      jump: "Desliza hacia arriba con el dedo",
+      right: "Desliza hacia la derecha con el dedo para esquivar obstáculos",
+      left: "Desliza hacia la izquierda con el dedo para esquivar obstáculos",
+      done: "¡Perfecto! Ahora empieza el juego.",
+    }
     : {
-        jump: "Presiona la flecha ↑ para saltar.",
-        right: "Presiona la flecha → para esquivar obstáculos.",
-        left: "Presiona la flecha ← para esquivar obstáculos.",
-        done: "¡Perfecto! Ahora empieza el juego.",
-      };
+      jump: "Presiona la flecha ↑ para saltar.",
+      right: "Presiona la flecha → para esquivar obstáculos.",
+      left: "Presiona la flecha ← para esquivar obstáculos.",
+      done: "¡Perfecto! Ahora empieza el juego.",
+    };
   const tutorialConfigs = {
     jump: {
       layout: "up",
@@ -300,7 +300,7 @@
       hideTutorialOverlay();
       speed = 0;
       startSequenceTriggered = true;
-      runCountdown(() => {}, BASE_SPEED);
+      runCountdown(() => { }, BASE_SPEED);
     }, 800);
   }
 
@@ -370,7 +370,7 @@
         } catch (_) {
           try {
             target.removeEventListener(type, wrapped, useCapture);
-          } catch (_) {}
+          } catch (_) { }
         }
       };
     }
@@ -388,7 +388,7 @@
     } catch (err) {
       try {
         target.addEventListener(type, wrapped, useCapture);
-      } catch (_) {}
+      } catch (_) { }
     }
 
     managedEvents.push({
@@ -403,7 +403,7 @@
     for (const { target, type, handler, options } of managedEvents) {
       try {
         target.removeEventListener(type, handler, options);
-      } catch (_) {}
+      } catch (_) { }
     }
     managedEvents.length = 0;
   }
@@ -460,7 +460,7 @@
         if (child.geometry) {
           try {
             child.geometry.dispose();
-          } catch (_) {}
+          } catch (_) { }
         }
         const material = child.material;
         if (Array.isArray(material)) {
@@ -480,14 +480,14 @@
       if (mat.emissiveMap) textures.add(mat.emissiveMap);
       try {
         mat.dispose();
-      } catch (_) {}
+      } catch (_) { }
     });
 
     textures.forEach((tex) => {
       if (!tex) return;
       try {
         tex.dispose();
-      } catch (_) {}
+      } catch (_) { }
     });
   }
 
@@ -536,7 +536,7 @@
     if (mixer) {
       try {
         mixer.stopAllAction();
-      } catch (_) {}
+      } catch (_) { }
       mixer = null;
     }
 
@@ -568,10 +568,10 @@
       try {
         renderer.dispose();
         renderer.forceContextLoss?.();
-      } catch (_) {}
+      } catch (_) { }
       try {
         renderer.domElement?.remove();
-      } catch (_) {}
+      } catch (_) { }
       renderer = null;
     }
 
@@ -691,7 +691,7 @@
       if (window.AUDIO_CTX && window.AUDIO_CTX.state !== "running") {
         await window.AUDIO_CTX.resume();
       }
-    } catch (_) {}
+    } catch (_) { }
 
     const assetsReady = await waitAssets(60000);
 
@@ -699,7 +699,7 @@
 
     const originalSpeed = speed;
     speed = 0;
-   
+
     initializeWorld();
 
     if (tutorialActive) {
@@ -855,29 +855,29 @@
               navigateToAppPath('/resultados/', 'https://www.pressstartevolution.com/tbwa/mexana/game-runner/resultados/');
             };
 
-          const endTimestamp = Date.now();
-          try { console.info("[game] Game over. Submitting score..."); } catch(_) {}
-          const scorePromise = submitGameScore(endTimestamp);
-          pendingScorePromise = scorePromise
-            ? scorePromise.catch((error) => {
+            const endTimestamp = Date.now();
+            try { console.info("[game] Game over. Submitting score..."); } catch (_) { }
+            const scorePromise = submitGameScore(endTimestamp);
+            pendingScorePromise = scorePromise
+              ? scorePromise.catch((error) => {
                 console.error("No se pudo registrar el puntaje:", error);
                 throw error;
               })
-            : null;
+              : null;
 
-          setManagedTimeout(async () => {
-            if (pendingScorePromise && typeof pendingScorePromise.then === "function") {
-              try {
-                await pendingScorePromise;
-              } catch (_) {
-                // Error already logged above; continue to ranking.
+            setManagedTimeout(async () => {
+              if (pendingScorePromise && typeof pendingScorePromise.then === "function") {
+                try {
+                  await pendingScorePromise;
+                } catch (_) {
+                  // Error already logged above; continue to ranking.
+                }
               }
-            }
-            goToRanking();
-          }, 2500);
+              goToRanking();
+            }, 2500);
+          }
         }
       }
-    }
 
       // Monedas
       for (let i = coins.length - 1; i >= 0; i--) {
@@ -993,7 +993,7 @@
   }
 
   function init() {
-     
+
     gameStarted = true;
     clock.start();
     scene = new THREE.Scene();
@@ -1054,7 +1054,7 @@
         const bbox = new THREE.Box3().setFromObject(primary);
         const minY = bbox.min.y;
         if (isFinite(minY)) primary.position.y = -minY;
-        
+
         streetSegmentLength = primary.userData?.streetLength || bbox.getSize(new THREE.Vector3()).z || 20;
         if (!Number.isFinite(streetSegmentLength) || streetSegmentLength <= 0) streetSegmentLength = 20;
         const segmentsNeeded = Math.max(12, Math.ceil(240 / streetSegmentLength));
@@ -1073,7 +1073,7 @@
             const bboxSeg = new THREE.Box3().setFromObject(seg);
             const minYS = bboxSeg.min.y;
             if (isFinite(minYS)) seg.position.y = -minYS;
-            
+
           }
           seg.position.z = frontOffset - i * streetSegmentLength;
           floorSegments.push(seg);
@@ -1462,7 +1462,7 @@
       return clone;
     }
 
-  const fallback = new THREE.Mesh(
+    const fallback = new THREE.Mesh(
       new THREE.BoxGeometry(1, 1, 1),
       new THREE.MeshStandardMaterial({ color: 0xff0000 })
     );
@@ -1611,7 +1611,10 @@
         farthestFront = snapBackToGrid(data.streetFront ?? -20);
       }
 
-      const newFrontRaw = farthestFront; //- (depth + gap);
+      //const newFrontRaw = farthestFront; //- (depth + gap);
+      const spacing = Math.max(1, gap/1.5);
+      const newFrontRaw = farthestFront - (depth + spacing);
+
       const newFront = snapBackToGrid(newFrontRaw);
       const centerZ = snapToGrid(newFront - depth / 2);
       building.position.z = centerZ;
@@ -1650,16 +1653,20 @@
       farthestFront = snapBackToGrid(data.streetFront ?? -20);
     }
 
+    
+    const spacing = Math.max(1, gap);
+    //const newFrontRaw = farthestFront  - (depth + spacing);
     const newFrontRaw = farthestFront; //- (depth + gap);
     const newFront = snapBackToGrid(newFrontRaw);
     const centerZ = snapToGrid(newFront - depth / 2);
-    
+
     building.position.z = centerZ;
     building.rotation.y = rotationY;
     building.position.x = offsetX;
 
     const updated = ensureUserData(building);
-    updated.streetFront = newFront;
+    //updated.streetFront = newFront;
+    updated.streetFront = snapBackToGrid(centerZ + depth / 2);
     updated.streetSide = side;
     updated.buildingDepth = depth;
     updated.streetGap = gap;
@@ -1720,170 +1727,170 @@
     });
   }
 
-function swapToDeathModel() {
-  const deathTemplate = window.PLAYER_DEATH_MODEL;
-  playerState = "death";
-  if (!deathTemplate || !scene) {
-    return;
-  }
-  const deathAnimations = window.PLAYER_DEATH_ANIMATIONS || deathTemplate.animations || deathTemplate.userData?.animations || [];
-  const previousPosition = player ? player.position.clone() : new THREE.Vector3(0, groundY, 5);
-  const previousRotationY = player ? player.rotation.y : Math.PI;
+  function swapToDeathModel() {
+    const deathTemplate = window.PLAYER_DEATH_MODEL;
+    playerState = "death";
+    if (!deathTemplate || !scene) {
+      return;
+    }
+    const deathAnimations = window.PLAYER_DEATH_ANIMATIONS || deathTemplate.animations || deathTemplate.userData?.animations || [];
+    const previousPosition = player ? player.position.clone() : new THREE.Vector3(0, groundY, 5);
+    const previousRotationY = player ? player.rotation.y : Math.PI;
 
-  if (player) {
-    scene.remove(player);
-  }
+    if (player) {
+      scene.remove(player);
+    }
 
-  const deathInstance = prepareModel(deathTemplate, deathAnimations);
-  if (!deathInstance) {
-    swapToRunModel(previousPosition, previousRotationY);
-    return;
-  }
-  scene.add(deathInstance);
-  player = deathInstance;
-  player.position.copy(previousPosition);
-  if (previousRotationY !== undefined) {
-    player.rotation.y = previousRotationY;
-  } else {
-    const defaultRot = ensureUserData(player).defaultRotationY;
-    if (Number.isFinite(defaultRot)) player.rotation.y = defaultRot;
-  }
-
-  const bbox = new THREE.Box3().setFromObject(player);
-  const size = bbox.getSize(new THREE.Vector3());
-  const data = ensureUserData(player);
-  const baseMin = data.baseMin ?? bbox.min.y;
-  const baseHeight = data.baseHeight ?? size.y;
-  playerHalfHeight = baseHeight / 2 || playerHalfHeight;
-  playerHalfWidth = size.x / 2 || playerHalfWidth;
-  playerHalfDepth = size.z / 2 || playerHalfDepth;
-  const targetGround = previousPosition ? previousPosition.y : (groundBottom - baseMin);
-  player.position.y = targetGround;
-  groundY = targetGround;
-  groundBottom = groundY + baseMin;
-
-  hitPauseUntil = 0;
-  isPaused = false;
-  playerState = "death";
-
-  mixer = new THREE.AnimationMixer(player);
-  if (deathAnimations.length) {
-    const action = mixer.clipAction(deathAnimations[0]);
-    action.reset();
-    action.setLoop(THREE.LoopOnce, 1);
-    action.clampWhenFinished = true;
-    action.play();
-    mixer.update(0.001);
-  }
-}
-
-function swapToJumpModel() {
-  const jumpTemplate = window.PLAYER_JUMP_MODEL;
-  playerState = "jump";
-  if (!jumpTemplate || !scene) {
-    return;
-  }
-  const jumpAnimations = window.PLAYER_JUMP_ANIMATIONS || jumpTemplate.animations || jumpTemplate.userData?.animations || [];
-  const previousPosition = player ? player.position.clone() : new THREE.Vector3(0, groundY, 5);
-  const previousRotationY = player ? player.rotation.y : Math.PI;
-
-  if (player) {
-    scene.remove(player);
-  }
-
-  const jumpInstance = prepareModel(jumpTemplate, jumpAnimations);
-  if (!jumpInstance) {
-    swapToRunModel(previousPosition, previousRotationY);
-    return;
-  }
-  scene.add(jumpInstance);
-  player = jumpInstance;
-  player.position.copy(previousPosition);
-  if (previousRotationY !== undefined) {
-    player.rotation.y = previousRotationY;
-  } else {
-    const defaultRot = ensureUserData(player).defaultRotationY;
-    if (Number.isFinite(defaultRot)) player.rotation.y = defaultRot;
-  }
-
-  const bbox = new THREE.Box3().setFromObject(player);
-  const size = bbox.getSize(new THREE.Vector3());
-  const data = ensureUserData(player);
-  const baseMin = data.baseMin ?? bbox.min.y;
-  const baseHeight = data.baseHeight ?? size.y;
-  playerHalfHeight = baseHeight / 2 || playerHalfHeight;
-  playerHalfWidth = size.x / 2 || playerHalfWidth;
-  playerHalfDepth = size.z / 2 || playerHalfDepth;
-  const targetGround = previousPosition ? previousPosition.y : (groundBottom - baseMin);
-  player.position.y = targetGround;
-  groundY = targetGround;
-  groundBottom = groundY + baseMin;
-
-  mixer = new THREE.AnimationMixer(player);
-  if (jumpAnimations.length) {
-    const action = mixer.clipAction(jumpAnimations[0]);
-    action.reset();
-    action.setLoop(THREE.LoopOnce, 1);
-    action.clampWhenFinished = true;
-    action.play();
-    mixer.update(1 / 60);
-  }
-}
-
-function swapToRunModel(previousPosition, previousRotationY) {
-  const runTemplate = window.PLAYER_MODEL;
-  playerState = "run";
-  if (!runTemplate || !scene) {
-    return;
-  }
-  const runAnimations = window.PLAYER_ANIMATIONS || runTemplate.animations || runTemplate.userData?.animations || [];
-
-  const runInstance = prepareModel(runTemplate, runAnimations);
-  if (!runInstance) {
-    return;
-  }
-
-  if (player && player !== runInstance) {
-    scene.remove(player);
-  }
-
-  scene.add(runInstance);
-  player = runInstance;
-  if (previousPosition) {
+    const deathInstance = prepareModel(deathTemplate, deathAnimations);
+    if (!deathInstance) {
+      swapToRunModel(previousPosition, previousRotationY);
+      return;
+    }
+    scene.add(deathInstance);
+    player = deathInstance;
     player.position.copy(previousPosition);
+    if (previousRotationY !== undefined) {
+      player.rotation.y = previousRotationY;
+    } else {
+      const defaultRot = ensureUserData(player).defaultRotationY;
+      if (Number.isFinite(defaultRot)) player.rotation.y = defaultRot;
+    }
+
+    const bbox = new THREE.Box3().setFromObject(player);
+    const size = bbox.getSize(new THREE.Vector3());
+    const data = ensureUserData(player);
+    const baseMin = data.baseMin ?? bbox.min.y;
+    const baseHeight = data.baseHeight ?? size.y;
+    playerHalfHeight = baseHeight / 2 || playerHalfHeight;
+    playerHalfWidth = size.x / 2 || playerHalfWidth;
+    playerHalfDepth = size.z / 2 || playerHalfDepth;
+    const targetGround = previousPosition ? previousPosition.y : (groundBottom - baseMin);
+    player.position.y = targetGround;
+    groundY = targetGround;
+    groundBottom = groundY + baseMin;
+
+    hitPauseUntil = 0;
+    isPaused = false;
+    playerState = "death";
+
+    mixer = new THREE.AnimationMixer(player);
+    if (deathAnimations.length) {
+      const action = mixer.clipAction(deathAnimations[0]);
+      action.reset();
+      action.setLoop(THREE.LoopOnce, 1);
+      action.clampWhenFinished = true;
+      action.play();
+      mixer.update(0.001);
+    }
   }
-  if (previousRotationY !== undefined) {
-    player.rotation.y = previousRotationY;
-  } else {
-    const defaultRot = ensureUserData(player).defaultRotationY;
-    if (Number.isFinite(defaultRot)) player.rotation.y = defaultRot;
+
+  function swapToJumpModel() {
+    const jumpTemplate = window.PLAYER_JUMP_MODEL;
+    playerState = "jump";
+    if (!jumpTemplate || !scene) {
+      return;
+    }
+    const jumpAnimations = window.PLAYER_JUMP_ANIMATIONS || jumpTemplate.animations || jumpTemplate.userData?.animations || [];
+    const previousPosition = player ? player.position.clone() : new THREE.Vector3(0, groundY, 5);
+    const previousRotationY = player ? player.rotation.y : Math.PI;
+
+    if (player) {
+      scene.remove(player);
+    }
+
+    const jumpInstance = prepareModel(jumpTemplate, jumpAnimations);
+    if (!jumpInstance) {
+      swapToRunModel(previousPosition, previousRotationY);
+      return;
+    }
+    scene.add(jumpInstance);
+    player = jumpInstance;
+    player.position.copy(previousPosition);
+    if (previousRotationY !== undefined) {
+      player.rotation.y = previousRotationY;
+    } else {
+      const defaultRot = ensureUserData(player).defaultRotationY;
+      if (Number.isFinite(defaultRot)) player.rotation.y = defaultRot;
+    }
+
+    const bbox = new THREE.Box3().setFromObject(player);
+    const size = bbox.getSize(new THREE.Vector3());
+    const data = ensureUserData(player);
+    const baseMin = data.baseMin ?? bbox.min.y;
+    const baseHeight = data.baseHeight ?? size.y;
+    playerHalfHeight = baseHeight / 2 || playerHalfHeight;
+    playerHalfWidth = size.x / 2 || playerHalfWidth;
+    playerHalfDepth = size.z / 2 || playerHalfDepth;
+    const targetGround = previousPosition ? previousPosition.y : (groundBottom - baseMin);
+    player.position.y = targetGround;
+    groundY = targetGround;
+    groundBottom = groundY + baseMin;
+
+    mixer = new THREE.AnimationMixer(player);
+    if (jumpAnimations.length) {
+      const action = mixer.clipAction(jumpAnimations[0]);
+      action.reset();
+      action.setLoop(THREE.LoopOnce, 1);
+      action.clampWhenFinished = true;
+      action.play();
+      mixer.update(1 / 60);
+    }
   }
 
-  const bbox = new THREE.Box3().setFromObject(player);
-  const size = bbox.getSize(new THREE.Vector3());
-  const data = ensureUserData(player);
-  const baseMin = data.baseMin ?? bbox.min.y;
-  const baseHeight = data.baseHeight ?? size.y;
-  playerHalfHeight = baseHeight / 2 || playerHalfHeight;
-  playerHalfWidth = size.x / 2 || playerHalfWidth;
-  playerHalfDepth = size.z / 2 || playerHalfDepth;
-  const targetGround = previousPosition ? previousPosition.y : (groundBottom - baseMin);
-  player.position.y = targetGround;
-  groundY = targetGround;
-  groundBottom = groundY + baseMin;
+  function swapToRunModel(previousPosition, previousRotationY) {
+    const runTemplate = window.PLAYER_MODEL;
+    playerState = "run";
+    if (!runTemplate || !scene) {
+      return;
+    }
+    const runAnimations = window.PLAYER_ANIMATIONS || runTemplate.animations || runTemplate.userData?.animations || [];
 
-  hitPauseUntil = 0;
-  isPaused = false;
+    const runInstance = prepareModel(runTemplate, runAnimations);
+    if (!runInstance) {
+      return;
+    }
 
-  mixer = new THREE.AnimationMixer(player);
-  if (runAnimations.length) {
-    const action = mixer.clipAction(runAnimations[0]);
-    action.reset().setLoop(THREE.LoopRepeat, Infinity).play();
-    mixer.update(0.001);
+    if (player && player !== runInstance) {
+      scene.remove(player);
+    }
+
+    scene.add(runInstance);
+    player = runInstance;
+    if (previousPosition) {
+      player.position.copy(previousPosition);
+    }
+    if (previousRotationY !== undefined) {
+      player.rotation.y = previousRotationY;
+    } else {
+      const defaultRot = ensureUserData(player).defaultRotationY;
+      if (Number.isFinite(defaultRot)) player.rotation.y = defaultRot;
+    }
+
+    const bbox = new THREE.Box3().setFromObject(player);
+    const size = bbox.getSize(new THREE.Vector3());
+    const data = ensureUserData(player);
+    const baseMin = data.baseMin ?? bbox.min.y;
+    const baseHeight = data.baseHeight ?? size.y;
+    playerHalfHeight = baseHeight / 2 || playerHalfHeight;
+    playerHalfWidth = size.x / 2 || playerHalfWidth;
+    playerHalfDepth = size.z / 2 || playerHalfDepth;
+    const targetGround = previousPosition ? previousPosition.y : (groundBottom - baseMin);
+    player.position.y = targetGround;
+    groundY = targetGround;
+    groundBottom = groundY + baseMin;
+
+    hitPauseUntil = 0;
+    isPaused = false;
+
+    mixer = new THREE.AnimationMixer(player);
+    if (runAnimations.length) {
+      const action = mixer.clipAction(runAnimations[0]);
+      action.reset().setLoop(THREE.LoopRepeat, Infinity).play();
+      mixer.update(0.001);
+    }
   }
-}
 
-function getStoredSessionData() {
+  function getStoredSessionData() {
     try {
       if (!window.localStorage) return null;
       const raw = window.localStorage.getItem("session");
@@ -1961,12 +1968,12 @@ function getStoredSessionData() {
     if (!userId) {
       try {
         console.log("[rejection] polling skipped: no id_user_game in session");
-      } catch (_) {}
+      } catch (_) { }
       return;
     }
     try {
       console.log("[rejection] start polling", { userId });
-    } catch (_) {}
+    } catch (_) { }
     if (IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
       setManagedTimeout(() => {
         console.log("[rejection] local mock triggered");
@@ -1975,9 +1982,9 @@ function getStoredSessionData() {
       return;
     }
     rejectionCheckInterval = setManagedInterval(() => {
-      checkRejectionStatus().catch(() => {});
+      checkRejectionStatus().catch(() => { });
     }, 5000);
-    checkRejectionStatus().catch(() => {});
+    checkRejectionStatus().catch(() => { });
   }
 
   async function checkRejectionStatus() {
@@ -1991,7 +1998,7 @@ function getStoredSessionData() {
     if (!userId) {
       try {
         console.log("[rejection] request skipped: no id_user_game in session");
-      } catch (_) {}
+      } catch (_) { }
       return;
     }
 
@@ -2009,7 +2016,7 @@ function getStoredSessionData() {
             timestamp: new Date().toISOString(),
             payload,
           });
-        } catch (_) {}
+        } catch (_) { }
         const response = await fetch(REJECTION_ENDPOINT, {
           method: "POST",
           headers: {
@@ -2031,7 +2038,7 @@ function getStoredSessionData() {
           handleFacturaRejection(data.factura || null);
         }
       } catch (error) {
-        try { console.warn("[rejection] poll failed", error); } catch (_) {}
+        try { console.warn("[rejection] poll failed", error); } catch (_) { }
       } finally {
         rejectionRequestInFlight = null;
       }
@@ -2072,7 +2079,7 @@ function getStoredSessionData() {
     if (mixer) {
       try {
         mixer.stopAllAction();
-      } catch (_) {}
+      } catch (_) { }
     }
     removeManagedEvents();
     stopRejectionPolling();
@@ -2087,7 +2094,7 @@ function getStoredSessionData() {
     try {
       console.info("[score] Submitting to:", SCORE_ENDPOINT);
       console.info("[score] Payload:", payload);
-    } catch (_) {}
+    } catch (_) { }
 
     try {
       const response = await fetch(SCORE_ENDPOINT, {
@@ -2103,7 +2110,7 @@ function getStoredSessionData() {
       });
 
       if (response.ok) {
-        try { console.info("[score] Submitted OK"); } catch (_) {}
+        try { console.info("[score] Submitted OK"); } catch (_) { }
         return response;
       }
 
@@ -2117,7 +2124,7 @@ function getStoredSessionData() {
 
       throw new Error(`Error ${response.status} al registrar el puntaje.`);
     } catch (err) {
-      try { console.error("[score] Submit failed:", err); } catch (_) {}
+      try { console.error("[score] Submit failed:", err); } catch (_) { }
       throw err;
     }
   }
@@ -2222,7 +2229,7 @@ function getStoredSessionData() {
         for (let i = 0; i < segments; i += 1) {
           if (frontZ < BUILDING_END - estimatedStep) break;
           const lateralOffset = side < 0 ? 5 : -5;
-          const nextFront = spawnBuildingSegment(side+lateralOffset, frontZ);
+          const nextFront = spawnBuildingSegment(side + lateralOffset, frontZ);
           if (!Number.isFinite(nextFront)) break;
           if (nextFront >= frontZ) break;
           frontZ = nextFront;
@@ -2254,7 +2261,7 @@ function getStoredSessionData() {
           if (Number.isFinite(defaultRot)) {
             obj.rotation.y = defaultRot;
           }
-        
+
           obj.updateMatrixWorld(true);
           const bbox = tempBox.setFromObject(obj);
           const size = bbox.getSize(tempVec);
@@ -2262,8 +2269,8 @@ function getStoredSessionData() {
           const minY = bbox.min.y;
           obj.position.y = isFinite(minY) ? -minY : 0;
           let lateralOffset = side < 0 ? 5 : -5;
-          
-            if (data.cityKey === "citylamppost.fbx") {
+
+          if (data.cityKey === "citylamppost.fbx") {
             const lampRot = side < 0 ? -Math.PI / 2 : Math.PI / 2;
             obj.rotation.y = lampRot;
             data.defaultRotationY = lampRot;
