@@ -102,6 +102,7 @@ body.hit-flash::after {
   display: inline-block;
   font-size: clamp(35px, 8.25vw, 57px);
   line-height: 0.9;
+  padding-right: 3px;
 }
 
 .coin-banner__points-suffix {
