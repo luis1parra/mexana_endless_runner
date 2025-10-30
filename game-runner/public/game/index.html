@@ -144,7 +144,7 @@
               window.ENABLE_TUTORIAL = true;
             }
             if (isIOS && isSafari) {
-              window.SPEED_MULTIPLIER = 1.2; // iOS Safari
+              window.SPEED_MULTIPLIER = 1; // iOS Safari
             } else if (isAndroid && isChrome) {
               window.SPEED_MULTIPLIER = .5; // Android Chrome
             } else {
@@ -164,7 +164,7 @@
             if (isSafari) {
               window.SPEED_MULTIPLIER = 1.4; // macOS Safari
             } else if (isChrome) {
-              window.SPEED_MULTIPLIER = .5; // Windows/Linux Chrome
+              window.SPEED_MULTIPLIER = .1; // Windows/Linux Chrome
             } else {
               window.SPEED_MULTIPLIER = 1.02; // otros desktop
             }
