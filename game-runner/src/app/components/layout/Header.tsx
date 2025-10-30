@@ -123,7 +123,7 @@ export function Header({
           aria-expanded={isMenuOpen}
           aria-controls="mobile-navigation"
           aria-label={isMenuOpen ? "Cerrar menu" : "Abrir menu"}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur transition hover:bg-white/20"
+          className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-white/20"
         >
           <Menu className="h-5 w-5 text-white" />
         </button>

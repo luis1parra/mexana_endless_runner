@@ -16,24 +16,24 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-[var(--cplblue)] text-white">
+    <footer className="bg-[var(--cplblue)] text-white font-medium font-[500]">
       <div className="mx-auto flex w-full flex-col gap-5 px-6 py-10 items-center lg:flex-row lg:items-start lg:justify-evenly lg:py-6">
-        <div className="w-50 self-center text-3xl font-black italic tracking-[0.14em] text-white md:text-4xl">
+        <div className="w-50 self-center text-3xl font-extrabold tracking-[0.14em] text-white md:text-4xl">
           <Image src={logo} alt="Mexsana" />
         </div>
-        <div className="flex flex-col gap-2 text-md text-white/80 text-center lg:text-left">
+        <div className="flex flex-col gap-2 text-md text-white text-center lg:text-left">
           {legalLinks.map((link) => (
             <Link key={link.label} href={link.href} className="transition hover:text-white">
               {link.label}
             </Link>
           ))}
         </div>
-        <div className="flex flex-col gap-2 text-md text-white/80 text-center lg:text-left">
+        <div className="flex flex-col gap-2 text-md text-white text-center lg:text-left">
           <span>Diseñado por: DENICOLÁS\TBWA</span>
           <span>2025 © MEXSANA</span>
         </div>
         <div className="flex flex-col gap-3 text-md items-center lg:items-start">
-          <span className="font-bold text-lg text-white">Conéctate con lo último:</span>
+          <span className="font-bold text-lg text-white lg:text-[22px]">Conéctate con lo último:</span>
           <div className="flex gap-1">
             {socialLinks.map(({ label, href, Icon }) => (
               <Link key={label} href={href} aria-label={label} className="flex h-12 w-12 items-center justify-center rounded-full border-0 border-white/40 text-white transition hover:bg-white/10">

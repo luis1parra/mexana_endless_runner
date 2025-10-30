@@ -10,6 +10,9 @@
   --cngray: #1A1A1A;
   --cpthumbh: #3e5ee5;
   --cpthumbm: #ff3bd1;
+  --cpbarfill: #5fff00;
+  --cpbarback: var(--cplblue);
+  --cpbarborder: #ffe000;
 }
 
 @theme inline {
@@ -30,4 +33,10 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-futura);
+}
+
+
+.scrollbar-custom {
+  scrollbar-width: auto;
+  scrollbar-color: var(--cpdblue) #ffffff;
 }

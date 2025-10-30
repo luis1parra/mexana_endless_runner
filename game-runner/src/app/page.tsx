@@ -22,37 +22,37 @@ export default function Home() {
           />
 
           <div className="relative top-0 bottom-0 my-14 grid items-center gap-14 lg:grid-cols-12 lg:my-18">
-            <div className="md:col-span-6 xl:col-span-6">
-              <h2 className="text-[42px] font-extrabold italic leading-[1.05] text-white drop-shadow-md md:text-[56px] lg:text-[64px]">
+            <div className="md:col-span-9 xl:col-span-6">
+              <h2 className="text-[30px] font-extrabold italic leading-[1.05] text-white drop-shadow-md md:text-[56px] lg:text-[50px]">
                 FRESH GAME
               </h2>
-              <p className="mt-4 text-lg font-light leading-[1.2] text-white/85 md:text-[24px]">
+              <p className="mt-4 text-[17px] font-light leading-[1.2] text-white/85 md:text-[20px]">
                 Con la Big Promo de Mexsana podrás demostrar que cuando se trata
                 de frescura, tu eres el mejor.
               </p>
-              <p className="mt-6 text-2xl font-bold text-white md:text-[28px]">
+              <h3 className="mt-6 text-[20px] font-bold text-white md:text-[22px]">
                 ¡Participa y juega acumulando puntos por tus compras!
-              </p>
-              <div className="mt-8 flex flex-wrap gap-4">
+              </h3>
+              <div className="mt-8 flex flex-row w-full gap-4 text-center sm:w-3/4 sm:gap-4 xl:gap-10">
                 <button
                   type="button"
                   onClick={() => setIsRegistrationOpen(true)}
-                  className="cursor-pointer rounded-full bg-white px-4 py-3 text-base font-semibold text-[var(--cpdblue)] shadow-[0_15px_35px_rgba(16,38,109,0.3)] transition hover:bg-[#F2F6FF] sm:px-8"
+                  className="cursor-pointer flex-1/2 mr-0 rounded-full bg-white px-4 py-3 text-base font-semibold text-[var(--cpdblue)] shadow-[0_15px_35px_rgba(16,38,109,0.3)] transition hover:bg-[#F2F6FF] sm:px-8"
                 >
                   Registrarme
                 </button>
                 <Link
                   href="/dinamica"
-                  className="rounded-full border border-white/70 px-4 py-3 text-base font-semibold text-white transition hover:bg-white/10 sm:px-8"
+                  className="cursor-pointer flex-1/2 ml-0 rounded-full border border-white/70 px-0 py-3 text-base font-semibold text-white transition hover:bg-white/10"
                 >
                   Conocer dinámica
                 </Link>
               </div>
-              <p className="mt-6 text-sm text-white/80">
+              <p className="mt-6 text-[12px] text-white/80 md:text-[14px]">
                 Aplican términos y condiciones.{" "}
                 <Link
                   href="/terminos"
-                  className="font-semibold underline underline-offset-4 hover:text-white"
+                  className="font-semibold underline underline-offset-2 hover:text-white"
                 >
                   Consúltalos aquí
                 </Link>

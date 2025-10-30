@@ -468,7 +468,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                     <button
                       type="button"
                       onClick={handleRemoveAttachment}
-                      className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E1E7FB] text-[#2450F0] transition hover:bg-[#D2DBFA]"
+                      className="cursor-pointer flex h-6 w-6 min-w-6 items-center justify-center rounded-full bg-[#E1E7FB] text-[#2450F0] transition hover:bg-[#D2DBFA]"
                       aria-label={`Eliminar archivo ${attachment.name}`}
                     >
                       <CloseIcon className="h-3.5 w-3.5" />
@@ -477,13 +477,13 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 </ul>
               )}
             </div>
-            <label className="flex items-start gap-3 text-sm text-[#0B1E52]">
+            <label className="cursor-pointer flex items-start gap-3 text-sm text-black">
               <input
                 type="checkbox"
                 name="registrationDataAuthorization"
                 checked={isDataAuthorized}
                 onChange={(event) => setIsDataAuthorized(event.target.checked)}
-                className="mt-1 h-5 w-5 rounded border border-[#2450F0] accent-[#2450F0]"
+                className="cursor-pointer mt-1 h-5 w-5 rounded border border-[#2450F0] accent-[#2450F0]"
               />
               <span className="font-[400]">
                 Autorizo el{" "}
