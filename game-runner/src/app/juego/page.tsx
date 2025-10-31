@@ -10,6 +10,7 @@ import avatarGirlThumb from "@/assets/images/avatarwoman_tumb.png";
 import { Info } from "@/assets/icons";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
+import type { ScorePayload } from "@/services/api";
 
 type AvatarKey = "boy" | "girl";
 
@@ -84,6 +85,22 @@ export default function JuegoPage() {
     } catch {
       // Ignoramos errores de lectura/parseo del storage.
     }
+  }, []);
+
+  // Bridge para que el juego (iframe) envíe el puntaje y esperemos la respuesta
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const g = window as unknown as { __submitScore?: (payload: ScorePayload) => Promise<unknown> } & Window;
+    g.__submitScore = async (payload: ScorePayload) => {
+      return await api.submitScore(payload);
+    };
+    return () => {
+      try {
+        delete g.__submitScore;
+      } catch {
+        // ignore
+      }
+    };
   }, []);
 
   // Leer querystring del cliente sin useSearchParams para evitar Suspense en build
@@ -204,7 +221,7 @@ export default function JuegoPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#0B1E52]">
       <main className="flex mx-auto w-full flex-1 px-2 py-6 lg:px-10 lg:py-16">
-        <section className="relative w-full rounded-[24px] bg-white bg-[url('../assets/images/rankingbackground_mobile.png')] bg-cover bg-center bg-no-repeat px-3 py-12 pt-2 text-white lg:bg-[url('../assets/images/gamedinamicbackground.png')] md:px-8 lg:rounded-[48px] lg:px-12">
+        <section className="relative w-full rounded-[24px] bg-white bg-[url('../assets/images/juegobackground_mobile.png')] bg-cover bg-center bg-no-repeat px-3 py-12 pt-2 text-white lg:bg-[url('../assets/images/gamedinamicbackground.png')] md:px-8 lg:rounded-[48px] lg:px-12">
           <div className="relative z-10 w-full justify-center px-0">
             <div className="flex w-full flex-col my-1">
               {/* <div className="flex items-center justify-center text-3xl font-black text-white drop-shadow-lg md:text-4xl"> */}

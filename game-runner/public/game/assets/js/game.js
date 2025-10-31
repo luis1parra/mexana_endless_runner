@@ -2086,13 +2086,29 @@
   }
 
   async function submitGameScore(endTimestamp) {
+    const payload = buildScorePayload(endTimestamp);
+
+    // 1) Intentar enviar a través del bridge del padre (Next.js)
+    try {
+      const parentWin = (window.parent && window.parent !== window) ? window.parent : null;
+      if (parentWin && typeof parentWin.__submitScore === "function") {
+        try {
+          console.info("[score] Submitting via app bridge");
+          console.info("[score] Payload:", payload);
+        } catch (_) { }
+        const result = await parentWin.__submitScore(payload);
+        try { console.info("[score] Bridge submission OK"); } catch (_) { }
+        return result;
+      }
+    } catch (_) { }
+
+    // 2) Fallback: enviar directamente al endpoint si el bridge no existe
     if (typeof fetch !== "function") {
       return;
     }
 
-    const payload = buildScorePayload(endTimestamp);
     try {
-      console.info("[score] Submitting to:", SCORE_ENDPOINT);
+      console.info("[score] Bridge unavailable. Submitting to:", SCORE_ENDPOINT);
       console.info("[score] Payload:", payload);
     } catch (_) { }
 
