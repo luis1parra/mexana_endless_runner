@@ -69,21 +69,21 @@ export default function DinamicaPage() {
           <div className="relative w-full mt-8">
             
             <div className="relative rounded-[36px] px-4 py-6 md:px-8 md:py-10">
-              <p className="text-lg font-semibold text-white/90">Dinámica para jugar</p>
-              <h1 className="mt-2 text-[44px] font-black italic leading-[1.05] tracking-tight text-white drop-shadow-md md:text-[56px]">
+              <h3 className="text-[20px] font-bold text-white/90 md:text-[22px]">Dinámica para jugar</h3>
+              <h1 className="mt-2 text-[32px] font-black italic leading-[1.05] tracking-tight text-white drop-shadow-md md:text-[52px]">
                 Así de fácil es jugar
               </h1>
 
               {/* Tabs */}
               <div className="flex justify-center">
-                <div className="mt-6 inline-flex w-[232px] rounded-full bg-white/100 p-0 text-sm font-semibold backdrop-blur md:w-[332px]">
+                <div className="mt-6 inline-flex w-[252px] rounded-full bg-white/100 p-0 text-[16px] font-semibold backdrop-blur md:w-[332px] md:text-[18px]">
                   <button
                     type="button"
                     onClick={() => setActiveTab("steps")}
                     className={`cursor-pointer w-1/2 rounded-full px-4 py-2 transition md:px-6 ${
                       activeTab === "steps"
                         ? "bg-[var(--cplblue)] text-white shadow-[0_8px_18px_rgba(16,38,109,0.25)]"
-                        : "text-[var(--cplblue)] hover:text-[var(--cpdblue)]"
+                        : "text-[var(--cplblue)]"
                     }`}
                   >
                     Paso a paso
@@ -94,7 +94,7 @@ export default function DinamicaPage() {
                     className={`cursor-pointer w-1/2 rounded-full px-4 py-2 transition md:px-6 ${
                       activeTab === "prizes"
                         ? "bg-[var(--cplblue)] text-white shadow-[0_8px_18px_rgba(16,38,109,0.25)]"
-                        : "text-[var(--cplblue)] hover:text-[var(--cpdblue)]"
+                        : "text-[var(--cplblue)]"
                     }`}
                   >
                     Premios
@@ -153,7 +153,7 @@ export default function DinamicaPage() {
                     ))}
                   </div>
 
-                  <p className="mt-8 text-center text-md text-white/95 font-light">
+                  <p className="mt-8 text-center text-[17px] text-white/95 font-light lg:text-[20px]">
                     Se mostrará en tiempo real el ranking de clasificación. Al final de la promo, quienes califiquen en los 3 primeros puestos serán los ganadores.
                   </p>
                 </>

@@ -407,7 +407,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
         >
           <CloseIcon className="h-6 w-6" />
         </button>
-        <h2 className="mt-6 text-center text-3xl font-extrabold italic text-[var(--cpdblue)] md:text-[34px]">
+        <h2 className="mt-6 text-center text-[20px] font-extrabold italic text-[var(--cpdblue)] md:text-[24px]">
           Registrarse
         </h2>
         <form
@@ -434,10 +434,10 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
               />
             ))}
             <div className="px-0 py-3">
-              <p className="text-base font-semibold md:text-lg">
+              <p className="text-[16px] font-semibold md:text-[17px]">
                 Adjuntar foto de la factura
               </p>
-              <p className="mt-1 text-md font-light">
+              <p className="mt-1 text-[12px] font-light">
                 Adjunta la foto de la factura en buena resolución en
                 formato PNG, PDF o JPG.
               </p>
@@ -452,7 +452,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
               <button
                 type="button"
                 onClick={handleAttachClick}
-                className="cursor-pointer mt-4 flex items-center gap-2 text-lg font-medium text-black hover:text-[#1C3AD4]"
+                className="cursor-pointer mt-4 flex items-center gap-2 text-lg font-medium text-black hover:text-[var(--cpdblue)]"
               >
                 <span className={iconWrapperClass}>
                   <PlusCircleIcon className="h-5 w-5" />
@@ -460,7 +460,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 Adjuntar foto
               </button>
               {attachment && (
-                <ul className="mt-4 space-y-2 text-sm text-[#0B1E52]">
+                <ul className="mt-4 space-y-2 text-sm text-[var(--cngray)]">
                   <li
                     className="flex items-center justify-between rounded-full bg-white px-4 py-2 shadow-[0_2px_6px_rgba(15,31,91,0.08)]"
                   >
@@ -468,7 +468,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                     <button
                       type="button"
                       onClick={handleRemoveAttachment}
-                      className="cursor-pointer flex h-6 w-6 min-w-6 items-center justify-center rounded-full bg-[#E1E7FB] text-[#2450F0] transition hover:bg-[#D2DBFA]"
+                      className="cursor-pointer flex h-6 w-6 min-w-6 items-center justify-center rounded-full bg-[#E1E7FB] text-[var(--cpdblue)] transition hover:bg-[#D2DBFA]"
                       aria-label={`Eliminar archivo ${attachment.name}`}
                     >
                       <CloseIcon className="h-3.5 w-3.5" />
@@ -477,7 +477,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
                 </ul>
               )}
             </div>
-            <label className="cursor-pointer flex items-start gap-3 text-sm text-black">
+            <label className="cursor-pointer flex items-start gap-3 text-[11px] text-black">
               <input
                 type="checkbox"
                 name="registrationDataAuthorization"
@@ -503,7 +503,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
             <button
               type="submit"
               disabled={isSubmitDisabled}
-              className={`mx-auto flex w-full max-w-[240px] items-center justify-center rounded-full px-8 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitDisabled ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[var(--cpdblue)] hover:bg-[#1C3AD4] cursor-pointer"}`}
+              className={`flex items-center justify-center rounded-full px-[23px] py-[11px] text-base font-semibold text-white shadow-[0_20px_40px_rgba(15,31,91,0.3)] transition ${isSubmitDisabled ? "bg-[#1C3AD4]/70 cursor-not-allowed" : "bg-[var(--cpdblue)] hover:bg-[#1C3AD4] cursor-pointer"}`}
               aria-busy={isSubmitting}
             >
               {isSubmitting ? "Registrando..." : "Empezar a jugar"}

@@ -59,10 +59,12 @@ export function Header({
     onAction?: () => void,
   ) => {
     const desktopClasses =
-      "cursor-pointer rounded-full bg-white px-6 py-2 text-sm font-semibold text-[var(--cpdblue)] shadow-[0_10px_30px_rgba(16,38,109,0.25)] transition hover:bg-[#F2F6FF] lg:px-8 lg:py-2.5 lg:text-base";
+      "cursor-pointer rounded-full border border-white/70 bg-white px-6 py-2 text-sm font-semibold text-[var(--cpdblue)] lg:px-[30px] lg:py-[12px] lg:text-[18px]";
     const mobileClasses =
       "cursor-pointer items-center justify-center rounded-full bg-[var(--cpdblue)] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_32px_rgba(16,38,109,0.3)] transition hover:bg-[#1532A8]";
-    const className = variant === "mobile" ? mobileClasses : desktopClasses;
+    const hoverClasses = "transition hover:bg-white/0 hover:text-white";
+    const className = variant === "mobile" ? mobileClasses : desktopClasses + " " + hoverClasses;
+    
 
     // if (onRegisterClick) {
     return (
@@ -86,10 +88,12 @@ export function Header({
     onAction?: () => void
   ) => {
     const desktopClasses =
-      "cursor-pointer rounded-full border border-white/70 px-6 py-2 text-sm font-semibold text-white transition hover:bg-white/10 lg:px-8 lg:py-2.5 lg:text-base"
+      "cursor-pointer rounded-full border border-white/70 bg-white/0 px-6 py-2 text-sm font-semibold text-white lg:px-[30px] lg:py-[12px] lg:text-[18px]"
     const mobileClasses =
-      "cursor-pointer inline-flex w-full items-center justify-center rounded-full bg-[#1D3FCE] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_32px_rgba(16,38,109,0.3)] transition hover:bg-[#1532A8]";
+      "cursor-pointer inline-flex w-full items-center justify-center rounded-full bg-[#1D3FCE] px-6 py-3 text-base font-semibold text-white shadow-[0_12px_32px_rgba(16,38,109,0.3)]";
+    const hoverClasses = "transition hover:bg-white hover:text-[var(--cpdblue)]";
     const className = variant === "mobile" ? mobileClasses : desktopClasses;
+
 
     // if (onLoginClick) {
     return (
@@ -100,7 +104,7 @@ export function Header({
           //onLoginClick();
           onAction?.();
         }}
-        className={className}
+        className={className + " " + hoverClasses}
       >
         Ingresar
       </button>
@@ -129,7 +133,7 @@ export function Header({
         </button>
         <div>{renderLoginAction()}</div>
       </div>
-      <div className="hidden justify-between items-center gap-6 md:flex">
+      <div className="hidden justify-between items-center md:flex">
         <div className="flex flex-wrap items-center gap-6 xl:gap-12">
           {navLinks.map((link) => (
             <Link
@@ -141,10 +145,9 @@ export function Header({
             </Link>
           ))}
         </div>
-        {/* {renderLogo("justify-self-center text-3xl font-black italic tracking-[0.14em] text-white drop-shadow-lg normal-case md:text-4xl")} */}
-        <div className="flex items-center gap-3 justify-self-end">
-          {renderRegisterAction()}
-          {renderLoginAction()}
+        <div className="flex items-center gap-5 justify-self-end xl:gap-10">
+          {renderRegisterAction("desktop")}
+          {renderLoginAction("desktop")}
         </div>
       </div>
       {isMenuOpen ? (

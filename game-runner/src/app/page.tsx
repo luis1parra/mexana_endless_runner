@@ -33,17 +33,17 @@ export default function Home() {
               <h3 className="mt-6 text-[20px] font-bold text-white md:text-[22px]">
                 ¡Participa y juega acumulando puntos por tus compras!
               </h3>
-              <div className="mt-8 flex flex-row w-full gap-4 text-center sm:w-3/4 sm:gap-4 xl:gap-10">
+              <div className="mt-8 flex flex-row w-full gap-3 text-center sm:w-3/4 sm:gap-3 xl:gap-6">
                 <button
                   type="button"
                   onClick={() => setIsRegistrationOpen(true)}
-                  className="cursor-pointer flex-1/2 mr-0 rounded-full bg-white px-4 py-3 text-base font-semibold text-[var(--cpdblue)] shadow-[0_15px_35px_rgba(16,38,109,0.3)] transition hover:bg-[#F2F6FF] sm:px-8"
+                  className="cursor-pointer flex-1/2 mr-0 rounded-full bg-white px-4 py-3 text-[14px] md:text-[18px] font-semibold text-[var(--cpdblue)] shadow-[0_15px_35px_rgba(16,38,109,0.3)] transition hover:bg-[#F2F6FF] sm:px-[24px]"
                 >
                   Registrarme
                 </button>
                 <Link
                   href="/dinamica"
-                  className="cursor-pointer flex-1/2 ml-0 rounded-full border border-white/70 px-0 py-3 text-base font-semibold text-white transition hover:bg-white/10"
+                  className="cursor-pointer flex-1/2 ml-0 rounded-full border border-white/70 px-0 py-3 text-[14px] md:text-[18px] font-semibold text-white transition hover:bg-white/10"
                 >
                   Conocer dinámica
                 </Link>
