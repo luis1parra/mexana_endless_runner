@@ -66,10 +66,12 @@ export default function DinamicaPage() {
             activeHref="/"
           />
 
-          <div className="relative w-full mt-8">
+          <div className="relative w-full mt-0">
             
-            <div className="relative rounded-[36px] px-4 py-6 md:px-8 md:py-10">
-              <h3 className="text-[20px] font-bold text-white/90 md:text-[22px]">Dinámica para jugar</h3>
+            <div className="relative rounded-[36px] px-4 py-6 md:px-8 md:py-6">
+              <h3 className="text-[20px] font-bold text-white/90 md:text-[22px]">
+                Dinámica para jugar
+              </h3>
               <h1 className="mt-2 text-[32px] font-black italic leading-[1.05] tracking-tight text-white drop-shadow-md md:text-[52px]">
                 Así de fácil es jugar
               </h1>

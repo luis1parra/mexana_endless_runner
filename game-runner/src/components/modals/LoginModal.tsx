@@ -258,7 +258,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#0B1E52]/70 px-4 py-8">
-      <div className="overflow-y-auto relative w-full max-w-[720px] max-h-[98dvh] rounded-[32px] bg-white px-6 py-9 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-10">
+      <div className="overflow-y-auto relative w-full max-w-[620px] max-h-[98dvh] rounded-[32px] bg-white px-6 py-9 text-[#0F1F5B] shadow-[0_40px_80px_rgba(15,31,91,0.25)] md:px-20">
         <button
           type="button"
           onClick={onClose}

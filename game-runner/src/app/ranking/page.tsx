@@ -119,7 +119,7 @@ export default function RankingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#0B1E52]">
       <main className="flex mx-auto w-full flex-1 px-2 py-6 lg:px-10 lg:py-16">
-        <section className="w-full h-[calc(110vw*(1258/662))] lg:h-auto rounded-[24px] bg-[url('../assets/images/rankingbackground_mobile.png')] bg-cover bg-center bg-no-repeat px-3 py-12 pt-2 text-white lg:bg-[url('../assets/images/gamedinamicbackground.png')] md:px-8 lg:rounded-[48px] lg:px-12">
+        <section className="w-full h-[calc(110vw*(1750/662))] lg:h-auto rounded-[24px] bg-[url('../assets/images/rankingbackground_mobile.png')] bg-cover bg-center bg-no-repeat px-3 py-12 pt-2 text-white lg:bg-[url('../assets/images/gamedinamicbackground.png')] md:px-8 lg:rounded-[48px] lg:px-12">
 
           <Header
             activeHref="/ranking"
@@ -133,10 +133,10 @@ export default function RankingPage() {
 
           <div className="relative mt-8">
             <div>
-              <p className="text-lg font-semibold text-white/80">
+              <h3 className="text-[20px] font-bold text-white/90 md:text-[22px]">
                 Ranking jugadores
-              </p>
-              <h1 className="mt-2 text-[44px] font-extrabold italic leading-[1.04] tracking-tight text-white drop-shadow-md md:text-[56px] lg:text-[64px]">
+              </h3>
+              <h1 className="mt-2 text-[32px] font-extrabold italic leading-[1.04] tracking-tight text-white drop-shadow-md md:text-[52px]">
                 Clasificación de Jugadores
               </h1>
             </div>
@@ -211,10 +211,10 @@ export default function RankingPage() {
                                 className="h-full w-full object-cover"
                               />
                             </div>
-                            <div className="truncate text-lg text-center font-bold lg:text-xl">
+                            <div className="truncate text-[15px] text-center font-bold lg:text-[17px]">
                               {player.name}
                             </div>
-                            <div className="text-right text-lg font-extrabold italic lg:text-2xl">
+                            <div className="text-right text-[15px] font-extrabold italic lg:text-[17px]">
                               {player.score.toLocaleString("es-CO", {
                                 minimumFractionDigits: 0,
                               })}
