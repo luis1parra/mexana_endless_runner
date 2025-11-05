@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image, { type StaticImageData } from "next/image";
-import { Menu } from "@/assets/icons";
+import { Menu, Rec } from "@/assets/icons";
 import logo from "@/assets/images/logo_mexsana.png";
 import logo2 from "@/assets/images/logo_footer.png";
 import { LoginModal } from "@/components/modals/LoginModal";
@@ -113,13 +113,16 @@ export function Header({
   };
 
   return (
-    <nav className="relative text-sm font-semibold  text-white/80 lg:text-base">
+    <nav className="z-200 relative text-sm font-semibold  text-white/80 lg:text-base">
       {
         renderLogo(
-          "w-1/5 min-w-[100px] max-w-[550px] absolute left-1/2 -top-6 transform -translate-x-1/2 rounded-b-[50px] lg:min-w-[130px] lg:-top-3 lg:bg-white lg:px-8 lg:py-2 lg:px-10",
+          "w-1/5 min-w-[100px] max-w-[550px] absolute z-10 left-1/2 -top-6 transform -translate-x-1/2 rounded-b-[50px] lg:min-w-[130px] lg:-top-3 lg:bg-white lg:px-8 lg:py-2 lg:px-10",
           "w-full h-auto"
         )
       }
+      <div className="absolute w-[120%] -z-1 -top-2 left-1/2 transform -translate-x-1/2 flex justify-center md:hidden">
+        <Rec className="w-full h-auto"/>
+      </div>
       <div className="flex items-center justify-between md:hidden">
         <button
           type="button"

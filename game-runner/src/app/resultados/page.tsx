@@ -188,13 +188,13 @@ export default function ResultadosPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#4FA6FF] text-white">
-      <main className="mx-auto flex w-full flex-1 items-center justify-center px-6 py-12">
-        <section className="w-full max-w-[1100px] rounded-[48px] bg-[#64B6FF] px-6 py-10 shadow-[0_40px_90px_rgba(14,73,178,0.35)] md:px-10 lg:px-16">
+      <main className="mx-auto flex w-full flex-1 items-center justify-center px-2 py-4 lg:px-6 lg:py-12">
+        <section className="w-full max-w-[1100px] rounded-[48px] bg-[#7fd1ff] px-6 py-10 shadow-[0_40px_90px_rgba(14,73,178,0.35)] md:px-10 lg:px-16">
           <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-center lg:gap-10">
             <div className="flex flex-col items-center gap-6 lg:gap-8">
               <div className="flex w-full flex-col items-start text-left lg:hidden">
-                <p className="text-xl font-bold text-[#004ed8] md:text-2xl">{score.nickname}</p>
-                <h1 className="mt-1 text-[44px] font-black leading-[1] text-[#004ed8]">Tus resultados</h1>
+                <h3 className="text-[20px] font-bold text-[var(--cpdblue)] md:text-[22px]">{score.nickname}</h3>
+                <h1 className="mt-1 text-[32px] font-black leading-[1] text-[var(--cpdblue)]">Tus resultados</h1>
               </div>
               <div className="w-1/2 min-w-[200px] overflow-hidden bg-[#2963F0] p-0 shadow-[0_25px_45px_rgba(13,59,168,0.4)] lg:w-full">
                 <div className="relative aspect-square w-full overflow-hidden bg-white/10">
@@ -208,7 +208,7 @@ export default function ResultadosPage() {
                 </div>
               </div>
               <div className="flex flex-col items-center">
-                <div className="rounded-[24px] bg-[#1D4CD8] px-8 py-3 text-center shadow-[0_18px_32px_rgba(16,60,173,0.35)]">
+                <div className="rounded-[20px] bg-[var(--cpdblue)] px-8 py-3 text-center shadow-[0_18px_32px_rgba(16,60,173,0.35)]">
                   <div className="text-5xl font-black leading-none">
                     {score.position !== null ? score.position : "--"}
                   </div>
@@ -221,27 +221,27 @@ export default function ResultadosPage() {
 
             <div className="flex flex-col gap-8">
               <div className="hidden lg:block">
-                <p className="text-xl font-bold text-[var(--cpdblue)] md:text-2xl">{score.nickname}</p>
-                <h1 className="mt-2 text-[52px] font-black leading-[1] text-[var(--cpdblue)] italic drop-shadow-[0_10px_25px_rgba(19,55,180,0.35)] md:text-[64px]">
+                <h3 className="text-[22px] font-bold text-[var(--cpdblue)] md:text-[22px]">{score.nickname}</h3>
+                <h1 className="mt-2 text-[52px] font-black leading-[1] text-[var(--cpdblue)] italic drop-shadow-[0_10px_25px_rgba(19,55,180,0.35)] md:text-[52px]">
                   Tus resultados
                 </h1>
               </div>
 
               <div className="flex flex-col gap-6">
-                <div className="rounded-[36px] bg-[#234DDC] px-6 py-6 shadow-[0_22px_44px_rgba(15,65,184,0.35)] sm:px-8">
-                  <div className="text-xl font-extrabold text-center tracking-wide text-white/90">
+                <div className="rounded-[20px] bg-[var(--cpdblue)] px-6 py-3 shadow-[0_22px_44px_rgba(15,65,184,0.35)] sm:px-8 sm:py-6">
+                  <div className="text-[16px] font-extrabold text-center tracking-wide text-white/90 lg:text-[]">
                     Puntuación
                   </div>
-                  <div className="mt-4 rounded-full bg-[#FFD730] px-6 py-3 text-center text-3xl font-black text-[#1F3FCF] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px]">
+                  <div className="mt-1 rounded-full bg-[var(--cpbarborder)] px-6 py-1 text-center text-[17px] font-extrabold italic text-[var(--cpdblue)] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px] sm:mt-4 sm:py-3">
                     {formatPoints(score.score)}
                   </div>
                 </div>
 
-                <div className="rounded-[36px] bg-[#234DDC] px-6 py-6 shadow-[0_22px_44px_rgba(15,65,184,0.35)] sm:px-8">
+                <div className="rounded-[20px] bg-[var(--cpdblue)] px-6 py-3 shadow-[0_22px_44px_rgba(15,65,184,0.35)] sm:px-8 sm:py-6">
                   <div className="text-xl font-extrabold text-center tracking-wide text-white/90">
                     Nuevo récord
                   </div>
-                  <div className="mt-4 rounded-full bg-[#FFD730] px-6 py-3 text-center text-3xl font-black text-[#1F3FCF] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px]">
+                  <div className="mt-1 rounded-full bg-[var(--cpbarborder)] px-6 py-1 text-center text-[17px] font-extrabold italic text-[var(--cpdblue)] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px] sm:mt-4 sm:py-3">
                     {formatPoints(score.record, { signed: true })}
                   </div>
                 </div>
