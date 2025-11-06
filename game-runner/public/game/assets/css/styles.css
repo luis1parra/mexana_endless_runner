@@ -9,8 +9,12 @@ body.hit-flash::after {
 }
 
 @keyframes hitFlashFade {
-  0% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 #hud {
@@ -128,7 +132,8 @@ body.hit-flash::after {
   }
 }
 
-#startScreen, #loaderOverlay {
+#startScreen,
+#loaderOverlay {
   position: fixed;
   inset: 0;
   display: flex;
@@ -147,9 +152,37 @@ body.hit-flash::after {
   padding-bottom: clamp(32px, 9vh, 96px);
   gap: clamp(18px, 6vh, 42px);
   text-align: center;
-  background-image: url("../2d/introDesktop.jpg");
+  background-image: url("../2d/introDesktop.png");
   background-size: cover;
   background-position: center;
+}
+#introBar {
+  background-color: transparent;
+  width: 100dvw;
+  position: fixed;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  span {
+    background-color: transparent;
+    padding: 2rem;
+    max-width: 20vw;
+    min-width: 300px;
+    img {
+      width: 100%;
+      height: auto;
+    }
+  }
+}
+#introBoy {
+  position: fixed;
+  bottom: 1rem;
+  height: 50vh;
+  img {
+    height: 100%;
+    width: auto;
+  }
 }
 #loaderOverlay {
   background: rgba(11, 30, 82, 0.55);
@@ -168,15 +201,39 @@ body.hit-flash::after {
 }
 
 /* Loader */
-#loaderOverlay { background: rgba(0,0,0,0.92); display: none; }
-.loader-title { margin-bottom: 12px; font-weight: bold; }
-.loader-bar {
-  width: 60%; max-width: 480px; height: 12px; background: #222;
-  border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px #444 inset;
+#loaderOverlay {
+  background: rgba(0, 0, 0, 0.92);
+  display: none;
 }
-.loader-fill { width: 0%; height: 100%; background: #2ecc71; transition: width .15s linear; }
-.loader-percent { margin-top: 10px; font-size: 14px; color: #ddd; }
-.loader-hint { margin-top: 6px; font-size: 12px; color: #aaa; }
+.loader-title {
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+.loader-bar {
+  width: 60%;
+  max-width: 480px;
+  height: 12px;
+  background: #222;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #444 inset;
+}
+.loader-fill {
+  width: 0%;
+  height: 100%;
+  background: #2ecc71;
+  transition: width 0.15s linear;
+}
+.loader-percent {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #ddd;
+}
+.loader-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #aaa;
+}
 
 .hud-card {
   position: absolute;
@@ -434,7 +491,7 @@ body.hit-flash::after {
 .start-banner {
   width: min(660px, 85vw);
   background: rgba(255, 255, 255, 0.95);
-  color: #004ED8;
+  color: #004ed8;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -492,6 +549,18 @@ body.hit-flash::after {
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 10px 20px rgba(15, 31, 91, 0.32);
 }
+@media (max-width: 1280px) {
+  .start-banner {
+    background-color: transparent;
+    width: min(80vw, 420px);
+    padding: 16px 4px;
+    border-radius: 36px;
+    align-items: flex-start;
+  }
+  #startScreen {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 150px);
+  }
+}
 
 @media (pointer: coarse), (max-width: 768px) {
   .start-banner {
@@ -518,6 +587,10 @@ body.hit-flash::after {
     padding-top: calc(env(safe-area-inset-top, 0px) + 150px);
     background-image: url("../2d/introMobile.jpg");
   }
+  #introBar,
+  #introBoy {
+    display: none;
+  }
   .start-banner__cta {
     font-size: 13px;
     padding: 12px 65px;
@@ -542,7 +615,9 @@ canvas {
 .hud-card--right .hud-card__icon {
   background-image: url("../2d/Lives.png");
 }
-#coinBanner, .coin-banner__title, .coin-banner__points-value {
+#coinBanner,
+.coin-banner__title,
+.coin-banner__points-value {
   font-family: "Futura-ExtraBoldItalic", "Arial Black", Arial, sans-serif;
 }
 
