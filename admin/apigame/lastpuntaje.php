@@ -33,9 +33,10 @@ $stmtUser = $conexion->prepare("
         ug.id_user_game,
         ug.avatar,
         ug.nickname,
-        COALESCE(SUM(p.puntaje), 0) AS total_puntaje
-    FROM users_game ug
+        COALESCE(SUM(CASE WHEN f.estado <> 3 THEN p.puntaje ELSE 0 END), 0) AS total_puntaje
+    FROM users_game ug 
     LEFT JOIN puntajes p ON p.id_user_game = ug.id_user_game
+    LEFT JOIN facturas f ON f.id_factura = p.id_factura
     WHERE ug.id_user_game = ?
     GROUP BY ug.id_user_game
     LIMIT 1
@@ -86,13 +87,14 @@ $stmtRank = $conexion->prepare("
     FROM (
         SELECT 
             ug.id_user_game,
-            COALESCE(SUM(p.puntaje), 0) AS total_puntaje
+            COALESCE(SUM(CASE WHEN f.estado <> 3 THEN p.puntaje ELSE 0 END), 0) AS total_puntaje
         FROM users_game ug
         LEFT JOIN puntajes p ON p.id_user_game = ug.id_user_game
+        LEFT JOIN facturas f ON f.id_factura = p.id_factura
         GROUP BY ug.id_user_game
     ) AS resumen
     WHERE total_puntaje > ?
-       OR (total_puntaje = ? AND id_user_game < ?)
+        OR (total_puntaje = ? AND id_user_game < ?)
 ");
 
 if ($stmtRank === false) {

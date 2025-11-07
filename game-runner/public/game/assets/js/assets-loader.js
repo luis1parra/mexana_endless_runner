@@ -33,35 +33,35 @@ async function __runAssetPipeline() {
   window.IS_MOBILE_ENV = IS_MOBILE_ENV;
 
   const COIN_FBX_URLS = [
-    "assets/3d/deodorantBottleAven.fbx",
-    "assets/3d/deodorantBottleClassic.fbx",
-    "assets/3d/deodorantBottleLady.fbx",
+    // "assets/3d/deodorantBottleAven.fbx",
+    // "assets/3d/deodorantBottleClassic.fbx",
+    // "assets/3d/deodorantBottleLady.fbx",
     "assets/3d/deodorantSprayAven.fbx",
-    "assets/3d/deodorantSprayClassic.fbx",
-    "assets/3d/deodorantSprayLady.fbx",
-    "assets/3d/deodorantSprayUltra.fbx",
+    // "assets/3d/deodorantSprayClassic.fbx",
+    // "assets/3d/deodorantSprayLady.fbx",
+    // "assets/3d/deodorantSprayUltra.fbx",
   ];
 
   const OBSTACLE_FBX_URLS = ["assets/3d/obstacleCar.fbx", "assets/3d/obstacleTrafficCone.fbx", "assets/3d/obstacleBarrier.fbx"];
 
   const COIN_SCORE_MAP = {
-    "deodorantbottleaven.fbx": 1,
-    "deodorantbottleclassic.fbx": 2,
-    "deodorantbottlelady.fbx": 3,
+    // "deodorantbottleaven.fbx": 1,
+    // "deodorantbottleclassic.fbx": 2,
+    // "deodorantbottlelady.fbx": 3,
     "deodorantsprayaven.fbx": 4,
-    "deodorantsprayclassic.fbx": 5,
-    "deodorantspraylady.fbx": 6,
-    "deodorantsprayultra.fbx": 7,
+    // "deodorantsprayclassic.fbx": 5,
+    // "deodorantspraylady.fbx": 6,
+    // "deodorantsprayultra.fbx": 7,
   };
 
   const COIN_LABEL_MAP = {
-    "deodorantbottleaven.fbx": "Mexsana Avena",
-    "deodorantbottleclassic.fbx": "Mexsana Classic",
-    "deodorantbottlelady.fbx": "Mexsana Lady",
+    // "deodorantbottleaven.fbx": "Mexsana Avena",
+    // "deodorantbottleclassic.fbx": "Mexsana Classic",
+    // "deodorantbottlelady.fbx": "Mexsana Lady",
     "deodorantsprayaven.fbx": "Mexsana Spray Avena",
-    "deodorantsprayclassic.fbx": "Mexsana Spray Classic",
-    "deodorantspraylady.fbx": "Mexsana Spray Lady",
-    "deodorantsprayultra.fbx": "Mexsana Ultra",
+    // "deodorantsprayclassic.fbx": "Mexsana Spray Classic",
+    // "deodorantspraylady.fbx": "Mexsana Spray Lady",
+    // "deodorantsprayultra.fbx": "Mexsana Ultra",
   };
 
   const OBSTACLE_SCALE_MAP = {
@@ -74,10 +74,29 @@ async function __runAssetPipeline() {
     "citylamppost.fbx": Math.PI / 2,
   };
 
-  const CITY_DECOR_FBX_URLS = ["assets/3d/cityBusStop1.fbx", "assets/3d/cityBusStop2.fbx", "assets/3d/cityLampPost.fbx", "assets/3d/cityTree.fbx"];
-  const CITY_BUILDING_FBX_URLS = ["assets/3d/buildingBlue.fbx", "assets/3d/buildingOrange.fbx", "assets/3d/buildingYellow.fbx", "assets/3d/buildingRed.fbx"];
-    const PLAYER_VARIANT = (window.PLAYER_VARIANT || "boy").toLowerCase() === "girl" ? "girl" : "boy";
+  const CITY_DECOR_FBX_URLS = [
+    "assets/3d/cityBusStop1.fbx", 
+    "assets/3d/cityBusStop2.fbx", 
+    "assets/3d/cityLampPost.fbx", 
+    "assets/3d/cityTree.fbx"
+  ];
+
+  const CITY_DECOR_SCALE_MAP = {
+    "citybusstop1.fbx": 1,
+    "citybusstop2.fbx": 0.01,
+    "citylamppost.fbx": 1,
+    "citytree.fbx": 1,
+  };
+
+  const CITY_BUILDING_FBX_URLS = [
+    "assets/3d/buildingBlue.fbx", 
+    "assets/3d/buildingOrange.fbx", 
+    "assets/3d/buildingYellow.fbx", 
+    "assets/3d/buildingRed.fbx"
+  ];
   
+  const PLAYER_VARIANT = (window.PLAYER_VARIANT || "boy").toLowerCase() === "girl" ? "girl" : "boy";
+
   window.PLAYER_VARIANT_RESOLVED = PLAYER_VARIANT;
 
   const PLAYER_MODEL_URLS = {
@@ -173,7 +192,6 @@ async function __runAssetPipeline() {
   const playerTextureLoader = new THREE.TextureLoader(manager);
   let cachedPlayerTexture = null;
 
-
   // Transforms comunes (ajústalos a tus modelos si quieres)
   function applyCommonTransforms(obj, kind /* 'coin' | 'obstacle' | 'city' | 'player' */, resourceUrl = "") {
     obj.traverse((o) => {
@@ -223,14 +241,12 @@ async function __runAssetPipeline() {
       }
       obj.rotation.y = Math.PI;
       obj.userData.defaultRotationY = obj.rotation.y;
-
-           
-        } else if (kind === "street") {
+    } else if (kind === "street") {
       const initialBox = new THREE.Box3().setFromObject(obj);
       const initialSize = initialBox.getSize(new THREE.Vector3());
       const targetLength = 13;
       const baseLength = initialSize.z || targetLength;
-      const scaleFactor = targetLength / baseLength;
+      const scaleFactor = targetLength / baseLength;     
       obj.scale.multiplyScalar(scaleFactor);
       obj.updateMatrixWorld(true);
       const bbox = new THREE.Box3().setFromObject(obj);
@@ -313,6 +329,11 @@ async function __runAssetPipeline() {
         }
         if (decorKey && decorKey in CITY_DECOR_ROTATION_MAP) {
           obj.rotation.y = CITY_DECOR_ROTATION_MAP[decorKey];
+        }
+        console.log("resourceUrl", lower, decorKey, CITY_DECOR_SCALE_MAP[decorKey]);
+        if (decorKey && decorKey in CITY_DECOR_SCALE_MAP) {
+          console.log("resourceUrl", lower, decorKey, CITY_DECOR_SCALE_MAP[decorKey]);
+          obj.scale.multiplyScalar(CITY_DECOR_SCALE_MAP[decorKey]);
         }
         obj.userData.cityKey = decorKey || null;
         obj.userData.defaultRotationY = obj.rotation?.y ?? 0;

@@ -221,33 +221,35 @@ export default function JuegoPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#0B1E52]">
       <main className="flex mx-auto w-full flex-1 px-2 py-6 lg:px-10 lg:py-16">
-        <section className="relative w-full rounded-[24px] bg-white bg-[url('../assets/images/juegobackground_mobile.png')] bg-cover bg-center bg-no-repeat px-3 py-12 pt-2 text-white lg:bg-[url('../assets/images/gamedinamicbackground.png')] md:px-8 lg:rounded-[48px] lg:px-12">
+        <section className="relative w-full rounded-[24px] bg-white bg-[url('../assets/images/juegobackground_mobile.png')] bg-cover bg-center bg-no-repeat px-3 py-12 pt-2 text-white md:bg-[url('../assets/images/gamedinamicbackground.png')] md:px-8 lg:rounded-[48px] lg:px-12">
           <div className="relative z-10 w-full justify-center px-0">
             <div className="flex w-full flex-col my-1">
               {/* <div className="flex items-center justify-center text-3xl font-black text-white drop-shadow-lg md:text-4xl"> */}
-              <div className="w-1/5 min-w-[130px] max-w-[550px] absolute left-1/2 -top-3 transform -translate-x-1/2 bg-white px-8 py-2 rounded-b-[50px] lg:px-10">
+              <div className="w-1/5 min-w-[130px] max-w-[550px] absolute left-1/2 -top-7 transform -translate-x-1/2 bg-white px-8 py-2 rounded-b-[50px] lg:px-10">
                 <Image src={logo} alt="Mexsana" />
               </div>
 
-               <section className="relative top-10 bg-white/0 relative mt-10 flex flex-1 flex-col md:flex-row md:items-center lg:gap-16">
-                <div className="bg-red-400/0 relative hidden flex-col items-center text-center md:w-[40%] md:flex">
-                  <span className="text-lg font-semibold text-white/85">{activeAvatar.label}</span>
+               <section className="relative top-10 bg-white/0 relative mt-6 flex flex-1 flex-col md:flex-row md:items-center lg:mt-10 lg:gap-16">
+                <div className="bg-red-400/0 relative hidden flex-col items-center text-center md:w-[40%] md:flex md:my-0">
+                  <span className="text-[22px] font-bold text-white">{activeAvatar.label}</span>
                   <div className="relative mt-8 w-full">
                     <Image
                       src={activeAvatar.image}
                       alt={activeAvatar.label}
-                      className="w-full object-contain drop-shadow-[0_25px_45px_rgba(5,21,76,0.48)]"
-                      sizes="(max-width: 1024px) 80vw, 360px"
-                      priority
+                      className="w-auto h-auto object-contain drop-shadow-[0_25px_45px_rgba(5,21,76,0.48)]"
                     />
                   </div>
                 </div>
 
-                <div className="relative mt-10 flex flex-1 flex-col gap-8 lg:mt-0">
+                <div className="relative mt-1 flex flex-1 flex-col gap-8 lg:mt-0">
                   <div>
-                    <p className="text-xl font-semibold text-white/90">¡Hola {nickname || fallbackNickname}!</p>
-                    <h1 className="mt-3 text-[48px] font-black leading-[1.05] md:text-[56px] lg:text-[64px]">Escoge tu avatar Favorito</h1>
-                    <p className="mt-5 w-full text-base leading-relaxed text-white/85 md:text-lg">
+                    <h3 className="text-[20px] font-bold text-white/90 md:text-[22px]">
+                      ¡Hola {nickname || fallbackNickname}!
+                    </h3>
+                    <h1 className="mt-2 text-[32px] font-extrabold italic leading-[1.05] text-white drop-shadow-md md:text-[52px]">
+                      Escoge tu avatar Favorito
+                    </h1>
+                    <p className="mt-5 w-full text-[17px] font-light text-white md:text-[20px]">
                       Selecciona tu avatar preferido y da inicio a la recolección de los Big Promos de Mexsana por toda la ciudad.
                     </p>
                   </div>
@@ -274,7 +276,7 @@ export default function JuegoPage() {
                   </div>
 
                   <div className="bg-blue-400/0 relative flex flex-col items-center text-center max-w-[300px] self-center md:w-[40%] md:hidden">
-                    <span className="text-lg font-semibold text-white/85">{activeAvatar.label}</span>
+                    <span className="text-[20px] font-bold text-white">{activeAvatar.label}</span>
                     <div className="relative mt-4 w-full">
                       <Image
                         src={activeAvatar.image}
@@ -287,9 +289,9 @@ export default function JuegoPage() {
                   </div>
 
                   <div className="flex flex-col gap-6">
-                    <div className="flex items-start gap-3 rounded-[32px] bg-white/90 px-6 py-5 text-[#11308F] shadow-[0_25px_45px_rgba(11,37,117,0.28)]">
+                    <div className="flex items-start gap-3 rounded-[32px] bg-white/90 px-6 py-5 text-[var(--cpdblue)] shadow-[0_25px_45px_rgba(11,37,117,0.28)] lg:w-7/8">
                       <span className="pt-2"><Info /></span>
-                      <p className="text-sm leading-relaxed md:text-base">
+                      <p className="text-[15px] font-medium leading-relaxed md:text-[15px]">
                         Nota: Una vez que ingreses a la partida, no podrás salir del juego. Si lo haces, perderás la oportunidad de jugar y tendrás que ingresar una nueva factura.
                       </p>
                     </div>

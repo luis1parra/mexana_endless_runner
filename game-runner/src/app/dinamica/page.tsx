@@ -72,7 +72,7 @@ export default function DinamicaPage() {
               <h3 className="text-[20px] font-bold text-white/90 md:text-[22px]">
                 Dinámica para jugar
               </h3>
-              <h1 className="mt-2 text-[32px] font-black italic leading-[1.05] tracking-tight text-white drop-shadow-md md:text-[52px]">
+              <h1 className="mt-2 text-[32px] font-extrabold italic leading-[1.05] tracking-tight text-white drop-shadow-md md:text-[52px]">
                 Así de fácil es jugar
               </h1>
 
