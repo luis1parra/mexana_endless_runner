@@ -22,6 +22,7 @@ body.hit-flash::after {
   top: 0;
   left: 0;
   width: 100%;
+  height: 100dvh;
   padding: 0;
   color: #fff;
   font-family: Arial, sans-serif;
@@ -145,7 +146,6 @@ body.hit-flash::after {
   z-index: 200;
 }
 #startScreen {
-  background: transparent;
   backdrop-filter: none;
   justify-content: flex-start;
   padding-top: calc(env(safe-area-inset-top, 0px) + 72px);
@@ -157,7 +157,6 @@ body.hit-flash::after {
   background-position: center;
 }
 #introBar {
-  background-color: transparent;
   width: 100dvw;
   position: fixed;
   top: 0;
@@ -165,7 +164,6 @@ body.hit-flash::after {
   align-items: center;
   justify-content: space-between;
   span {
-    background-color: transparent;
     padding: 2rem;
     max-width: 20vw;
     min-width: 300px;
@@ -551,7 +549,6 @@ body.hit-flash::after {
 }
 @media (max-width: 1280px) {
   .start-banner {
-    background-color: transparent;
     width: min(80vw, 420px);
     padding: 16px 4px;
     border-radius: 36px;
