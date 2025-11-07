@@ -8,7 +8,7 @@ export default function NotAllowed() {
   return (
     <div className="flex min-h-screen flex-col bg-white text-white">
       <main className="flex mx-auto w-full flex-1 flex-col px-3 py-10 md:px-10">
-        <section className="w-full min-h-[calc(100vw*(1258/662))] sm:min-h-0 bg-white bg-[url('../assets/images/403background_mobile.png')] sm:bg-[url('../assets/images/403background.png')] bg-cover bg-no-repeat bg-center relative rounded-[24px] px-3 py-12 pt-2 text-white md:px-8 lg:px-12 lg:rounded-[48px]">
+        <section className="w-full min-h-[calc(100vw*(561/331))] sm:flex-1 sm:min-h-full h-full bg-white bg-[url('../assets/images/403background_mobile.png')] sm:bg-[url('../assets/images/403background.png')] bg-cover bg-no-repeat bg-center relative rounded-[24px] px-3 py-12 pt-2 text-white md:px-8 lg:px-12 lg:rounded-[48px]">
         
           <Header activeHref={undefined} />
           
