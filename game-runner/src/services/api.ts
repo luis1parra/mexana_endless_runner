@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { BASIC_AUTH_TOKEN, REMOTE_API_BASE_URL } from "./config";
 
@@ -15,10 +15,7 @@ type RequestOptions = {
   signal?: AbortSignal;
 };
 
-async function request<TResponse>(
-  endpoint: string,
-  { method = "POST", body, signal }: RequestOptions = {},
-): Promise<TResponse> {
+async function request<TResponse>(endpoint: string, { method = "POST", body, signal }: RequestOptions = {}): Promise<TResponse> {
   const response = await fetch(`${REMOTE_API_BASE_URL}${endpoint}`, {
     method,
     headers: (() => {
@@ -46,9 +43,7 @@ async function request<TResponse>(
     if (parsedMessage) {
       throw new Error(parsedMessage);
     }
-    throw new Error(
-      `Error ${response.status} al consumir ${endpoint}: ${errorText}`,
-    );
+    throw new Error(`Error ${response.status} al consumir ${endpoint}: ${errorText}`);
   }
   const contentType = response.headers.get("content-type") ?? "";
   if (contentType.includes("application/json")) {
@@ -56,7 +51,7 @@ async function request<TResponse>(
   }
 
   // If the API does not return JSON, fallback to text response.
-  return (await response.text()) as unknown as TResponse;
+  return ((await response.text()) as unknown) as TResponse;
 }
 
 export type RegistrationPayload = {
@@ -140,12 +135,9 @@ export type ScorePayload = {
 };
 
 export const api = {
-  register: (payload: RegistrationPayload) =>
-    request<ApiSessionResponse>("registro.php", { body: payload }),
-  login: (payload: LoginPayload) =>
-    request<ApiSessionResponse>("login.php", { body: payload }),
-  submitScore: (payload: ScorePayload, signal?: AbortSignal) =>
-    request("recpuntaje.php", { body: payload, signal }),
+  register: (payload: RegistrationPayload) => request<ApiSessionResponse>("registro.php", { body: payload }),
+  login: (payload: LoginPayload) => request<ApiSessionResponse>("login.php", { body: payload }),
+  submitScore: (payload: ScorePayload, signal?: AbortSignal) => request("recpuntaje.php", { body: payload, signal }),
   fetchRanking: (params?: { n?: number; id_user_game?: string | number }) => {
     const q = new URLSearchParams();
     if (params?.n != null) q.set("n", String(params.n));
@@ -159,13 +151,6 @@ export const api = {
     if (params?.id_factura != null) body.id_factura = String(params.id_factura);
     return request<LastScoreResponse>("lastpuntaje.php", { body });
   },
-  updateAvatar: (payload: UpdateAvatarPayload) =>
-    request<UpdateAvatarResponse>("updateavatar.php", { body: payload }),
+  updateAvatar: (payload: UpdateAvatarPayload) => request<UpdateAvatarResponse>("updateavatar.php", { body: payload }),
+  checkRechazo: (payload: { id_factura: number; id_user_game: number }) => request("checkrechazo.php", { body: payload }),
 };
-
-
-
-
-
-
-

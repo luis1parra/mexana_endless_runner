@@ -30,7 +30,7 @@
     typeof window !== "undefined" && Number.isFinite(Number(window.SPEED_MULTIPLIER))
       ? Math.max(0.1, Number(window.SPEED_MULTIPLIER))
       : 1;
-  const BASE_SPEED = 0.01 * SPEED_MULTIPLIER;
+  const BASE_SPEED = 0.05 * SPEED_MULTIPLIER;//0.01
   const MAX_SPEED = 0.05 * SPEED_MULTIPLIER;
   const SPEED_ACCELERATION = 0.0001 * SPEED_MULTIPLIER;
   const ENABLE_TUTORIAL = typeof window !== "undefined" ? window.ENABLE_TUTORIAL !== false : true;
@@ -884,6 +884,7 @@
         const coin = coins[i];
         if (coin.rotation) coin.rotation.y += 0.1;
         coin.position.z += speed * 50;
+        // coin.position.z = 0;
         if (coin.position.z > 10) {
           recycleCoin(coin);
           continue;

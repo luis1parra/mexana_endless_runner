@@ -305,10 +305,12 @@ async function __runAssetPipeline() {
         const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
         materials.forEach((mat) => {
           if (mat && mat.color && mat.color.isColor) {
-            mat.color.offsetHSL(0, 0, 0.5);
+            mat.color.offsetHSL(0, 0, 0.35);
+            mat.color.setRGB(1, 1, 1);
+            mat.color.multiplyScalar(3);
           }
           if (mat && typeof mat.emissiveIntensity === "number") {
-            mat.emissiveIntensity = (mat.emissiveIntensity || 0) + 0.35;
+            //mat.emissiveIntensity = (mat.emissiveIntensity || 0) + 0.35;
           }
         });
       });
@@ -348,6 +350,25 @@ async function __runAssetPipeline() {
       const bbox = new THREE.Box3().setFromObject(obj);
       const size = bbox.getSize(new THREE.Vector3());
       obj.userData.buildingDepth = size.z || 14;
+      obj.traverse((child) => {
+        console.log("city_", obj, obj.userData.hudSubtitle);
+        
+        const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
+        // materials.forEach((mat) => {
+        //   if (mat && mat.color && mat.color.isColor) {
+        //     // mat.color.setHSL(0, 0, 0);
+        //     // mat.color.setRGB(1, 1, 1);
+        //     mat.color.offsetHSL(0, 0, -0.35);
+        //     mat.color.multiplyScalar(10);
+            
+            
+        //   }
+        //   if (mat && typeof mat.emissiveIntensity === "number") {
+        //     //mat.emissiveIntensity = (mat.emissiveIntensity || 0) + 0.35;
+        //     mat.emissiveIntensity = -1;
+        //   }
+        // });
+      });
     }
   }
 
