@@ -35,12 +35,26 @@ const avatars: Record<AvatarKey, AvatarInfo> = {
 
 const fallbackNickname = "Jugador Mexsana";
 
+const normalizeNumericId = (value: string | number | null): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value.trim());
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+};
+
 export default function JuegoPage() {
   const [nickname, setNickname] = useState(fallbackNickname);
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarKey>("boy");
   const [showGame, setShowGame] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sessionIdUserGame, setSessionIdUserGame] = useState<string | number | null>(null);
+  const [sessionInvoiceId, setSessionInvoiceId] = useState<string | number | null>(null);
   const [isStartingGame, setIsStartingGame] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const [tutorialQS, setTutorialQS] = useState<string | null>(null);
@@ -63,6 +77,7 @@ export default function JuegoPage() {
         avatar?: unknown;
         avatar_preference?: unknown;
         id_user_game?: unknown;
+        id_factura?: unknown;
       };
 
       if (typeof parsed.nickname === "string" && parsed.nickname.trim().length > 0) {
@@ -81,6 +96,10 @@ export default function JuegoPage() {
 
       if (typeof parsed.id_user_game === "string" || typeof parsed.id_user_game === "number") {
         setSessionIdUserGame(parsed.id_user_game);
+      }
+
+      if (typeof parsed.id_factura === "string" || typeof parsed.id_factura === "number") {
+        setSessionInvoiceId(parsed.id_factura);
       }
     } catch {
       // Ignoramos errores de lectura/parseo del storage.
@@ -135,6 +154,46 @@ export default function JuegoPage() {
     }
   }, [selectedAvatar]);
 
+  // Poll rejection status every 5s while the iframe is active.
+  useEffect(() => {
+    if (!showGame) {
+      return;
+    }
+
+    const idUserGame = normalizeNumericId(sessionIdUserGame);
+    const invoiceId = normalizeNumericId(sessionInvoiceId);
+
+    if (idUserGame === null || invoiceId === null) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkStatus = async () => {
+      try {
+        const response = await api.checkRechazo({
+          id_user_game: idUserGame,
+          id_factura: invoiceId,
+        });
+
+        if (!cancelled && typeof response === "object" && response !== null && (response as { rejected?: unknown }).rejected === true) {
+          setShowGame(false);
+          setIsModalOpen(true);
+        }
+      } catch {
+        // Silently ignore transient errors so the poll keeps running.
+      }
+    };
+
+    checkStatus();
+    const intervalId = setInterval(checkStatus, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+  }, [showGame, sessionIdUserGame, sessionInvoiceId]);
+
   const activeAvatar = useMemo(() => avatars[selectedAvatar], [selectedAvatar]);
   const selectedAvatarCode = selectedAvatar === "girl" ? "M" : "H";
 
@@ -151,10 +210,14 @@ export default function JuegoPage() {
       try {
         const rawSession = window.localStorage.getItem("session");
         if (rawSession) {
-          const parsed = JSON.parse(rawSession) as { id_user_game?: string | number };
+          const parsed = JSON.parse(rawSession) as { id_user_game?: string | number; id_factura?: string | number };
           if (parsed?.id_user_game !== undefined && parsed.id_user_game !== null && parsed.id_user_game !== "") {
             idUserGame = parsed.id_user_game;
             setSessionIdUserGame(parsed.id_user_game);
+          }
+
+          if (parsed?.id_factura !== undefined && parsed.id_factura !== null && parsed.id_factura !== "") {
+            setSessionInvoiceId(parsed.id_factura);
           }
         }
       } catch {

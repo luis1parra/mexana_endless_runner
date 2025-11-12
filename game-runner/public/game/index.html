@@ -193,16 +193,6 @@
     <script>
       (function () {
         try {
-          var path = location.pathname || "";
-          var idx = path.indexOf("/game/");
-          var basePath = idx > -1 ? path.slice(0, idx) : "";
-          window.__APP_CONFIG__ = window.__APP_CONFIG__ || {
-            basePath: basePath,
-            remoteApiBaseUrl: "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/",
-            basicAuthToken: "UHJlc3NzdGFydGV2b2x1dGlvbjpQcjNzdCQkMjAyNQ==",
-          };
-         
-          
           // Feature toggles para pruebas de memoria
           if (typeof window.LOAD_CITY_ASSETS === "undefined") {
             window.LOAD_CITY_ASSETS = true;

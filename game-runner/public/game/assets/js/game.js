@@ -7,6 +7,9 @@
   let scene, camera, renderer;
   let player, targetLane = 1;
   const obstacles = [], coins = [], lanes = [-2, 0, 2], buildings = [], floorSegments = [];
+  const COIN_OBSTACLE_Z_GAP = 8;
+  const COIN_OBSTACLE_LANE_TOLERANCE = 0.2;
+  const COIN_PLACEMENT_MAX_ATTEMPTS = 6;
   const buildingRows = { left: [], right: [] };
   const BUILDING_GRID = 0.5;
   const BUILDING_START = -5;
@@ -635,9 +638,9 @@
       }
       speed = targetSpeed;
       countdownRunning = false;
-      if (!rejectionActive) {
-        startRejectionPolling();
-      }
+      // if (!rejectionActive) {
+      //   startRejectionPolling();
+      // }
       if (typeof onComplete === "function") onComplete();
     };
 
@@ -1267,6 +1270,52 @@
     return lanes[Math.floor(Math.random() * lanes.length)];
   }
 
+  function laneHasObstacleConflict(laneX, targetZ) {
+    if (!obstacles.length) return false;
+    for (const obstacle of obstacles) {
+      const pos = obstacle?.position;
+      if (!pos) continue;
+      if (Math.abs(pos.x - laneX) > COIN_OBSTACLE_LANE_TOLERANCE) continue;
+      if (Math.abs(pos.z - targetZ) < COIN_OBSTACLE_Z_GAP) return true;
+    }
+    return false;
+  }
+
+  function leastBlockedLane(targetZ) {
+    if (!obstacles.length) return randomLaneX();
+    let bestLane = randomLaneX();
+    let bestScore = -Infinity;
+    for (const lane of lanes) {
+      let nearest = Infinity;
+      for (const obstacle of obstacles) {
+        const pos = obstacle?.position;
+        if (!pos) continue;
+        if (Math.abs(pos.x - lane) > COIN_OBSTACLE_LANE_TOLERANCE) continue;
+        const dz = Math.abs(pos.z - targetZ);
+        if (dz < nearest) nearest = dz;
+      }
+      const score = Number.isFinite(nearest) ? nearest : Infinity;
+      if (score > bestScore) {
+        bestScore = score;
+        bestLane = lane;
+      }
+    }
+    return bestLane;
+  }
+
+  function computeSafeCoinPlacement(targetZ) {
+    let z = targetZ;
+    for (let attempt = 0; attempt < COIN_PLACEMENT_MAX_ATTEMPTS; attempt++) {
+      const safeLanes = lanes.filter((lane) => !laneHasObstacleConflict(lane, z));
+      if (safeLanes.length) {
+        const x = safeLanes[Math.floor(Math.random() * safeLanes.length)];
+        return { x, z };
+      }
+      z -= COIN_OBSTACLE_Z_GAP;
+    }
+    return { x: leastBlockedLane(z), z };
+  }
+
   function ensureUserData(node) {
     if (!node.userData || typeof node.userData !== "object") {
       node.userData = {};
@@ -1544,7 +1593,8 @@
       const spacing = 18 + Math.random() * 20;
       cursor -= spacing;
       const baseY = coin.userData?.baseY ?? 0.5;
-      coin.position.set(randomLaneX(), baseY, cursor);
+      const placement = computeSafeCoinPlacement(cursor);
+      coin.position.set(placement.x, baseY, placement.z);
       if (coin.rotation) coin.rotation.set(0, 0, 0);
       scene.add(coin);
       coins.push(coin);
@@ -1574,9 +1624,10 @@
     if (!isFinite(farthestZ)) farthestZ = -20;
     const spacing = 18 + Math.random() * 20;
     const newZ = farthestZ - spacing;
-    coin.position.x = randomLaneX();
+    const placement = computeSafeCoinPlacement(newZ);
+    coin.position.x = placement.x;
     coin.position.y = coin.userData?.baseY ?? 0.5;
-    coin.position.z = newZ;
+    coin.position.z = placement.z;
     if (coin.rotation) coin.rotation.set(0, 0, 0);
   }
 
@@ -1958,95 +2009,95 @@
     }
   }
 
-  function startRejectionPolling() {
-    if (rejectionActive) return;
-    if (rejectionCheckInterval != null) return;
-    const session = getStoredSessionData();
-    let userId = toNumberOrZero(session?.id_user_game);
-    if (!userId && IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
-      userId = 13;
-    }
-    if (!userId) {
-      try {
-        console.log("[rejection] polling skipped: no id_user_game in session");
-      } catch (_) { }
-      return;
-    }
-    try {
-      console.log("[rejection] start polling", { userId });
-    } catch (_) { }
-    if (IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
-      setManagedTimeout(() => {
-        console.log("[rejection] local mock triggered");
-        handleFacturaRejection({ numero_factura: "LOCAL-TEST" });
-      }, 1000);
-      return;
-    }
-    rejectionCheckInterval = setManagedInterval(() => {
-      checkRejectionStatus().catch(() => { });
-    }, 5000);
-    checkRejectionStatus().catch(() => { });
-  }
+  // function startRejectionPolling() {
+  //   if (rejectionActive) return;
+  //   if (rejectionCheckInterval != null) return;
+  //   const session = getStoredSessionData();
+  //   let userId = toNumberOrZero(session?.id_user_game);
+  //   if (!userId && IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
+  //     userId = 13;
+  //   }
+  //   if (!userId) {
+  //     try {
+  //       console.log("[rejection] polling skipped: no id_user_game in session");
+  //     } catch (_) { }
+  //     return;
+  //   }
+  //   try {
+  //     console.log("[rejection] start polling", { userId });
+  //   } catch (_) { }
+  //   if (IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
+  //     setManagedTimeout(() => {
+  //       console.log("[rejection] local mock triggered");
+  //       handleFacturaRejection({ numero_factura: "LOCAL-TEST" });
+  //     }, 1000);
+  //     return;
+  //   }
+  //   rejectionCheckInterval = setManagedInterval(() => {
+  //     checkRejectionStatus().catch(() => { });
+  //   }, 5000);
+  //   checkRejectionStatus().catch(() => { });
+  // }
 
-  async function checkRejectionStatus() {
-    if (rejectionActive) return;
-    if (rejectionRequestInFlight) return;
-    const session = getStoredSessionData();
-    let userId = toNumberOrZero(session?.id_user_game);
-    if (!userId && IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
-      userId = 13;
-    }
-    if (!userId) {
-      try {
-        console.log("[rejection] request skipped: no id_user_game in session");
-      } catch (_) { }
-      return;
-    }
+  // async function checkRejectionStatus() {
+  //   if (rejectionActive) return;
+  //   if (rejectionRequestInFlight) return;
+  //   const session = getStoredSessionData();
+  //   let userId = toNumberOrZero(session?.id_user_game);
+  //   if (!userId && IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
+  //     userId = 13;
+  //   }
+  //   if (!userId) {
+  //     try {
+  //       console.log("[rejection] request skipped: no id_user_game in session");
+  //     } catch (_) { }
+  //     return;
+  //   }
 
-    const facturaId = toNumberOrZero(session?.id_factura);
-    const payload = { id_user_game: userId };
-    if (facturaId > 0) {
-      payload.id_factura = facturaId;
-    }
+  //   const facturaId = toNumberOrZero(session?.id_factura);
+  //   const payload = { id_user_game: userId };
+  //   if (facturaId > 0) {
+  //     payload.id_factura = facturaId;
+  //   }
 
-    rejectionRequestInFlight = (async () => {
-      try {
-        try {
-          console.log("[rejection] polling", {
-            endpoint: REJECTION_ENDPOINT,
-            timestamp: new Date().toISOString(),
-            payload,
-          });
-        } catch (_) { }
-        const response = await fetch(REJECTION_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${BASIC_AUTH_TOKEN}`,
-          },
-          body: JSON.stringify(payload),
-          credentials: "include",
-          cache: "no-store",
-          keepalive: true,
-        });
+  //   rejectionRequestInFlight = (async () => {
+  //     try {
+  //       try {
+  //         console.log("[rejection] polling", {
+  //           endpoint: REJECTION_ENDPOINT,
+  //           timestamp: new Date().toISOString(),
+  //           payload,
+  //         });
+  //       } catch (_) { }
+  //       const response = await fetch(REJECTION_ENDPOINT, {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Basic ${BASIC_AUTH_TOKEN}`,
+  //         },
+  //         body: JSON.stringify(payload),
+  //         credentials: "include",
+  //         cache: "no-store",
+  //         keepalive: true,
+  //       });
 
-        if (!response.ok) {
-          return;
-        }
+  //       if (!response.ok) {
+  //         return;
+  //       }
 
-        const data = await response.json().catch(() => null);
-        if (data && data.rejected) {
-          handleFacturaRejection(data.factura || null);
-        }
-      } catch (error) {
-        try { console.warn("[rejection] poll failed", error); } catch (_) { }
-      } finally {
-        rejectionRequestInFlight = null;
-      }
-    })();
+  //       const data = await response.json().catch(() => null);
+  //       if (data && data.rejected) {
+  //         handleFacturaRejection(data.factura || null);
+  //       }
+  //     } catch (error) {
+  //       try { console.warn("[rejection] poll failed", error); } catch (_) { }
+  //     } finally {
+  //       rejectionRequestInFlight = null;
+  //     }
+  //   })();
 
-    return rejectionRequestInFlight;
-  }
+  //   return rejectionRequestInFlight;
+  // }
 
   function showRejectionOverlay(facturaInfo) {
     if (!rejectionPopupEl) return;

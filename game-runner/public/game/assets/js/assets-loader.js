@@ -351,10 +351,10 @@ async function __runAssetPipeline() {
       const size = bbox.getSize(new THREE.Vector3());
       obj.userData.buildingDepth = size.z || 14;
       obj.traverse((child) => {
-        console.log("city_", obj, obj.userData.hudSubtitle);
+        console.log("city_", obj, obj.userData.cityKey);
         
         const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
-        // materials.forEach((mat) => {
+        materials.forEach((mat) => {
         //   if (mat && mat.color && mat.color.isColor) {
         //     // mat.color.setHSL(0, 0, 0);
         //     // mat.color.setRGB(1, 1, 1);
@@ -363,11 +363,11 @@ async function __runAssetPipeline() {
             
             
         //   }
-        //   if (mat && typeof mat.emissiveIntensity === "number") {
-        //     //mat.emissiveIntensity = (mat.emissiveIntensity || 0) + 0.35;
-        //     mat.emissiveIntensity = -1;
-        //   }
-        // });
+          if (mat && typeof mat.emissiveIntensity === "number") {
+            //mat.emissiveIntensity = (mat.emissiveIntensity || 0) + 0.35;
+            mat.emissiveIntensity = 0.25;
+          }
+        });
       });
     }
   }
