@@ -65,3 +65,10 @@ $route['usuarios/crear']           = 'usuarios/form';
 $route['usuarios/editar/(:num)']   = 'usuarios/form/$1';
 
 $route['facturas/validar/(:num)'] = 'facturas/validar/$1';
+
+/**
+ * Vista local de la plantilla de correo "factura_rechazada".
+ * Solo disponible fuera de produccion para diseno/revision.
+ */
+$route['emails/assets/(.+)'] = 'emails/asset/$1';
+$route['emails/factura-rechazada-preview'] = 'emails/factura_rechazada_preview';

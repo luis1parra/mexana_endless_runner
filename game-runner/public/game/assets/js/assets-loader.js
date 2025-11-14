@@ -86,17 +86,17 @@ async function __runAssetPipeline() {
   ];
 
   const CITY_DECOR_SCALE_MAP = {
-    "citybusstop1.fbx": 1,
-    "citybusstop2.fbx": 0.01,
+    "citybusstop1.fbx": 0.01,
+    "citybusstop2.fbx": 0.9,
     "citylamppost.fbx": 1,
     "citytree.fbx": 1,
   };
 
   const CITY_BUILDING_FBX_URLS = [
-    "assets/3d/buildingBlue.fbx", 
-    "assets/3d/buildingOrange.fbx", 
+    // "assets/3d/buildingBlue.fbx", 
+    // "assets/3d/buildingOrange.fbx", 
     "assets/3d/buildingYellow.fbx", 
-    "assets/3d/buildingRed.fbx", 
+    // "assets/3d/buildingRed.fbx", 
   ];
   
   const PLAYER_VARIANT = (window.PLAYER_VARIANT || "boy").toLowerCase() === "girl" ? "girl" : "boy";
@@ -351,18 +351,27 @@ async function __runAssetPipeline() {
       const size = bbox.getSize(new THREE.Vector3());
       obj.userData.buildingDepth = size.z || 14;
       obj.traverse((child) => {
-        console.log("city_", obj, obj.userData.cityKey);
+        console.log("city_", obj, obj.userData.cityKey, child, child.material);
         
         const materials = child.material ? (Array.isArray(child.material) ? child.material : [child.material]) : [];
         materials.forEach((mat) => {
-        //   if (mat && mat.color && mat.color.isColor) {
-        //     // mat.color.setHSL(0, 0, 0);
-        //     // mat.color.setRGB(1, 1, 1);
-        //     mat.color.offsetHSL(0, 0, -0.35);
-        //     mat.color.multiplyScalar(10);
-            
-            
-        //   }
+          if (mat && mat.color && mat.color.isColor) {
+            // mat.color.setHSL(0, 0, 0);
+            //mat.color.setRGB(1, 1, 1);
+            // mat.color.offsetHSL(0, 0, -0.35);
+            //mat.color.multiplyScalar(2);
+            const sat = {
+              "blinn1": {norColor: true, satu: 2},
+              "blinn2": {norColor: true, satu: 2},
+              "tripo_mat_ab050b58": {norColor: true, satu: 2},
+              "Beige": {norColor: false, satu: 1.6},
+              "ventanas": {norColor: false, satu: 1.8},
+            };
+            if (sat[mat.name]) {
+              if(sat[mat.name].norColor) mat.color.setRGB(1, 1, 1);
+              mat.color.multiplyScalar(sat[mat.name].satu);
+            }
+          }
           if (mat && typeof mat.emissiveIntensity === "number") {
             //mat.emissiveIntensity = (mat.emissiveIntensity || 0) + 0.35;
             mat.emissiveIntensity = 0.25;

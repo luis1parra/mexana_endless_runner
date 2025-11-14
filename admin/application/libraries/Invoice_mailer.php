@@ -105,6 +105,8 @@ class Invoice_mailer
             'cta_url'           => $context['cta_url'] ?? ($publicUrl . '/game-runner/'),
             'cta_text'          => $context['cta_text'] ?? 'Ingresar factura',
             'header_src'        => isset($assets['header']) ? 'cid:' . $assets['header']['cid'] : '',
+            'tittle_src'        => isset($assets['tittle']) ? 'cid:' . $assets['tittle']['cid'] : '',
+            'body_src'          => isset($assets['body']) ? 'cid:' . $assets['body']['cid'] : '',
             'footer_mexana_src' => isset($assets['footer_mexana']) ? 'cid:' . $assets['footer_mexana']['cid'] : '',
             'footer_connect_src'=> isset($assets['footer_connect']) ? 'cid:' . $assets['footer_connect']['cid'] : '',
             'footer_fb_src'     => isset($assets['footer_facebook']) ? 'cid:' . $assets['footer_facebook']['cid'] : '',
@@ -149,11 +151,13 @@ class Invoice_mailer
     protected function prepare_assets(): array
     {
         $files = [
-            'header' => ['email_header.png', 'image/png'],
-            'footer_mexana'    => ['footer_mexana.png', 'image/png'],
-            'footer_connect'   => ['footer_conectate.png', 'image/png'],
-            'footer_facebook'  => ['footer_facebook.png', 'image/png'],
-            'footer_instagram' => ['footer_instagram.png', 'image/png'],
+            'header'            => ['email_header.png', 'image/png'],
+            'tittle'            => ['email_tittle.png', 'image/png'],
+            'body'              => ['email_body.png', 'image/png'],
+            'footer_mexana'     => ['footer_mexana.png', 'image/png'],
+            'footer_connect'    => ['footer_conectate.png', 'image/png'],
+            'footer_facebook'   => ['footer_facebook.png', 'image/png'],
+            'footer_instagram'  => ['footer_instagram.png', 'image/png'],
         ];
 
         $assets = [];

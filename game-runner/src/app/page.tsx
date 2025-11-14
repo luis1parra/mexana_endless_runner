@@ -23,7 +23,7 @@ export default function Home() {
 
           <div className="relative top-0 bottom-0 my-14 grid items-center gap-14 lg:grid-cols-12 lg:my-18">
             <div className="md:col-span-9 xl:col-span-6">
-              <h2 className="text-[30px] font-extrabold italic leading-[1.05] text-white drop-shadow-md md:text-[56px] lg:text-[50px]">
+              <h2 className="text-[30px] font-extrabold leading-[1.05] text-white drop-shadow-md md:text-[56px] lg:text-[50px]">
                 FRESH GAME
               </h2>
               <p className="mt-4 text-[17px] font-light leading-[1.2] text-white/85 md:text-[20px]">
