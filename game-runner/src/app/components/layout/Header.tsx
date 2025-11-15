@@ -120,9 +120,13 @@ export function Header({
           "w-full h-auto"
         )
       }
-      <div className="absolute w-full min-w-[390px] max-w-[1000px] -z-1 -top-2 left-1/2 transform -translate-x-1/2 flex justify-center ">
-        <Rec className="w-full h-auto"/>
-      </div>
+      {
+        activeHref !== "/terminos" &&
+          <div className="absolute w-full min-w-[390px] max-w-[1000px] -z-1 -top-2 left-1/2 transform -translate-x-1/2 flex justify-center ">
+            <Rec className="w-full h-auto"/>
+          </div>
+      }
+      
       <div className="flex items-center justify-between lg:hidden">
         <button
           type="button"

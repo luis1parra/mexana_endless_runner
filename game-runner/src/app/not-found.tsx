@@ -6,7 +6,7 @@ import { Footer } from "./components/layout/Footer";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-white overflow-x-hidden">
+    <div className="flex min-h-screen flex-col bg-white overflow-x-hidden">
       <main className="flex mx-auto w-full flex-1 flex-col px-3 py-10 md:px-10">
         <section className="w-full 
                             min-h-[calc(100vw*(404/239))] 

@@ -364,7 +364,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
               </ul>
             )}
           </div>
-          <label className="cursor-pointer flex items-start gap-3 text-[11px] text-black">
+          <label className="cursor-pointer flex items-center gap-3 text-[11px] text-black">
             <input
               type="checkbox"
               name="loginDataAuthorization"

@@ -117,13 +117,29 @@ export default function RankingPage() {
   const rightRanking = hasRanking ? uiRanking : fallbackRanking;
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#0B1E52]">
-      <main className="flex mx-auto w-full flex-1 px-2 py-6 lg:px-10 lg:py-16">
-        <section className="w-full h-[calc(110vw*(1750/662))] lg:h-auto rounded-[24px] bg-[url('../assets/images/rankingbackground_mobile.png')] bg-cover bg-center bg-no-repeat px-3 py-12 pt-2 text-white lg:bg-[url('../assets/images/gamedinamicbackground.png')] md:px-8 lg:rounded-[48px] lg:px-12">
+    <div className="flex min-h-screen flex-col bg-white overflow-x-hidden">
+      <main className="flex mx-auto w-full flex-1 flex-col px-3 py-10 md:px-10">
+        <section className="w-full 
+                            min-h-[calc(100vw*(1258/662))] 
+                            sm:flex-1 
+                            sm:min-h-full
+                            h-full
+                            bg-[url('../assets/images/rankingbackground_mobile.png')] 
+                            sm:bg-[url('../assets/images/gamedinamicbackground.png')]
+                            bg-cover 
+                            bg-no-repeat 
+                            bg-center 
+                            relative
+                            rounded-[24px] 
+                            px-3 
+                            py-12 
+                            pt-2 
+                            text-white 
+                            lg:px-8 
+                            lg:rounded-[48px] 
+                            ">
 
-          <Header
-            activeHref="/ranking"
-          />
+          <Header activeHref="/ranking" />
 
           {error && (
             <div className="mt-6 rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-[#FFD2D2]">

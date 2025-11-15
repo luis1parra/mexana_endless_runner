@@ -58,13 +58,30 @@ export default function DinamicaPage() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#0B1E52]">
-      <main className="flex mx-auto w-full flex-1 px-2 py-6 lg:px-10 lg:py-16">
-        <section className="w-full bg-white bg-[url('../assets/images/dinamicabackground_mobile.png')] sm:bg-[url('../assets/images/gamedinamicbackground.png')] bg-cover bg-no-repeat bg-center relative rounded-[24px] px-3 py-12 pt-2 text-white md:px-8 lg:px-12 lg:rounded-[48px]">
+    <div className="flex min-h-screen flex-col bg-white overflow-x-hidden">
+      <main className="flex mx-auto w-full flex-1 flex-col px-3 py-10 md:px-10">
+        <section className="w-full
+                            min-h-[calc(100vw*(1258/662))] 
+                            sm:flex-1 
+                            sm:min-h-full
+                            h-full
+                            bg-[url('../assets/images/dinamicabackground_mobile.png')] 
+                            sm:bg-[url('../assets/images/gamedinamicbackground.png')] 
+                            bg-cover 
+                            bg-no-repeat 
+                            bg-top
+                            sm:bg-center 
+                            relative 
+                            rounded-[24px] 
+                            px-3 
+                            py-12 
+                            pt-2 
+                            text-white 
+                            lg:px-8
+                            lg:rounded-[48px]
+                            ">
 
-          <Header
-            activeHref="/"
-          />
+          <Header activeHref="/dinamica" />
 
           <div className="relative w-full mt-0">
             
@@ -160,7 +177,7 @@ export default function DinamicaPage() {
                   </p>
                 </>
               ) : (
-                <div className="mt-12 px-[10%] grid gap-4 sm:grid-cols-3 sm:px-[0%] lg:px-[9.5%]">
+                <div className="mt-10 px-[10%] grid gap-4 sm:grid-cols-3 sm:px-[0%] lg:px-[9.5%]">
                   {prizes.map((prize) => (
                     <div
                         key={prize.number}

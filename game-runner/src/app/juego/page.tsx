@@ -7,7 +7,7 @@ import avatarBoy from "@/assets/images/avatarman.png";
 import avatarGirl from "@/assets/images/avatarwoman.png";
 import avatarBoyThumb from "@/assets/images/avatarman_tumb.png";
 import avatarGirlThumb from "@/assets/images/avatarwoman_tumb.png";
-import { Info } from "@/assets/icons";
+import { Info, Rec } from "@/assets/icons";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
 import type { ScorePayload } from "@/services/api";
@@ -282,14 +282,36 @@ export default function JuegoPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#0B1E52]">
-      <main className="flex mx-auto w-full flex-1 px-2 py-6 lg:px-10 lg:py-16">
-        <section className="relative w-full rounded-[24px] bg-white bg-[url('../assets/images/juegobackground_mobile.png')] bg-cover bg-center bg-no-repeat px-3 py-12 pt-2 text-white md:bg-[url('../assets/images/gamedinamicbackground.png')] md:px-8 lg:rounded-[48px] lg:px-12">
+    <div className="flex min-h-screen flex-col bg-white overflow-x-hidden">
+      <main className="flex mx-auto w-full flex-1 flex-col px-3 py-10 md:px-10">
+        <section className="w-full 
+                            sm:flex-1 
+                            sm:min-h-full
+                            h-full
+                            bg-[url('../assets/images/juegobackground_mobile.png')] 
+                            sm:bg-[url('../assets/images/gamedinamicbackground.png')] 
+                            bg-cover
+                            bg-no-repeat
+                            bg-top
+                            sm:bg-center  
+                            relative
+                            rounded-[24px] 
+                            px-3 
+                            py-12 
+                            pt-2 
+                            text-white
+                            lg:px-8 
+                            lg:rounded-[48px]
+                            ">
+          
           <div className="relative z-10 w-full justify-center px-0">
-            <div className="flex w-full flex-col my-1">
-              {/* <div className="flex items-center justify-center text-3xl font-black text-white drop-shadow-lg md:text-4xl"> */}
-              <div className="w-1/5 min-w-[130px] max-w-[550px] absolute left-1/2 -top-7 transform -translate-x-1/2 bg-white px-8 py-2 rounded-b-[50px] lg:px-10">
+            <div className="flex w-full flex-col">
+
+              <div className="w-2/9 min-w-[100px] max-w-[230px] absolute z-10 left-1/2 -top-2 transform -translate-x-1/2 -translate-y-1/2 lg:min-w-[130px]">
                 <Image src={logo} alt="Mexsana" />
+              </div>
+              <div className="absolute w-full min-w-[390px] max-w-[1000px] -z-1 -top-2 left-1/2 transform -translate-x-1/2 flex justify-center ">
+                <Rec className="w-full h-auto"/>
               </div>
 
                <section className="relative top-10 bg-white/0 relative mt-6 flex flex-1 flex-col md:flex-row md:items-center lg:mt-10 lg:gap-16">

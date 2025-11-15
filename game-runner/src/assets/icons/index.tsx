@@ -162,6 +162,6 @@ export const Rec = (props: SVGProps<SVGSVGElement>) => (
         />
       </mask>
     </defs>
-    <rect width="331" height="28" fill="white" mask="url(#only-center)" />
+    <rect width="331" height="27" fill="white" mask="url(#only-center)" />
   </svg>
 );

@@ -1,11 +1,13 @@
 'use client';
 
-import Link from "next/link";
 import { useState } from "react";
+import Link from "next/link";
+import Image, { type StaticImageData } from "next/image";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { LoginModal } from "../components/modals/LoginModal";
 import { RegistrationModal } from "../components/modals/RegistrationModal";
+import children from "../assets/images/childrenhome.png"
 
 export default function Home() {
 
@@ -13,16 +15,38 @@ export default function Home() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#0B1E52]">
-      <main className="flex mx-auto w-full flex-1 px-2 py-6 lg:px-10 lg:py-16">
-        <section className="w-full min-h-[calc(100vw*(1258/662))] sm:min-h-0 bg-white bg-[url('../assets/images/homebackground_mobile.png')] sm:bg-[url('../assets/images/homebackground.png')] bg-cover bg-no-repeat bg-center relative rounded-[24px] px-3 py-12 pt-2 text-white md:px-8 lg:px-12 lg:rounded-[48px]">
+    <div className="flex min-h-screen flex-col bg-white overflow-x-hidden">
+      <main className="flex mx-auto w-full flex-1 flex-col px-3 py-10 md:px-10">
+        <section className="w-full 
+                            min-h-[calc(100vw*(1258/662))] 
+                            sm:flex-1 
+                            sm:min-h-full
+                            h-full
+                            bg-[url('../assets/images/homebackground_mobile.png')] 
+                            sm:bg-[url('../assets/images/homebackground.png')] 
+                            bg-cover 
+                            bg-no-repeat 
+                            bg-center 
+                            relative 
+                            rounded-[24px] 
+                            px-3 
+                            py-12 
+                            pt-2 
+                            text-white  
+                            lg:px-8
+                            lg:rounded-[48px]
+                            ">
 
-          <Header
-            activeHref="/"
+          <Header activeHref="/" />
+
+          <Image 
+            src={children} 
+            alt="children" 
+            className="hidden absolute w-7/10 h-auto max-h-9/10 object-contain right-6 bottom-0 sm:flex"
           />
 
-          <div className="relative top-0 bottom-0 my-14 grid items-center gap-14 lg:grid-cols-12 lg:my-18">
-            <div className="md:col-span-9 xl:col-span-6">
+          <div className="relative top-0 bottom-0 my-14 grid items-center gap-14 sm:grid-cols-12 lg:my-18 sm:px-6">
+            <div className="sm:col-span-9 xl:col-span-6">
               <h2 className="text-[30px] font-extrabold leading-[1.05] text-white drop-shadow-md md:text-[56px] lg:text-[50px]">
                 FRESH GAME
               </h2>
