@@ -46,7 +46,7 @@ export default function TerminosPage() {
               <h3 className="text-center text-[20px] font-semibold text-[var(--cplblue)] md:text-[22px]">
                 Términos y condiciones
               </h3>
-              <h1 className="text-center mt-2 text-[40px] md:text-[52px] lg:text-[56px] font-black italic leading-[1.1] tracking-tight text-[var(--cpdblue)] drop-shadow-md">
+              <h1 className="text-center mt-2 text-[40px] md:text-[52px] lg:text-[56px] font-black leading-[1.1] tracking-tight text-[var(--cpdblue)] drop-shadow-md">
                 Conoce los términos y condiciones de
                 <br />
                 Fresh Game

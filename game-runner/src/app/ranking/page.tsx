@@ -136,7 +136,7 @@ export default function RankingPage() {
               <h3 className="text-[20px] font-bold text-white/90 md:text-[22px]">
                 Ranking jugadores
               </h3>
-              <h1 className="mt-2 text-[32px] font-extrabold italic leading-[1.04] tracking-tight text-white drop-shadow-md md:text-[52px]">
+              <h1 className="mt-2 text-[32px] font-extrabold leading-[1.04] tracking-tight text-white drop-shadow-md md:text-[52px]">
                 Clasificación de Jugadores
               </h1>
             </div>
@@ -177,7 +177,7 @@ export default function RankingPage() {
                           style={{ width: `${Math.min(player.progress * 100, 100)}%` }}
                         />
                       </div>
-                      <div className="text-2xl ml-3 font-extrabold italic text-white">
+                      <div className="text-2xl ml-3 font-extrabold text-white">
                         {player.score.toLocaleString("es-CO", {
                           minimumFractionDigits: 0,
                         })}
@@ -214,7 +214,7 @@ export default function RankingPage() {
                             <div className="truncate text-[15px] text-center font-bold lg:text-[17px]">
                               {player.name}
                             </div>
-                            <div className="text-right text-[15px] font-extrabold italic lg:text-[17px]">
+                            <div className="text-right text-[15px] font-extrabold lg:text-[17px]">
                               {player.score.toLocaleString("es-CO", {
                                 minimumFractionDigits: 0,
                               })}

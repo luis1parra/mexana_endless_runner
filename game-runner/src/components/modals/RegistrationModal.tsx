@@ -407,7 +407,7 @@ export const RegistrationModal = ({ open, onClose }: RegistrationModalProps) => 
         >
           <CloseIcon className="h-6 w-6" />
         </button>
-        <h2 className="mt-6 text-center text-[20px] font-extrabold italic text-[var(--cpdblue)] md:text-[24px]">
+        <h2 className="mt-6 text-center text-[20px] font-extrabold text-[var(--cpdblue)] md:text-[24px]">
           Registrarse
         </h2>
         <form

@@ -309,7 +309,7 @@ export default function JuegoPage() {
                     <h3 className="text-[20px] font-bold text-white/90 md:text-[22px]">
                       ¡Hola {nickname || fallbackNickname}!
                     </h3>
-                    <h1 className="mt-2 text-[32px] font-extrabold italic leading-[1.05] text-white drop-shadow-md md:text-[52px]">
+                    <h1 className="mt-2 text-[32px] font-extrabold leading-[1.05] text-white drop-shadow-md md:text-[52px]">
                       Escoge tu avatar Favorito
                     </h1>
                     <p className="mt-5 w-full text-[17px] font-light text-white md:text-[20px]">

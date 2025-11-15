@@ -14,7 +14,7 @@ export default function NotAllowed() {
           
           <div className="relative z-10 flex h-full flex-col gap-12 px-8 py-15 md:px-12 md:py-0 lg:px-16">
             <div className="mt-8 flex flex-1 flex-col items-center justify-center text-center">
-              <h1 className="text-[115px] font-extrabold italic tracking-tight text-white md:text-[200px]">
+              <h1 className="text-[115px] font-extrabold tracking-tight text-white md:text-[200px]">
                 403
               </h1>
               <h2 className="mt-0 text-[25px] font-bold text-white/95 md:text-[40px]">

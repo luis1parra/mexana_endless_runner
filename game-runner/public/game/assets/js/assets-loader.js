@@ -93,10 +93,10 @@ async function __runAssetPipeline() {
   };
 
   const CITY_BUILDING_FBX_URLS = [
-    // "assets/3d/buildingBlue.fbx", 
-    // "assets/3d/buildingOrange.fbx", 
+    "assets/3d/buildingBlue.fbx", 
+    "assets/3d/buildingOrange.fbx", 
     "assets/3d/buildingYellow.fbx", 
-    // "assets/3d/buildingRed.fbx", 
+    "assets/3d/buildingRed.fbx", 
   ];
   
   const PLAYER_VARIANT = (window.PLAYER_VARIANT || "boy").toLowerCase() === "girl" ? "girl" : "boy";

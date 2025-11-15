@@ -113,17 +113,17 @@ export function Header({
   };
 
   return (
-    <nav className="z-200 relative text-sm font-semibold  text-white/80 lg:text-base">
+    <nav className="z-200 relative text-sm font-semibold text-white/80 lg:text-base">
       {
         renderLogo(
-          "w-1/5 min-w-[100px] max-w-[550px] absolute z-10 left-1/2 -top-6 transform -translate-x-1/2 rounded-b-[50px] lg:min-w-[130px] lg:-top-3 lg:bg-white lg:px-8 lg:py-2 lg:px-10",
+          "w-2/9 min-w-[100px] max-w-[230px] absolute z-10 left-1/2 -top-1/2 transform -translate-x-1/2 lg:min-w-[130px]",
           "w-full h-auto"
         )
       }
-      <div className="absolute w-[120%] -z-1 -top-2 left-1/2 transform -translate-x-1/2 flex justify-center md:hidden">
+      <div className="absolute w-full min-w-[390px] max-w-[1000px] -z-1 -top-2 left-1/2 transform -translate-x-1/2 flex justify-center ">
         <Rec className="w-full h-auto"/>
       </div>
-      <div className="flex items-center justify-between md:hidden">
+      <div className="flex items-center justify-between lg:hidden">
         <button
           type="button"
           onClick={toggleMenu}
@@ -136,7 +136,7 @@ export function Header({
         </button>
         <div>{renderLoginAction()}</div>
       </div>
-      <div className="hidden justify-between items-center md:flex">
+      <div className="hidden justify-between items-center lg:flex">
         <div className="flex flex-wrap items-center gap-6 xl:gap-12">
           {navLinks.map((link) => (
             <Link

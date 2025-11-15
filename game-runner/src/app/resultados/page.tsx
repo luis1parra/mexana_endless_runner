@@ -222,7 +222,7 @@ export default function ResultadosPage() {
             <div className="flex flex-col gap-8">
               <div className="hidden lg:block">
                 <h3 className="text-[22px] font-bold text-[var(--cpdblue)] md:text-[22px]">{score.nickname}</h3>
-                <h1 className="mt-2 text-[52px] font-black leading-[1] text-[var(--cpdblue)] italic drop-shadow-[0_10px_25px_rgba(19,55,180,0.35)] md:text-[52px]">
+                <h1 className="mt-2 text-[52px] font-black leading-[1] text-[var(--cpdblue)] drop-shadow-[0_10px_25px_rgba(19,55,180,0.35)] md:text-[52px]">
                   Tus resultados
                 </h1>
               </div>
@@ -232,7 +232,7 @@ export default function ResultadosPage() {
                   <div className="text-[16px] font-extrabold text-center tracking-wide text-white/90 lg:text-[]">
                     Puntuación
                   </div>
-                  <div className="mt-1 rounded-full bg-[var(--cpbarborder)] px-6 py-1 text-center text-[17px] font-extrabold italic text-[var(--cpdblue)] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px] sm:mt-4 sm:py-3">
+                  <div className="mt-1 rounded-full bg-[var(--cpbarborder)] px-6 py-1 text-center text-[17px] font-extrabold text-[var(--cpdblue)] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px] sm:mt-4 sm:py-3">
                     {formatPoints(score.score)}
                   </div>
                 </div>
@@ -241,7 +241,7 @@ export default function ResultadosPage() {
                   <div className="text-xl font-extrabold text-center tracking-wide text-white/90">
                     Nuevo récord
                   </div>
-                  <div className="mt-1 rounded-full bg-[var(--cpbarborder)] px-6 py-1 text-center text-[17px] font-extrabold italic text-[var(--cpdblue)] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px] sm:mt-4 sm:py-3">
+                  <div className="mt-1 rounded-full bg-[var(--cpbarborder)] px-6 py-1 text-center text-[17px] font-extrabold text-[var(--cpdblue)] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px] sm:mt-4 sm:py-3">
                     {formatPoints(score.record, { signed: true })}
                   </div>
                 </div>
