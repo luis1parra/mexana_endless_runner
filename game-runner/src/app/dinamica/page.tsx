@@ -123,8 +123,8 @@ export default function DinamicaPage() {
 
               {/* Steps */}
               {activeTab === "steps" ? (
-                <>
-                  <div className="mt-10 px-[10%] grid gap-4 sm:grid-cols-4 sm:px-[0%] lg:px-[3%]">
+                <div className="bg-black/0">
+                  <div className="mt-10 px-[10%] grid gap-4 sm:grid-cols-4 sm:px-[0%] lg:px-[10%]">
                     {steps.map((s) => (
                       <div
                         key={s.number}
@@ -136,38 +136,8 @@ export default function DinamicaPage() {
                           alt={`Paso ${s.number}`}
                           fill
                           className="object-contain"
-                          sizes="(max-width: 960px) 50vw, 20vw"
                           priority={s.number === 1}
                         />
-                        {/* <Image
-                          src={frameStep}
-                          alt="Marco decorativo paso"
-                          fill
-                          className="object-contain"
-                          sizes="(max-width: 960px) 50vw, 20vw"
-                          priority={s.number === 1}
-                        />
-                        <div className="relative z-10 flex h-full flex-col px-[10%] pt-[10%]">
-                          <div className="absolute top-0 left-0 flex h-18/100 w-19/100 items-center justify-center rounded-full text-[180%] font-semibold text-[var(--cpdblue)] shadow-md">
-                            {s.number}
-                          </div>
-                          <div className="bg-red-400 h-1/2 flex items-center justify-center">
-                            <div className="bg-red-700 relative h-full aspect-square">
-                              <Image
-                                src={s.image}
-                                alt={`Paso ${s.number}`}
-                                fill
-                                className="object-contain"
-                              />
-                            </div>
-                          </div>
-                          <div className="bg-blue-400 px-0 h-1/2">
-                            <p className="text-[clamp(8px,3vw,24px)] leading-[100%] font-base text-[var(--cpdblue)]">
-                              {s.text}
-                            </p>  
-                          </div>
-                          
-                        </div> */}
                       </div>
                     ))}
                   </div>
@@ -175,52 +145,31 @@ export default function DinamicaPage() {
                   <p className="mt-8 text-center text-[17px] text-white/95 font-light lg:text-[20px]">
                     Se mostrará en tiempo real el ranking de clasificación. Al final de la promo, quienes califiquen en los 3 primeros puestos serán los ganadores.
                   </p>
-                </>
-              ) : (
-                <div className="mt-10 px-[10%] grid gap-4 sm:grid-cols-3 sm:px-[0%] lg:px-[9.5%]">
-                  {prizes.map((prize) => (
-                    <div
-                        key={prize.number}
-                        style={{ aspectRatio: "529 / 561" }}
-                        className="relative text-[#0B1E52]"
-                      >
-                        <Image
-                          src={prize.image}
-                          alt={`Paso ${prize.number}`}
-                          fill
-                          className="object-contain"
-                          sizes="(max-width: 960px) 50vw, 20vw"
-                          priority={prize.number === 1}
-                        />
-                        {/* <Image
-                          src={frameStep}
-                          alt="Marco decorativo paso"
-                          fill
-                          className="object-contain"
-                          sizes="(max-width: 960px) 50vw, 20vw"
-                          priority={prize.number === 1}
-                        />
-                        <div className="relative z-10 flex h-full flex-col px-5 py-6">
-                          <div className="absolute top-0 left-0 flex h-17/100 w-18/100 items-center justify-center rounded-full text-lg font-bold text-[#0B1E52] shadow-md">
-                            {prize.number}
-                          </div>
-                          <div className="mb-4 mt-8 flex items-center justify-center gap-3">
-                            <div className="relative w-1/2 aspect-square">
-                              <Image
-                                src={prize.image}
-                                alt={`Premio ${prize.number}`}
-                                fill
-                                className="object-contain"
-                              />
-                            </div>
-                          </div>
-                          <p className="my-auto px-0 text-[3.5vw] sm:text-[2.2vw] sm:leading-[90%] font-semibold text-[#11308F] text-center">
-                            {prize.label}
-                          </p>
-                        </div> */}
-                      </div>
-                  ))}
                 </div>
+              ) : (
+                <div className="bg-black/0">
+                  <div className="mt-10 px-[10%] grid gap-4 sm:grid-cols-3 sm:px-[12.8%] lg:px-[20%]">
+                    {prizes.map((prize) => (
+                      <div
+                          key={prize.number}
+                          style={{ aspectRatio: "529 / 561" }}
+                          className="relative text-[var(--cpdblue)]"
+                        >
+                          <Image
+                            src={prize.image}
+                            alt={`Paso ${prize.number}`}
+                            fill
+                            className="object-contain"
+                            priority={prize.number === 1}
+                          />
+                        </div>
+                    ))}
+                  </div>
+
+                  <p className="mt-8 text-center text-[17px] text-white/0 font-light lg:text-[20px] hidden sm:block">
+                    Se mostrará en tiempo real el ranking de clasificación. Al final de la promo, quienes califiquen en los 3 primeros puestos serán los ganadores.
+                  </p>
+                </div>  
               )}
             </div>
           </div>

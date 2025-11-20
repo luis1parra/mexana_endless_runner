@@ -49,6 +49,8 @@
   let hitFlashTimeout = null;
   const HIT_FLASH_CLASS = "hit-flash";
   const clock = new THREE.Clock();
+  const TARGET_FRAME_RATE = 60;
+  const MAX_DELTA_SECONDS = 0.1;
   let mixer = null;
   let groundY = 0.5;
   let playerHalfHeight = 0.5;
@@ -114,15 +116,13 @@
     typeof window !== "undefined" ? window.LOAD_DECORATION !== false : true;
   const PLAYER_VARIANT =
     typeof window !== "undefined" ? window.PLAYER_VARIANT_RESOLVED || window.PLAYER_VARIANT || "boy" : "boy";
-  const IS_LOCAL_ENV = typeof window !== "undefined" && (/^localhost$|^127\.0\.0\.1$/.test(window.location.hostname));
-  const ENABLE_LOCAL_REJECTION_MOCK = typeof window !== "undefined" && window.LOCAL_REJECTION_MOCK === true;
+
   const managedEvents = [];
   const managedIntervals = new Set();
   const managedTimeouts = new Set();
   let rafHandle = null;
   let cleanedUp = false;
   let rejectionCheckInterval = null;
-  let rejectionRequestInFlight = null;
   let rejectionActive = false;
   const CAMERA_SETTINGS = IS_MOBILE_ENV
     ? {
@@ -156,12 +156,7 @@
     } catch (_) { }
     return supported;
   })();
-  const SCORE_ENDPOINT = ((window && window.__APP_CONFIG__ && window.__APP_CONFIG__.remoteApiBaseUrl) || "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/") + "recpuntaje.php";
-  const REJECTION_ENDPOINT = (((window && window.__APP_CONFIG__ && window.__APP_CONFIG__.remoteApiBaseUrl) || "https://www.pressstartevolution.com/tbwa/mexana/admin/apigame/")) + "checkrechazo.php";
-  const BASIC_AUTH_TOKEN =
-    (window && window.BASIC_AUTH_TOKEN) ||
-    (window && window.__APP_CONFIG__ && window.__APP_CONFIG__.basicAuthToken) ||
-    "UHJlc3NzdGFydGV2b2x1dGlvbjpQcjNzdCQkMjAyNQ==";
+  
   let gameStartTimestamp = null;
   let scoreSubmitted = false;
   let pendingScorePromise = null;
@@ -183,9 +178,6 @@
   const coinBannerPointsSuffixEl = document.getElementById("coinBannerPointsSuffix");
   const coinsProgressFill = document.getElementById("coinsProgressFill");
   const livesProgressFill = document.getElementById("livesProgressFill");
-  const rejectionPopupEl = document.getElementById("rejectionPopup");
-  const rejectionExitButtonEl = document.getElementById("rejectionExitButton");
-  const rejectionDescriptionEl = document.getElementById("rejectionDescription");
 
   if (IS_MOBILE_ENV && tutorialOverlayEl) {
     tutorialOverlayEl.classList.add("tutorial-overlay--mobile");
@@ -218,6 +210,14 @@
   function updateLivesProgress() {
     const ratio = LIVES_MAX > 0 ? lives / LIVES_MAX : 0;
     applyProgress(livesProgressFill, ratio);
+  }
+
+  function frameSmoothingFactor(perFrameAlpha, deltaMultiplier) {
+    if (!Number.isFinite(perFrameAlpha)) return 0;
+    const clampedAlpha = Math.min(Math.max(perFrameAlpha, 0), 1);
+    if (clampedAlpha === 0 || deltaMultiplier <= 0) return 0;
+    if (clampedAlpha === 1) return 1;
+    return 1 - Math.pow(1 - clampedAlpha, deltaMultiplier);
   }
 
   updateCoinProgress();
@@ -755,20 +755,23 @@
     }
     isPaused = (hitPauseUntil > 0) || rejectionActive;
 
-    const delta = clock.getDelta();
+    const delta = Math.min(clock.getDelta(), MAX_DELTA_SECONDS);
     if (!isPaused && mixer) {
       mixer.update(delta);
     }
 
     if (!isPaused) {
+      const deltaMultiplier = delta * TARGET_FRAME_RATE;
       if (!tutorialActive && speed < MAX_SPEED) {
         speed = Math.min(MAX_SPEED, speed + SPEED_ACCELERATION * delta);
       }
       if (camera && player) {
         const desiredX = player.position.x * CAMERA_SETTINGS.followXFactor;
-        camera.position.x += (desiredX - camera.position.x) * 0.2;
-        camera.position.y += (CAMERA_SETTINGS.height - camera.position.y) * 0.08;
-        camera.position.z += ((player.position.z + CAMERA_SETTINGS.distance) - camera.position.z) * 0.08;
+        const cameraFollowFactor = frameSmoothingFactor(0.2, deltaMultiplier);
+        const cameraLagFactor = frameSmoothingFactor(0.08, deltaMultiplier);
+        camera.position.x += (desiredX - camera.position.x) * cameraFollowFactor;
+        camera.position.y += (CAMERA_SETTINGS.height - camera.position.y) * cameraLagFactor;
+        camera.position.z += ((player.position.z + CAMERA_SETTINGS.distance) - camera.position.z) * cameraLagFactor;
         cameraLookTarget.set(
           player.position.x,
           lookTargetBaseY,
@@ -785,11 +788,14 @@
         );
         skyMesh.rotation.set(0, 0, 0);
       }
-      player.position.x += (lanes[targetLane] - player.position.x) * 0.2;
+      const laneLerp = frameSmoothingFactor(0.2, deltaMultiplier);
+      if (player) {
+        player.position.x += (lanes[targetLane] - player.position.x) * laneLerp;
+      }
 
-      if (isJumping) {
-        player.position.y += yVelocity;
-        yVelocity -= 0.01;
+      if (isJumping && player) {
+        player.position.y += yVelocity * deltaMultiplier;
+        yVelocity -= 0.01 * deltaMultiplier;
         if (player.position.y <= groundY) {
           player.position.y = groundY;
           isJumping = false;
@@ -809,7 +815,7 @@
       const playerHead = player.position.y + playerHalfHeight;
       for (let i = obstacles.length - 1; i >= 0; i--) {
         const obs = obstacles[i];
-        obs.position.z += speed * 50;
+        obs.position.z += speed * 50 * deltaMultiplier;
         if (obs.position.z > 10) {
           recycleObstacle(obs);
           continue;
@@ -885,8 +891,8 @@
       // Monedas
       for (let i = coins.length - 1; i >= 0; i--) {
         const coin = coins[i];
-        if (coin.rotation) coin.rotation.y += 0.1;
-        coin.position.z += speed * 50;
+        if (coin.rotation) coin.rotation.y += 0.1 * deltaMultiplier;
+        coin.position.z += speed * 50 * deltaMultiplier;
         // coin.position.z = 0;
         if (coin.position.z > 10) {
           recycleCoin(coin);
@@ -948,13 +954,13 @@
       const recycleThreshold = streetRecycleThreshold || (streetFrontOffset + streetSegmentLength);
       const recycleShift = streetRecycleShift || (streetLoopLength + streetSegmentLength);
       for (let seg of floorSegments) {
-        seg.position.z += speed * 50;
+        seg.position.z += speed * 50 * deltaMultiplier;
         if (seg.position.z > recycleThreshold) {
           seg.position.z -= recycleShift;
         }
       }
       for (let bld of buildings) {
-        bld.position.z += speed * 50;
+        bld.position.z += speed * 50 * deltaMultiplier;
         if (bld.position.z > 10) {
           recycleBuilding(bld);
         }
@@ -2009,138 +2015,10 @@
     }
   }
 
-  // function startRejectionPolling() {
-  //   if (rejectionActive) return;
-  //   if (rejectionCheckInterval != null) return;
-  //   const session = getStoredSessionData();
-  //   let userId = toNumberOrZero(session?.id_user_game);
-  //   if (!userId && IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
-  //     userId = 13;
-  //   }
-  //   if (!userId) {
-  //     try {
-  //       console.log("[rejection] polling skipped: no id_user_game in session");
-  //     } catch (_) { }
-  //     return;
-  //   }
-  //   try {
-  //     console.log("[rejection] start polling", { userId });
-  //   } catch (_) { }
-  //   if (IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
-  //     setManagedTimeout(() => {
-  //       console.log("[rejection] local mock triggered");
-  //       handleFacturaRejection({ numero_factura: "LOCAL-TEST" });
-  //     }, 1000);
-  //     return;
-  //   }
-  //   rejectionCheckInterval = setManagedInterval(() => {
-  //     checkRejectionStatus().catch(() => { });
-  //   }, 5000);
-  //   checkRejectionStatus().catch(() => { });
-  // }
-
-  // async function checkRejectionStatus() {
-  //   if (rejectionActive) return;
-  //   if (rejectionRequestInFlight) return;
-  //   const session = getStoredSessionData();
-  //   let userId = toNumberOrZero(session?.id_user_game);
-  //   if (!userId && IS_LOCAL_ENV && ENABLE_LOCAL_REJECTION_MOCK) {
-  //     userId = 13;
-  //   }
-  //   if (!userId) {
-  //     try {
-  //       console.log("[rejection] request skipped: no id_user_game in session");
-  //     } catch (_) { }
-  //     return;
-  //   }
-
-  //   const facturaId = toNumberOrZero(session?.id_factura);
-  //   const payload = { id_user_game: userId };
-  //   if (facturaId > 0) {
-  //     payload.id_factura = facturaId;
-  //   }
-
-  //   rejectionRequestInFlight = (async () => {
-  //     try {
-  //       try {
-  //         console.log("[rejection] polling", {
-  //           endpoint: REJECTION_ENDPOINT,
-  //           timestamp: new Date().toISOString(),
-  //           payload,
-  //         });
-  //       } catch (_) { }
-  //       const response = await fetch(REJECTION_ENDPOINT, {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Basic ${BASIC_AUTH_TOKEN}`,
-  //         },
-  //         body: JSON.stringify(payload),
-  //         credentials: "include",
-  //         cache: "no-store",
-  //         keepalive: true,
-  //       });
-
-  //       if (!response.ok) {
-  //         return;
-  //       }
-
-  //       const data = await response.json().catch(() => null);
-  //       if (data && data.rejected) {
-  //         handleFacturaRejection(data.factura || null);
-  //       }
-  //     } catch (error) {
-  //       try { console.warn("[rejection] poll failed", error); } catch (_) { }
-  //     } finally {
-  //       rejectionRequestInFlight = null;
-  //     }
-  //   })();
-
-  //   return rejectionRequestInFlight;
-  // }
-
-  function showRejectionOverlay(facturaInfo) {
-    if (!rejectionPopupEl) return;
-    if (rejectionDescriptionEl) {
-      let message = "Por favor, asegúrate de que el archivo sea legible, esté en formato JPG, PNG o PDF, y contenga toda la información necesaria para su validación. Por esta razón, los puntos que acumulaste no podrán ser validados.";
-      if (facturaInfo && facturaInfo.numero_factura) {
-        message += ` Número de factura: ${facturaInfo.numero_factura}.`;
-      }
-      rejectionDescriptionEl.textContent = message;
-    }
-    rejectionPopupEl.hidden = false;
-  }
-
-  function handleFacturaRejection(facturaInfo) {
-    if (rejectionActive) return;
-    rejectionActive = true;
-    stopRejectionPolling();
-    scoreSubmitted = true;
-    freezeGameForRejection();
-    showRejectionOverlay(facturaInfo);
-  }
-
-  function freezeGameForRejection() {
-    speed = 0;
-    // Evita que la aceleración siga incrementando la velocidad tras el popup
-    if (typeof MAX_SPEED === "number" && typeof BASE_SPEED === "number") {
-      speed = 0;
-    }
-    isPaused = true;
-    gameStarted = false;
-    if (mixer) {
-      try {
-        mixer.stopAllAction();
-      } catch (_) { }
-    }
-    removeManagedEvents();
-    stopRejectionPolling();
-  }
 
   async function submitGameScore(endTimestamp) {
     const payload = buildScorePayload(endTimestamp);
 
-    // 1) Intentar enviar a través del bridge del padre (Next.js)
     try {
       const parentWin = (window.parent && window.parent !== window) ? window.parent : null;
       if (parentWin && typeof parentWin.__submitScore === "function") {
@@ -2153,48 +2031,6 @@
         return result;
       }
     } catch (_) { }
-
-    // 2) Fallback: enviar directamente al endpoint si el bridge no existe
-    if (typeof fetch !== "function") {
-      return;
-    }
-
-    try {
-      console.info("[score] Bridge unavailable. Submitting to:", SCORE_ENDPOINT);
-      console.info("[score] Payload:", payload);
-    } catch (_) { }
-
-    try {
-      const response = await fetch(SCORE_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Basic ${BASIC_AUTH_TOKEN}`,
-        },
-        body: JSON.stringify(payload),
-        credentials: "include",
-        keepalive: true,
-        cache: "no-store",
-      });
-
-      if (response.ok) {
-        try { console.info("[score] Submitted OK"); } catch (_) { }
-        return response;
-      }
-
-      const message = await response
-        .text()
-        .catch(() => "");
-
-      if (message) {
-        throw new Error(message);
-      }
-
-      throw new Error(`Error ${response.status} al registrar el puntaje.`);
-    } catch (err) {
-      try { console.error("[score] Submit failed:", err); } catch (_) { }
-      throw err;
-    }
   }
 
   function generateCity() {

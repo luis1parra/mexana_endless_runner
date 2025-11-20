@@ -33,18 +33,18 @@ export default function NotFound() {
           
           <div className="absolute inset-0 z-10 px-8 py-15 md:px-12 md:py-0 lg:px-16">
             <div className="h-full flex flex-col items-center justify-center text-center">
-              <h1 className="-mb-5 md:-mb-10 text-[115px] font-extrabold tracking-tight text-white md:text-[200px]">
+              <h1 className="-mb-5 md:-mb-16 text-[115px] font-extrabold tracking-wider text-white md:text-[200px]">
                 404
               </h1>
               <h2 className="mt-0 text-[25px] font-bold text-white/95 md:text-[40px]">
                 Obstáculo no encontrado
               </h2>
-              <p className="mt-4 max-w-[520px] font-light text-white text-[17px] md:text-[20px]">
+              <p className="mt-1 max-w-[520px] font-light text-white text-[17px] md:text-[20px]">
                 Vuelve al camino correcto y sigue esquivando obstáculos.
               </p>
               <Link
                 href="/"
-                className="mt-8 inline-flex items-center justify-center rounded-full bg-white px-8 py-3 text-lg font-semibold text-[var(--cpdblue)] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition hover:bg-[#F2F6FF]"
+                className="mt-8 md:mt-3 inline-flex items-center justify-center rounded-full bg-white px-8 py-3 text-lg font-semibold text-[var(--cpdblue)] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition hover:bg-[#F2F6FF]"
               >
                 Volver al inicio
               </Link>

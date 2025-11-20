@@ -71,7 +71,7 @@ export function InvalidInvoiceModal({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        className="relative w-full max-w-[520px] rounded-[40px] bg-[#2450F0] px-8 py-12 text-center text-white shadow-[0_45px_90px_rgba(12,35,106,0.45)]"
+        className="relative w-full max-w-[720px] rounded-[40px] bg-[#2450F0] px-8 py-12 text-center text-white shadow-[0_45px_90px_rgba(12,35,106,0.45)]"
       >
         {/* {onClose && (
           <button

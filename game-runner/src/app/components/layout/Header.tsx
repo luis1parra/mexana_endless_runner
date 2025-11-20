@@ -116,7 +116,7 @@ export function Header({
     <nav className="z-200 relative text-sm font-semibold text-white/80 lg:text-base">
       {
         renderLogo(
-          "w-2/9 min-w-[100px] max-w-[230px] absolute z-10 left-1/2 -top-1/2 transform -translate-x-1/2 lg:min-w-[130px]",
+          "w-2/9 min-w-[100px] max-w-[210px] absolute z-10 left-1/2 -top-1/2 transform -translate-x-1/2 lg:min-w-[130px]",
           "w-full h-auto"
         )
       }

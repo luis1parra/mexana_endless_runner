@@ -307,17 +307,17 @@ export default function JuegoPage() {
           <div className="relative z-10 w-full justify-center px-0">
             <div className="flex w-full flex-col">
 
-              <div className="w-2/9 min-w-[100px] max-w-[230px] absolute z-10 left-1/2 -top-2 transform -translate-x-1/2 -translate-y-1/2 lg:min-w-[130px]">
+              <div className="w-2/9 min-w-[100px] max-w-[210px] absolute z-10 left-1/2 -top-2 transform -translate-x-1/2 -translate-y-1/2 lg:min-w-[130px]">
                 <Image src={logo} alt="Mexsana" />
               </div>
               <div className="absolute w-full min-w-[390px] max-w-[1000px] -z-1 -top-2 left-1/2 transform -translate-x-1/2 flex justify-center ">
                 <Rec className="w-full h-auto"/>
               </div>
 
-               <section className="relative top-10 bg-white/0 relative mt-6 flex flex-1 flex-col md:flex-row md:items-center lg:mt-10 lg:gap-16">
-                <div className="bg-red-400/0 relative hidden flex-col items-center text-center md:w-[40%] md:flex md:my-0">
+               <section className="relative top-10 bg-white/0 relative mt-6 flex flex-1 flex-col md:flex-row md:items-center lg:mt-10 lg:gap-16 lg:px-10">
+                <div className="bg-red-400/0 relative hidden mt-10 flex-col items-center text-center md:w-[42%] md:flex md:">
                   <span className="text-[22px] font-bold text-white">{activeAvatar.label}</span>
-                  <div className="relative mt-8 w-full">
+                  <div className="relative mt-8 w-full lg:w-9/10 xl:w-8/10 2xl:w-7/10">
                     <Image
                       src={activeAvatar.image}
                       alt={activeAvatar.label}
@@ -332,7 +332,7 @@ export default function JuegoPage() {
                       ¡Hola {nickname || fallbackNickname}!
                     </h3>
                     <h1 className="mt-2 text-[32px] font-extrabold leading-[1.05] text-white drop-shadow-md md:text-[52px]">
-                      Escoge tu avatar Favorito
+                      Escoge tu avatar <br/> Favorito
                     </h1>
                     <p className="mt-5 w-full text-[17px] font-light text-white md:text-[20px]">
                       Selecciona tu avatar preferido y da inicio a la recolección de los Big Promos de Mexsana por toda la ciudad.
@@ -374,9 +374,9 @@ export default function JuegoPage() {
                   </div>
 
                   <div className="flex flex-col gap-6">
-                    <div className="flex items-start gap-3 rounded-[32px] bg-white/90 px-6 py-5 text-[var(--cpdblue)] shadow-[0_25px_45px_rgba(11,37,117,0.28)] lg:w-7/8">
-                      <span className="pt-2"><Info /></span>
-                      <p className="text-[15px] font-medium leading-relaxed md:text-[15px]">
+                    <div className="flex items-start gap-3 rounded-[26px] bg-white px-6 py-3 text-[var(--cpdblue)] shadow-[0_25px_45px_rgba(11,37,117,0.28)] lg:w-7/8">
+                      <span className="pt-1"><Info /></span>
+                      <p className="text-[15px] font-medium md:text-[15px]">
                         Nota: Una vez que ingreses a la partida, no podrás salir del juego. Si lo haces, perderás la oportunidad de jugar y tendrás que ingresar una nueva factura.
                       </p>
                     </div>
