@@ -7,6 +7,7 @@
   let scene, camera, renderer;
   let player, targetLane = 1;
   const obstacles = [], coins = [], lanes = [-2, 0, 2], buildings = [], floorSegments = [];
+  const coinAssetQueue = [];
   const COIN_OBSTACLE_Z_GAP = 8;
   const COIN_OBSTACLE_LANE_TOLERANCE = 0.2;
   const COIN_PLACEMENT_MAX_ATTEMPTS = 6;
@@ -171,6 +172,7 @@
   const startHintEl = document.getElementById("startHint");
   const tutorialOverlayEl = document.getElementById("tutorialOverlay");
   const tutorialInstructionEl = document.getElementById("tutorialInstruction");
+  const rejectionExitButtonEl = document.getElementById("rejectionExitButton");
   const coinBannerEl = document.getElementById("coinBanner");
   const coinBannerImageEl = document.getElementById("coinBannerImage");
   const coinBannerTitleEl = document.getElementById("coinBannerTitle");
@@ -1276,6 +1278,17 @@
     return lanes[Math.floor(Math.random() * lanes.length)];
   }
 
+  function shuffleArray(target) {
+    if (!Array.isArray(target)) return target;
+    for (let i = target.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = target[i];
+      target[i] = target[j];
+      target[j] = temp;
+    }
+    return target;
+  }
+
   function laneHasObstacleConflict(laneX, targetZ) {
     if (!obstacles.length) return false;
     for (const obstacle of obstacles) {
@@ -1327,6 +1340,23 @@
       node.userData = {};
     }
     return node.userData;
+  }
+
+  function getNextCoinAssetClone() {
+    const pool = window.ASSET_POOLS?.coins;
+    if (!Array.isArray(pool) || pool.length === 0) return null;
+
+    if (coinAssetQueue.length === 0) {
+      coinAssetQueue.push(...pool);
+      shuffleArray(coinAssetQueue);
+    }
+
+    const source = coinAssetQueue.shift();
+    if (!source) return null;
+    if (typeof window.FBX_ASSET_CLONE === "function") {
+      return window.FBX_ASSET_CLONE(source);
+    }
+    return source.clone ? source.clone(true) : source;
   }
 
   function enableCharacterMaterialSaturation(material) {
@@ -1537,9 +1567,7 @@
   }
 
   function createCoinMesh() {
-    const clone = (typeof window.GET_RANDOM_ASSET_CLONE === "function")
-      ? window.GET_RANDOM_ASSET_CLONE("coins")
-      : null;
+    const clone = getNextCoinAssetClone();
 
     if (clone) {
       const data = ensureUserData(clone);
