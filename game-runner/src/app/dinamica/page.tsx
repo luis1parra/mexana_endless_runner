@@ -124,7 +124,7 @@ export default function DinamicaPage() {
               {/* Steps */}
               {activeTab === "steps" ? (
                 <div className="bg-black/0">
-                  <div className="mt-10 px-[10%] grid gap-4 sm:grid-cols-4 sm:px-[0%] lg:px-[10%]">
+                  <div className="mt-10 px-[10%] grid gap-4 sm:grid-cols-4 sm:px-[0%] lg:px-[6%]">
                     {steps.map((s) => (
                       <div
                         key={s.number}
@@ -148,7 +148,7 @@ export default function DinamicaPage() {
                 </div>
               ) : (
                 <div className="bg-black/0">
-                  <div className="mt-10 px-[10%] grid gap-4 sm:grid-cols-3 sm:px-[12.8%] lg:px-[20%]">
+                  <div className="mt-10 px-[10%] grid gap-4 sm:grid-cols-3 sm:px-[12.8%] lg:px-[17.24%]">
                     {prizes.map((prize) => (
                       <div
                           key={prize.number}

@@ -50,14 +50,14 @@ export default function Home() {
               <h2 className="text-[30px] font-extrabold leading-[1.05] text-white drop-shadow-md md:text-[56px] lg:text-[50px]">
                 FRESH GAME
               </h2>
-              <p className="mt-4 text-[17px] font-light leading-[1.2] text-white/85 md:text-[20px]">
+              <p className="mt-2 text-[17px] font-light leading-[1.2] text-white/85 md:text-[20px]">
                 Con la Big Promo de Mexsana podrás demostrar que cuando se trata
                 de frescura, tu eres el mejor.
               </p>
               <h3 className="mt-6 text-[20px] font-bold text-white md:text-[22px]">
                 ¡Participa y juega acumulando puntos por tus compras!
               </h3>
-              <div className="mt-8 flex flex-row w-full gap-3 text-center sm:w-3/4 sm:gap-3 xl:gap-6">
+              <div className="mt-6 flex flex-row w-full gap-3 text-center sm:w-3/4 sm:gap-3 xl:gap-6">
                 <button
                   type="button"
                   onClick={() => setIsRegistrationOpen(true)}

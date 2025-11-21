@@ -307,14 +307,14 @@ export default function JuegoPage() {
           <div className="relative z-10 w-full justify-center px-0">
             <div className="flex w-full flex-col">
 
-              <div className="w-2/9 min-w-[100px] max-w-[210px] absolute z-10 left-1/2 -top-2 transform -translate-x-1/2 -translate-y-1/2 lg:min-w-[130px]">
+              <div className="w-2/9 min-w-[100px] max-w-[187px] absolute z-10 left-1/2 -top-2 transform -translate-x-1/2 -translate-y-1/2 lg:min-w-[130px]">
                 <Image src={logo} alt="Mexsana" />
               </div>
-              <div className="absolute w-full min-w-[390px] max-w-[1000px] -z-1 -top-2 left-1/2 transform -translate-x-1/2 flex justify-center ">
+              <div className="absolute w-full min-w-[390px] max-w-[800px] -z-1 -top-2 left-1/2 transform -translate-x-1/2 flex justify-center ">
                 <Rec className="w-full h-auto"/>
               </div>
 
-               <section className="relative top-10 bg-white/0 relative mt-6 flex flex-1 flex-col md:flex-row md:items-center lg:mt-10 lg:gap-16 lg:px-10">
+               <section className="relative top-8 lg:top-4 bg-white/0 relative mt-6 flex flex-1 flex-col md:flex-row md:items-center lg:mt-10 lg:gap-16 lg:px-10">
                 <div className="bg-red-400/0 relative hidden mt-10 flex-col items-center text-center md:w-[42%] md:flex md:">
                   <span className="text-[22px] font-bold text-white">{activeAvatar.label}</span>
                   <div className="relative mt-8 w-full lg:w-9/10 xl:w-8/10 2xl:w-7/10">
@@ -326,12 +326,12 @@ export default function JuegoPage() {
                   </div>
                 </div>
 
-                <div className="relative mt-1 flex flex-1 flex-col gap-8 lg:mt-0">
+                <div className="relative mt-1 flex flex-1 flex-col gap-6 lg:mt-0">
                   <div>
                     <h3 className="text-[20px] font-bold text-white/90 md:text-[22px]">
                       ¡Hola {nickname || fallbackNickname}!
                     </h3>
-                    <h1 className="mt-2 text-[32px] font-extrabold leading-[1.05] text-white drop-shadow-md md:text-[52px]">
+                    <h1 className="mt-2 text-[32px] font-extrabold leading-[0.95] text-white drop-shadow-md md:text-[52px]">
                       Escoge tu avatar <br/> Favorito
                     </h1>
                     <p className="mt-5 w-full text-[17px] font-light text-white md:text-[20px]">
@@ -353,14 +353,14 @@ export default function JuegoPage() {
                           }`}
                           aria-pressed={isActive}>
                           <div className="flex flex-col items-center">
-                            <Image src={avatarOption.thumb} alt={avatarOption.label} className="w-28 object-contain rounded-[8px]" />
+                            <Image src={avatarOption.thumb} alt={avatarOption.label} className="w-21 object-contain rounded-[8px]" />
                           </div>
                         </button>
                       );
                     })}
                   </div>
 
-                  <div className="bg-blue-400/0 relative flex flex-col items-center text-center max-w-[300px] self-center md:w-[40%] md:hidden">
+                  <div className="bg-blue-400/0 relative flex flex-col items-center text-center max-w-[250px] self-center md:w-[35%] md:hidden">
                     <span className="text-[20px] font-bold text-white">{activeAvatar.label}</span>
                     <div className="relative mt-4 w-full">
                       <Image

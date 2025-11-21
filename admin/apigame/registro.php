@@ -108,10 +108,51 @@ function storeFacturaImage(string $encodedImage, string $destinationDir): array
     return [$filename, null];
 }
 
+function enforceCampaignIsActive(mysqli $conexion): void
+{
+    $clave = 'fecha_fin_campana';
+    $stmt = $conexion->prepare('SELECT valor FROM constantes WHERE clave = ? LIMIT 1');
+    if ($stmt === false) {
+        respond(500, ['error' => 'No fue posible validar la fecha de fin de campaña.']);
+    }
+
+    $stmt->bind_param('s', $clave);
+    if (!$stmt->execute()) {
+        $stmt->close();
+        respond(500, ['error' => 'No fue posible validar la fecha de fin de campaña.']);
+    }
+
+    $stmt->bind_result($fechaFinValor);
+    if (!$stmt->fetch()) {
+        $stmt->close();
+        respond(500, ['error' => 'La fecha de fin de campaña no está configurada.']);
+    }
+    $stmt->close();
+
+    $fechaFinValor = trim((string)$fechaFinValor);
+    if ($fechaFinValor === '') {
+        respond(500, ['error' => 'La fecha de fin de campaña no está configurada.']);
+    }
+
+    try {
+        $fechaFin = new DateTimeImmutable($fechaFinValor);
+    } catch (Throwable $e) {
+        respond(500, ['error' => 'La fecha de fin de campaña no es válida.']);
+    }
+
+    $now = new DateTimeImmutable('now', $fechaFin->getTimezone());
+    if ($now > $fechaFin) {
+        respond(400, ['error' => 'Esta campaña ha finalizado']);
+    }
+}
+
 $rawBody = file_get_contents('php://input');
 if ($rawBody === false || $rawBody === '') {
     respond(400, ['error' => 'El cuerpo de la solicitud esta vacío.']);
 }
+
+
+enforceCampaignIsActive($conexion);
 
 $payload = json_decode($rawBody, true);
 if (!is_array($payload)) {
