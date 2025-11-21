@@ -100,7 +100,7 @@
     return detectMobileUA() || detectCoarsePointer();
   };
   const IS_MOBILE_ENV = resolveMobileFlag();
-  const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1.5 : 2;
+  const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1.35 : 2;
   const rawObstaclePool = Number(window.OBSTACLE_POOL_SIZE);
   const OBSTACLE_POOL_SIZE = Number.isFinite(rawObstaclePool)
     ? Math.max(0, rawObstaclePool)
@@ -157,7 +157,7 @@
     } catch (_) { }
     return supported;
   })();
-  
+
   let gameStartTimestamp = null;
   let scoreSubmitted = false;
   let pendingScorePromise = null;
@@ -1010,7 +1010,11 @@
     clock.start();
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 1000);
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    //renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({
+      antialias: !IS_MOBILE_ENV,
+      alpha: true,
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(MAX_PIXEL_RATIO, window.devicePixelRatio || 1));
     renderer.setClearColor(SKY_BOTTOM_COLOR.getHex(), 1);
@@ -1698,7 +1702,7 @@
       }
 
       //const newFrontRaw = farthestFront; //- (depth + gap);
-      const spacing = Math.max(1, gap/1.5);
+      const spacing = Math.max(1, gap / 1.5);
       const newFrontRaw = farthestFront - (depth + spacing);
 
       const newFront = snapBackToGrid(newFrontRaw);
@@ -1739,7 +1743,7 @@
       farthestFront = snapBackToGrid(data.streetFront ?? -20);
     }
 
-    
+
     const spacing = Math.max(1, gap);
     //const newFrontRaw = farthestFront  - (depth + spacing);
     const newFrontRaw = farthestFront; //- (depth + gap);
