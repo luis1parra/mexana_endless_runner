@@ -87,43 +87,152 @@ function storeFacturaImage(string $encodedImage, string $destinationDir): array
     return [$filename, null];
 }
 
-function enforceCampaignIsActive(mysqli $conexion): void
+function fetchConstanteValor(mysqli $conexion, string $clave): ?string
 {
-    $clave = 'fecha_fin_campana';
     $stmt = $conexion->prepare('SELECT valor FROM constantes WHERE clave = ? LIMIT 1');
     if ($stmt === false) {
-        respond(500, ['error' => 'No fue posible validar la fecha de fin de campaña.']);
+        respond(500, ['error' => 'No fue posible obtener la configuración de la campaña.']);
     }
 
     $stmt->bind_param('s', $clave);
     if (!$stmt->execute()) {
         $stmt->close();
-        respond(500, ['error' => 'No fue posible validar la fecha de fin de campaña.']);
+        respond(500, ['error' => 'No fue posible obtener la configuración de la campaña.']);
     }
 
-    $stmt->bind_result($fechaFinValor);
+    $stmt->bind_result($valor);
     if (!$stmt->fetch()) {
         $stmt->close();
-        respond(500, ['error' => 'La fecha de fin de campaña no está configurada.']);
+        return null;
     }
     $stmt->close();
 
-    $fechaFinValor = trim((string)$fechaFinValor);
-    if ($fechaFinValor === '') {
-        respond(500, ['error' => 'La fecha de fin de campaña no está configurada.']);
+    return trim((string)$valor);
+}
+
+function resolveCampaignTimezone(mysqli $conexion): DateTimeZone
+{
+    static $timezone = null;
+
+    if ($timezone instanceof DateTimeZone) {
+        return $timezone;
+    }
+
+    $timezoneValor = fetchConstanteValor($conexion, 'timezone_campana');
+    $timezoneValor = $timezoneValor === null ? '' : trim($timezoneValor);
+
+    if ($timezoneValor === '') {
+        $defaultTimezone = @date_default_timezone_get();
+        if ($defaultTimezone === false || $defaultTimezone === '') {
+            $timezoneValor = 'UTC';
+        } else {
+            $timezoneValor = $defaultTimezone;
+        }
     }
 
     try {
-        $fechaFin = new DateTimeImmutable($fechaFinValor);
+        $timezone = new DateTimeZone($timezoneValor);
+    } catch (Throwable $e) {
+        respond(500, ['error' => 'La zona horaria de la campa��a no es vǭlida.']);
+    }
+
+    return $timezone;
+}
+
+function enforceCampaignIsActive(mysqli $conexion): void
+{
+    $fechaFinValor = fetchConstanteValor($conexion, 'fecha_fin_campana');
+    if ($fechaFinValor === null || $fechaFinValor === '') {
+        respond(500, ['error' => 'La fecha de fin de campaña no está configurada.']);
+    }
+
+    $timezone = resolveCampaignTimezone($conexion);
+
+    try {
+        $fechaFin = new DateTimeImmutable($fechaFinValor, $timezone);
     } catch (Throwable $e) {
         respond(500, ['error' => 'La fecha de fin de campaña no es válida.']);
     }
 
-    $now = new DateTimeImmutable('now', $fechaFin->getTimezone());
+    $now = new DateTimeImmutable('now', $timezone);
     if ($now > $fechaFin) {
         respond(400, ['error' => 'Esta campaña ha finalizado']);
     }
 }
+
+function enforceWeeklyFacturaLimit(mysqli $conexion, int $userId): void
+{
+    $fechaLanzamientoValor = fetchConstanteValor($conexion, 'fecha_lanzamiento');
+    if ($fechaLanzamientoValor === null || $fechaLanzamientoValor === '') {
+        respond(500, ['error' => 'La fecha de lanzamiento no está configurada.']);
+    }
+
+    $diasSemanaValor = fetchConstanteValor($conexion, 'dias_semana');
+    $diasSemanaValor = $diasSemanaValor === null ? '' : $diasSemanaValor;
+    if (trim($diasSemanaValor) === '') {
+        respond(500, ['error' => 'El periodo de envío de facturas no está configurado.']);
+    }
+
+    if (!is_numeric($diasSemanaValor)) {
+        respond(500, ['error' => 'El periodo de envío de facturas no es válido.']);
+    }
+
+    $diasSemana = (int)$diasSemanaValor;
+    if ($diasSemana <= 0) {
+        respond(500, ['error' => 'El periodo de envío de facturas no es válido.']);
+    }
+
+    $timezone = resolveCampaignTimezone($conexion);
+
+    try {
+        $fechaLanzamiento = new DateTimeImmutable($fechaLanzamientoValor, $timezone);
+    } catch (Throwable $e) {
+        respond(500, ['error' => 'La fecha de lanzamiento no es válida.']);
+    }
+
+    $now = new DateTimeImmutable('now', $timezone);
+    $periodSeconds = $diasSemana * 86400;
+    if ($periodSeconds <= 0) {
+        respond(500, ['error' => 'El periodo de envío de facturas no es válido.']);
+    }
+
+    if ($now < $fechaLanzamiento) {
+        $windowStart = $fechaLanzamiento;
+    } else {
+        $elapsed = max(0, $now->getTimestamp() - $fechaLanzamiento->getTimestamp());
+        $periodIndex = (int) floor($elapsed / $periodSeconds);
+        $windowStart = $fechaLanzamiento->modify('+' . ($periodIndex * $diasSemana) . ' days');
+    }
+
+    $windowEnd = $windowStart->modify('+' . $diasSemana . ' days');
+
+    $startFormatted = $windowStart->format('Y-m-d H:i:s');
+    $endFormatted = $windowEnd->format('Y-m-d H:i:s');
+
+    $stmt = $conexion->prepare(
+        'SELECT COUNT(*) FROM facturas WHERE id_user_game = ? AND fecha_registro >= ? AND fecha_registro < ?'
+    );
+    if ($stmt === false) {
+        respond(500, ['error' => 'No fue posible validar el límite de facturas por periodo.']);
+    }
+
+    $stmt->bind_param('iss', $userId, $startFormatted, $endFormatted);
+    if (!$stmt->execute()) {
+        $stmt->close();
+        respond(500, ['error' => 'No fue posible validar el límite de facturas por periodo.']);
+    }
+
+    $stmt->bind_result($facturasRegistradas);
+    $stmt->fetch();
+    $stmt->close();
+
+    //echo "facturasRegistradas=".$facturasRegistradas . " userId=".$userId . " startFormatted=".$startFormatted . " endFormatted=".$endFormatted;
+
+    if ((int)$facturasRegistradas >= 3) {
+        respond(400, ['error' => 'Debes esperar a la siguiente semana para subir más facturas']);
+    }
+}
+
 
 $rawBody = file_get_contents('php://input');
 if ($rawBody === false || $rawBody === '') {
@@ -170,6 +279,8 @@ if (!$stmtUser->fetch()) {
     respond(404, ['error' => 'No existe un usuario asociado a ese correo.']);
 }
 $stmtUser->close();
+
+enforceWeeklyFacturaLimit($conexion, (int)$userId);
 
 $stmtFacturaUnique = $conexion->prepare('SELECT estado FROM facturas WHERE numero_factura = ? AND lugar_compra = ? AND estado<>"3" ORDER BY fecha_registro LIMIT 1');
 if ($stmtFacturaUnique === false) {
