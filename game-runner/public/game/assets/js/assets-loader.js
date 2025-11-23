@@ -95,7 +95,8 @@ async function __runAssetPipeline() {
   const CITY_BUILDING_FBX_URLS = [
     "assets/3d/buildingBlue.fbx", 
     "assets/3d/buildingOrange.fbx", 
-    "assets/3d/buildingYellow.fbx", 
+    "assets/3d/buildingYellow.fbx",
+    //"assets/3d/buildingYellow-compressed.fbx",
     "assets/3d/buildingRed.fbx", 
   ];
   

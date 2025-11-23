@@ -8,6 +8,7 @@
   let player, targetLane = 1;
   const obstacles = [], coins = [], lanes = [-2, 0, 2], buildings = [], floorSegments = [];
   const coinAssetQueue = [];
+  const obstacleAssetQueue = [];
   const COIN_OBSTACLE_Z_GAP = 8;
   const COIN_OBSTACLE_LANE_TOLERANCE = 0.2;
   const COIN_PLACEMENT_MAX_ATTEMPTS = 6;
@@ -100,7 +101,7 @@
     return detectMobileUA() || detectCoarsePointer();
   };
   const IS_MOBILE_ENV = resolveMobileFlag();
-  const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1.35 : 2;
+  const MAX_PIXEL_RATIO = IS_MOBILE_ENV ? 1 : 2;
   const rawObstaclePool = Number(window.OBSTACLE_POOL_SIZE);
   const OBSTACLE_POOL_SIZE = Number.isFinite(rawObstaclePool)
     ? Math.max(0, rawObstaclePool)
@@ -1363,6 +1364,21 @@
     return source.clone ? source.clone(true) : source;
   }
 
+  function getNextObstacleAssetClone() {
+    const pool = window.ASSET_POOLS?.obstacles;
+    if (!Array.isArray(pool) || pool.length === 0) return null;
+    if (obstacleAssetQueue.length === 0) {
+      obstacleAssetQueue.push(...pool);
+      shuffleArray(obstacleAssetQueue);
+    }
+    const source = obstacleAssetQueue.shift();
+    if (!source) return null;
+    if (typeof window.FBX_ASSET_CLONE === "function") {
+      return window.FBX_ASSET_CLONE(source);
+    }
+    return source.clone ? source.clone(true) : source;
+  }
+
   function enableCharacterMaterialSaturation(material) {
     if (!material || characterSaturationMaterials.has(material)) return;
     characterSaturationMaterials.add(material);
@@ -1533,9 +1549,7 @@
   }
 
   function createObstacleMesh() {
-    const clone = (typeof window.GET_RANDOM_ASSET_CLONE === "function")
-      ? window.GET_RANDOM_ASSET_CLONE("obstacles")
-      : null;
+    const clone = getNextObstacleAssetClone();
 
     if (clone) {
       const data = ensureUserData(clone);
