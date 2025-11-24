@@ -386,7 +386,7 @@ export default function JuegoPage() {
                         type="button"
                         onClick={handleStartGame}
                         disabled={isStartingGame}
-                        className={`cursor-pointer w-fit rounded-full px-10 py-4 text-lg font-semibold text-[var(--cpdblue)] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition ${
+                        className={`cursor-pointer mb-12 lg:mb-10 w-fit rounded-full px-10 py-2 lg:py-4 text-lg font-semibold text-[var(--cpdblue)] shadow-[0_22px_44px_rgba(12,35,106,0.35)] transition ${
                           isStartingGame ? "cursor-not-allowed bg-white/80 text-[#1D3FCE]/70" : "bg-white hover:bg-[#F2F6FF]"
                         }`}
                         aria-busy={isStartingGame}>
