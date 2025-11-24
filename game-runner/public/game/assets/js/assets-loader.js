@@ -71,7 +71,7 @@ async function __runAssetPipeline() {
   const OBSTACLE_SCALE_MAP = {
     "obstaclecar.fbx": 0.025,
     "obstacletrafficcone.fbx": 1.4,
-    "obstaclebarrier.fbx": 2.7,
+    "obstaclebarrier.fbx": .03,
   };
 
   const CITY_DECOR_ROTATION_MAP = {
