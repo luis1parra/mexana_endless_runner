@@ -727,6 +727,9 @@
   };
 
   const handleStartInteraction = () => {
+    if (typeof window.START_ASSET_LOADING === "function") {
+      window.START_ASSET_LOADING();
+    }
     startGameAfterCountdown().catch((error) => console.error("Failed to start game:", error));
   };
 

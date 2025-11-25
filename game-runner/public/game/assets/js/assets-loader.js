@@ -623,6 +623,15 @@ function startAssetPipeline() {
   window.START_ASSET_LOADING = startAssetPipeline;
 
   const delayMs = typeof window.ASSET_LOAD_DELAY_MS === "number" ? window.ASSET_LOAD_DELAY_MS : 2000;
+  const ua = (navigator.userAgent || "").toLowerCase();
+  const isIOS =
+    /iphone|ipad|ipod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  if (isIOS) {
+    return; // wait for user interaction to call START_ASSET_LOADING
+  }
+
   if (window.DEFER_ASSET_LOADING === true) {
     setTimeout(startAssetPipeline, delayMs);
   } else {
