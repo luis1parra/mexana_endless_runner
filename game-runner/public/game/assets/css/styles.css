@@ -125,8 +125,9 @@ body.hit-flash::after {
 
 @media (pointer: coarse), (max-width: 768px) {
   #coinBanner {
-    top: calc(74px + env(safe-area-inset-top, 0px));
-    transform: translate(-50%, -12px);
+    /* top: calc(74px + env(safe-area-inset-top, 0px)); */
+    top: 15dvh;
+    transform: translate(-50%, 0);
   }
   #coinBanner.coin-banner--visible {
     transform: translate(-50%, 0);

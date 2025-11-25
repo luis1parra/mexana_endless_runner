@@ -381,6 +381,7 @@ export default function JuegoPage() {
                       </p>
                     </div>
 
+                    {startError && <p className="max-w-md rounded-[10px] bg-white/40 px-5 py-3 text-sm font-semibold text-[#D52D2D] shadow-[0_12px_24px_rgba(12,35,106,0.2)]">{startError}</p>}
                     <div className="flex flex-row-reverse self-center md:self-end">
                       <button
                         type="button"
@@ -392,8 +393,6 @@ export default function JuegoPage() {
                         aria-busy={isStartingGame}>
                         {isStartingGame ? "Iniciando..." : "Iniciar juego"}
                       </button>
-
-                      {startError && <p className="max-w-md rounded-[24px] bg-white/90 px-5 py-3 text-sm font-semibold text-[#D52D2D] shadow-[0_12px_24px_rgba(12,35,106,0.2)]">{startError}</p>}
 
                       {/* <button
                         type="button"
