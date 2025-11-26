@@ -42,22 +42,22 @@ export default function Home() {
           <Image 
             src={children} 
             alt="children" 
-            className="hidden absolute w-7/10 h-auto max-h-9/10 object-contain right-6 bottom-0 sm:flex"
+            className="hidden absolute w-7/10 h-auto max-h-9/10 object-contain right-0 bottom-0 sm:flex"
           />
 
-          <div className="relative top-0 bottom-0 my-14 grid items-center gap-14 sm:grid-cols-12 lg:my-18 sm:px-6">
-            <div className="sm:col-span-9 lg:col-span-7 xl:col-span-5">
-              <h2 className="text-[30px] font-extrabold leading-[1.05] text-white drop-shadow-md md:text-[56px] lg:text-[50px]">
+          <div className="relative top-0 bottom-0 my-14 grid items-center gap-14 sm:grid-cols-15 lg:my-18 sm:px-6">
+            <div className="sm:col-span-10 lg:col-span-9 xl:col-span-8">
+              <h2 className="text-[30px] font-extrabold leading-[1.05] text-white drop-shadow-md sm:text-[50px]">
                 FRESH GAME
               </h2>
-              <p className="mt-2 text-[17px] font-light leading-[1.2] text-white/85 md:text-[20px]">
+              <p className="mt-2 text-[17px] font-light leading-[1.2] text-white/85 sm:text-[20px]">
                 Con la Big Promo de Mexsana podrás demostrar que cuando se trata
                 de frescura, tu eres el mejor.
               </p>
-              <h3 className="mt-6 text-[20px] font-bold text-white md:text-[22px]">
+              <h3 className="mt-4 text-[20px] font-bold text-white sm:text-[22px] w-[75%]">
                 ¡Participa y juega acumulando puntos por tus compras!
               </h3>
-              <div className="mt-6 flex flex-row w-full gap-3 text-center sm:w-3/4 sm:gap-3 xl:gap-6">
+              <div className="mt-4 flex flex-row sm:flex-col lg:flex-row w-full sm:w-1/2 lg:w-3/4 gap-3 text-center sm:gap-3 xl:gap-6">
                 <button
                   type="button"
                   onClick={() => setIsRegistrationOpen(true)}
