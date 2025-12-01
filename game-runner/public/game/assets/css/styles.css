@@ -236,7 +236,7 @@ body.hit-flash::after {
 
 .hud-card {
   position: absolute;
-  top: 2em;
+  top: calc(2em + env(safe-area-inset-top, 0px));
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -336,7 +336,7 @@ body.hit-flash::after {
 
 @media (max-width: 768px) {
   .hud-card {
-    top: 2em;
+    top: calc(env(safe-area-inset-top, 0px) + 3.2rem);
     gap: 6px;
   }
 
