@@ -95,6 +95,7 @@
         try {
           var params = new URLSearchParams(location.search || "");
           var raw = (params.get("player_variant") || "").toLowerCase();
+         
           if (raw === "girl" || raw === "boy") {
             window.PLAYER_VARIANT = raw;
           }
@@ -186,8 +187,10 @@
         }
       })();
     </script>
+ 
+
     <script src="./assets/js/assets-loader.js"></script>
-    <script src="./assets/js/game.js"></script>
+    <script src="./assets/js/game.js?v=2.0"></script>
 </body>
 
 </html>
