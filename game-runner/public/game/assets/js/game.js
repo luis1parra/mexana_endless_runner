@@ -1,4 +1,3 @@
-
 // Encapsulado
 (() => {
   console.log("PLAYER_VARIANT from game.js", window.PLAYER_VARIANT);
@@ -354,12 +353,27 @@
     return !!window.ASSETS_READY;
   };
 
+  const resumeAudioContextIfNeeded = async () => {
+    try {
+      const ctx = window.AUDIO_CTX;
+      if (!ctx || typeof ctx.resume !== "function") return;
+      if (ctx.state === "running") return;
+      const promise = ctx.resume();
+      if (promise && typeof promise.then === "function") {
+        await Promise.race([
+          promise,
+          new Promise((resolve) => setTimeout(resolve, 500)),
+        ]);
+      }
+    } catch (_) { }
+  };
+
   let countdownRunning = false;
   let countdownInterval = null;
   let worldInitialized = false;
   let startSequenceTriggered = false;
   let timerHandle = null;
-
+ console.log(">>> game.js LOADED", Date.now(), startSequenceTriggered);
   function addManagedEvent(target, type, handler, options) {
     if (!target) return;
     const opt = options || {};
@@ -496,10 +510,17 @@
       } catch (_) { }
     });
   }
-
+  
   function cleanupGame() {
     if (cleanedUp) return;
     cleanedUp = true;
+
+    worldInitialized = false;
+    startSequenceTriggered = false;
+    countdownRunning = false;
+    gameStarted = false;
+    isPaused = false;
+    hitPauseUntil = 0;
 
     if (rafHandle) {
       cancelAnimationFrame(rafHandle);
@@ -581,11 +602,17 @@
       renderer = null;
     }
 
+
     scene = null;
     camera = null;
+
+    attachStartEvents();
   }
 
   function initializeWorld() {
+    console.log("worldInitialized ",worldInitialized);
+  
+    cleanedUp = false;
     if (worldInitialized) return;
     worldInitialized = true;
     if (startScreenEl) startScreenEl.style.display = "none";
@@ -688,24 +715,22 @@
   }
 
   const startGameAfterCountdown = async () => {
+    //console.log(">>> startGameAfterCountdown 1111", Date.now(), startSequenceTriggered);
     if (startSequenceTriggered) return;
     startSequenceTriggered = true;
     rejectionActive = false;
     stopRejectionPolling();
 
-    try {
-      if (window.AUDIO_CTX && window.AUDIO_CTX.state !== "running") {
-        await window.AUDIO_CTX.resume();
-      }
-    } catch (_) { }
+    await resumeAudioContextIfNeeded();
 
+    //console.log(">>> startGameAfterCountdown 222", Date.now(), startSequenceTriggered);
     const assetsReady = await waitAssets(60000);
 
     if (startHintEl) startHintEl.style.display = "none";
 
     const originalSpeed = speed;
     speed = 0;
-
+    
     initializeWorld();
 
     if (tutorialActive) {
@@ -738,20 +763,25 @@
     ["touchstart", { passive: true }],
     ["pointerdown", { passive: true }],
   ];
-  if (startScreenEl) {
+
+  function attachStartEvents() {
+    if (startScreenEl) {
+      for (const [type, opts] of startEventConfig) {
+        addManagedEvent(startScreenEl, type, handleStartInteraction, opts);
+      }
+    }
     for (const [type, opts] of startEventConfig) {
-      addManagedEvent(startScreenEl, type, handleStartInteraction, opts);
+      let docOpts;
+      if (typeof opts === "object" && opts !== null) {
+        docOpts = { ...opts, once: true };
+      } else {
+        docOpts = { once: true };
+      }
+      addManagedEvent(document, type, handleStartInteraction, docOpts);
     }
   }
-  for (const [type, opts] of startEventConfig) {
-    let docOpts;
-    if (typeof opts === "object" && opts !== null) {
-      docOpts = { ...opts, once: true };
-    } else {
-      docOpts = { once: true };
-    }
-    addManagedEvent(document, type, handleStartInteraction, docOpts);
-  }
+
+  attachStartEvents();
 
   function animate() {
     rafHandle = requestAnimationFrame(animate);
