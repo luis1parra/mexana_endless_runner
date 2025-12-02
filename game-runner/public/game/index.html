@@ -95,7 +95,7 @@
         try {
           var params = new URLSearchParams(location.search || "");
           var raw = (params.get("player_variant") || "").toLowerCase();
-         
+          //raw = "girl";
           if (raw === "girl" || raw === "boy") {
             window.PLAYER_VARIANT = raw;
           }
