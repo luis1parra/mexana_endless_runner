@@ -373,7 +373,7 @@
   let worldInitialized = false;
   let startSequenceTriggered = false;
   let timerHandle = null;
- console.log(">>> game.js LOADED", Date.now(), startSequenceTriggered);
+
   function addManagedEvent(target, type, handler, options) {
     if (!target) return;
     const opt = options || {};
@@ -1044,11 +1044,11 @@
     clock.start();
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 1000);
-    //renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer = new THREE.WebGLRenderer({
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, });
+    /*renderer = new THREE.WebGLRenderer({
       antialias: !IS_MOBILE_ENV,
       alpha: true,
-    });
+    });*/
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(MAX_PIXEL_RATIO, window.devicePixelRatio || 1));
     renderer.setClearColor(SKY_BOTTOM_COLOR.getHex(), 1);
