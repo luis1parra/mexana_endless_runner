@@ -196,6 +196,7 @@ export default function JuegoPage() {
 
   const activeAvatar = useMemo(() => avatars[selectedAvatar], [selectedAvatar]);
   const selectedAvatarCode = selectedAvatar === "girl" ? "M" : "H";
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const handleStartGame = async () => {
     if (isStartingGame) {
@@ -233,10 +234,28 @@ export default function JuegoPage() {
     setIsStartingGame(true);
 
     try {
-      const response = await api.updateAvatar({
-        id_user_game: idUserGame,
-        avatar: selectedAvatarCode,
-      });
+      const response = await (async () => {
+        const maxAttempts = 3;
+        const retryDelayMs = 500;
+        let attempt = 0;
+
+        while (attempt < maxAttempts) {
+          attempt += 1;
+          try {
+            return await api.updateAvatar({
+              id_user_game: idUserGame,
+              avatar: selectedAvatarCode,
+            });
+          } catch (error) {
+            const isLoadFailed = error instanceof Error && error.message.toLowerCase().includes("load failed");
+            if (!isLoadFailed || attempt >= maxAttempts) {
+              throw error;
+            }
+            await delay(retryDelayMs);
+          }
+        }
+        throw new Error("No fue posible actualizar tu avatar.");
+      })();
 
       const possibleError =
         typeof response === "object" && response !== null

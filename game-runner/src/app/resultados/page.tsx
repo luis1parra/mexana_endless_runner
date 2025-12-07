@@ -232,7 +232,7 @@ export default function ResultadosPage() {
                   <div className="text-[16px] font-extrabold text-center tracking-wide text-white/90 lg:text-[]">
                     Puntuación
                   </div>
-                  <div className="mt-1 rounded-full bg-[var(--cpbarborder)] px-6 py-1 text-center text-[17px] font-extrabold text-[var(--cpdblue)] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px] sm:mt-4 sm:py-3">
+                  <div className="mt-1 rounded-full bg-[var(--cpbarborder)] px-6 py-1 text-center text-[17px] font-extrabold italic text-[var(--cpdblue)] shadow-[inset_0_-6px_0_rgba(0,0,0,0.08)] sm:text-[34px] sm:mt-4 sm:py-3">
                     {formatPoints(score.score)}
                   </div>
                 </div>
