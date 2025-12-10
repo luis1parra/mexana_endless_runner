@@ -1,3 +1,43 @@
+@font-face {
+  font-family: "Futura Lt BT";
+  src: url("../fonts/FuturaPTLight.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Futura";
+  src: url("../fonts/FuturaPTMedium.otf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Futura Bold";
+  src: url("../fonts/FuturaPTBold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Futura-ExtraBoldItalic";
+  src: url("../fonts/FuturaExtraBold.otf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Futura PT";
+  src: url("../fonts/FuturaPTMedium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 body.hit-flash::after {
   content: "";
   position: fixed;
