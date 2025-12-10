@@ -446,6 +446,25 @@ async function __runAssetPipeline() {
   }
 
   // Utilidad: carga secuencialmente una lista y filtra nulos (menos pico de memoria)
+  async function retryLoad(fn, attempts = 3, delayMs = 300) {
+    let lastError = null;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const result = await fn();
+        if (result) return result;
+      } catch (e) {
+        lastError = e;
+      }
+      if (i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+      }
+    }
+    if (lastError) {
+      console.warn("[assets@132] retryLoad failed after", attempts, "attempts:", lastError);
+    }
+    return null;
+  }
+
   async function loadAll(urls, kind) {
     // (Opcional) chequeo de accesibilidad
     urls.forEach((u) => {
@@ -456,10 +475,11 @@ async function __runAssetPipeline() {
     });
 
     const results = [];
+    const attempts = IS_MOBILE_ENV ? 2 : 3;
     for (const url of urls) {
       const lower = (url || "").toLowerCase();
       const loader = lower.endsWith(".fbx") ? loadFBX : loadGLB;
-      const res = await loader(url, kind);
+      const res = await retryLoad(() => loader(url, kind), attempts, 300);
       if (res) {
         results.push(res);
       }
